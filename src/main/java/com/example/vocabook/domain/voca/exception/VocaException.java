@@ -1,7 +1,10 @@
 package com.example.vocabook.domain.voca.exception;
 
-public class VocaException extends RuntimeException {
-    public VocaException(String message) {
-        super(message);
+import com.example.vocabook.global.apiPayload.code.BaseErrorCode;
+import com.example.vocabook.global.apiPayload.exception.VocaBookException;
+
+public class VocaException extends VocaBookException {
+    public VocaException(BaseErrorCode code) {
+        super(code);
     }
 }
