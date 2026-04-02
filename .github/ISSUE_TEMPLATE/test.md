@@ -1,3 +1,12 @@
+---
+name: "♻️ [Refactor] 테스트"
+about: 리팩토링 이슈를 생성하기 위한 템플릿
+title: "♻️ [Refactor] "
+labels: "♻️ refactor"
+assignees: ''
+
+---
+
 ## 📝 개요
 - 자세한 개요 작성
 
