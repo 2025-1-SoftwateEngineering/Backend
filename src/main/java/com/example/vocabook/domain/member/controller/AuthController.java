@@ -1,6 +1,7 @@
 package com.example.vocabook.domain.member.controller;
 
 import com.example.vocabook.domain.member.code.AuthSuccessCode;
+import com.example.vocabook.domain.member.controller.docs.AuthControllerDocs;
 import com.example.vocabook.domain.member.dto.req.AuthReqDTO;
 import com.example.vocabook.domain.member.dto.res.AuthResDTO;
 import com.example.vocabook.domain.member.service.AuthService;
@@ -16,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/auth")
-public class AuthController {
+public class AuthController implements AuthControllerDocs {
 
     private final AuthService authService;
 
