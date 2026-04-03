@@ -80,6 +80,9 @@ public class AuthService {
         // 리프레시 토큰 업데이트
         member.updateRefreshToken(refreshToken);
 
+        // 로그인 시각 변경
+        member.updateLoginAt();
+
         return AuthConverter.toLogin(accessToken, refreshToken, refreshExpiration);
     }
 
