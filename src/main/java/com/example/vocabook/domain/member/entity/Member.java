@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Table(name = "member")
-@SQLDelete(sql = "UPDATE member SET deleted_at = now() WHERE id = ?")
+@SQLDelete(sql = "UPDATE member SET deleted_at = now() WHERE member_id = ?")
 @SQLRestriction(value = "deleted_at is null")
 public class Member extends BaseEntity {
 
