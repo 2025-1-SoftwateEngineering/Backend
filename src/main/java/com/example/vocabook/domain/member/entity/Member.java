@@ -49,4 +49,11 @@ public class Member extends BaseEntity {
     @Column(name = "coin", nullable = false)
     @Builder.Default
     private Long coin = 0L;
+
+    @Column(name = "refresh_token", nullable = false)
+    private String refreshToken;
+
+    public void updateRefreshToken(String refreshToken) {
+        this.refreshToken = refreshToken;
+    }
 }
