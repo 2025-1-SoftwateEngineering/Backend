@@ -3,7 +3,6 @@ package com.example.vocabook.domain.voca.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
