@@ -2,7 +2,6 @@ package com.example.vocabook.domain.member.dto.res;
 
 import lombok.Builder;
 
-import java.time.LocalDateTime;
 import java.util.Date;
 
 public class AuthResDTO {

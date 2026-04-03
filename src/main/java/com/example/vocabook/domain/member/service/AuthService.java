@@ -13,12 +13,10 @@ import com.example.vocabook.domain.member.repository.MemberRepository;
 import com.example.vocabook.global.security.entity.AuthMember;
 import com.example.vocabook.global.util.JwtUtil;
 import jakarta.transaction.Transactional;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.Date;
 
 @Service
