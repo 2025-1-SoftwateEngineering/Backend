@@ -9,9 +9,6 @@ import org.springframework.http.HttpStatus;
 @RequiredArgsConstructor
 public enum AuthErrorCode implements BaseErrorCode {
 
-    ALREADY_EXISTS(HttpStatus.BAD_REQUEST,
-            "AUTH400_1",
-            "이미 회원가입된 사용자입니다."),
     WRONG_PASSWORD(HttpStatus.BAD_REQUEST,
             "AUTH400_2",
             "아이디 혹은 비밀번호가 잘못되었습니다."),
@@ -21,6 +18,9 @@ public enum AuthErrorCode implements BaseErrorCode {
     INVAILD_REFRESH_TOKEN(HttpStatus.BAD_REQUEST,
             "AUTH400_4",
             "리프레시 트큰이 맞지 않습니다."),
+    ALREADY_EXISTS(HttpStatus.CONFLICT,
+            "AUTH409_1",
+            "이미 회원가입된 사용자입니다."),
     ;
 
     private final HttpStatus status;
