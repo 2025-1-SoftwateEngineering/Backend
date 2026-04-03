@@ -32,10 +32,11 @@
 ### 아키텍처 구조
 도메인 아키텍쳐 (DDD)
 ```
-└── java/com/example/scoi/
+└── java/com/example/voca/
     ├── domain
     |   ├── auth        # 인증 관련
     |   ├── member      # 마이페이지 관련
+    |   ├── alert       # 알림 관련
     |   └── voca        # 단어장 관련
     ├── global
     |   ├── apiPayload  # 응답 통일
