@@ -1,32 +1,26 @@
-package com.example.vocabook.domain.voca.entity;
+package com.example.vocabook.domain.member.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-
-import java.time.LocalDateTime;
 
 @Entity
 @Getter
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-@Table(name = "voca")
-public class Voca {
+@Table(name = "pet")
+public class Pet {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "voca_id")
+    @Column(name = "pet_id")
     private Long id;
 
     @Column(name = "level", nullable = false)
     @Builder.Default
     private Long level = 1L;
 
-    @Column(name = "solved_coin", nullable = false)
+    @Column(name = "required_exp", nullable = false)
     @Builder.Default
-    private Long solvedCoin = 0L;
-
-    @Column(name = "created_at", nullable = false)
-    @Builder.Default
-    private LocalDateTime createdAt = LocalDateTime.now();
+    private Long requiredExp = 100L;
 }
