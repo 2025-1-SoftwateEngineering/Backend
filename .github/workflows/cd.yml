@@ -54,9 +54,6 @@ jobs:
           secrets: |
             "env=${{ secrets.ENV }}"
 
-      - name: docker 이미지 push
-        run: docker push ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_IMAGENAME }}
-
   deploy:
     needs: build
     runs-on: ubuntu-latest
