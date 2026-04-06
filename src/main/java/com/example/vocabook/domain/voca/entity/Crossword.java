@@ -10,17 +10,13 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-@Table(name = "voca")
-public class Voca {
+@Table(name = "crossword")
+public class Crossword {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "voca_id")
+    @Column(name = "crossword_id")
     private Long id;
-
-    @Column(name = "level", nullable = false)
-    @Builder.Default
-    private Long level = 1L;
 
     @Column(name = "solved_coin", nullable = false)
     @Builder.Default

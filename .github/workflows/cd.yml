@@ -1,0 +1,68 @@
+# 도커 O
+name: CI/CD PipeLine (Docker)
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: main 체크아웃
+        uses: actions/checkout@v4 # 체크아웃
+
+      - name: 자바 설정 # Java 개발 킷 설정
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: .env 생성
+        run: |
+          mkdir -p ./src/main/resources
+          cat <<EOF > ./src/main/resources/.env
+          ${{ secrets.ENV }}
+          EOF
+        shell: bash
+
+      - name: gradlew 실행 권한 부여
+        run: chmod +x gradlew
+
+      - name: gradle 세팅
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: gradle 빌드
+        run: ./gradlew clean build -x test
+
+      - name: Docker Hub 로그인
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_TOKEN }}
+
+      - name: Docker 이미지 빌드
+        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_IMAGENAME }} .
+
+      - name: docker 이미지 push
+        run: docker push ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_IMAGENAME }}
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: EC2에 Docker Image 배포
+        uses: appleboy/ssh-action@v0.1.6
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          port: 22
+          timeout: 60s
+          script: |
+            sudo docker stop ${{ secrets.DOCKER_IMAGENAME }}
+            sudo docker rm ${{ secrets.DOCKER_IMAGENAME }}
+            sudo docker pull ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_IMAGENAME }}
+            sudo docker run -it -d --network host --name ${{ secrets.DOCKER_IMAGENAME }} -e TZ=Asia/Seoul ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_IMAGENAME }}
