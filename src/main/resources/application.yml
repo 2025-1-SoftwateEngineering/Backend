@@ -18,3 +18,13 @@ spring:
       hibernate:
         format_sql: true # ???? SQL ??? ?? ?? ???
         default_batch_fetch_size: 1000
+
+jwt:
+  token:
+    secretKey: ${JWT_SECRET_KEY}
+    expiration:
+      access: ${JWT_ACCESS_EXP}
+      refresh: ${JWT_REFRESH_EXP}
+
+public:
+  url: ${PUBLIC_URL}

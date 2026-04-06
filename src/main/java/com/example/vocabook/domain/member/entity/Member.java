@@ -56,4 +56,7 @@ public class Member extends BaseEntity {
     public void updateRefreshToken(String refreshToken) {
         this.refreshToken = refreshToken;
     }
+    public void updateLoginAt() {
+        this.loginAt = LocalDateTime.now();
+    }
 }
