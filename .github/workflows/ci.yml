@@ -35,6 +35,14 @@ jobs:
           distribution: 'temurin'
           cache: 'gradle'
 
+      - name: .env 생성
+        run: |
+          mkdir -p ./src/main/resources
+          cat <<EOF > ./src/main/resources/.env
+          ${{ secrets.ENV_TEST }}
+          EOF
+        shell: bash
+
       - name: gradlew 실행 권한 부여
         run: chmod +x gradlew
 
