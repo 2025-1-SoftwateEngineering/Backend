@@ -32,10 +32,10 @@ public class VocaService {
 	private final WordRepository wordRepository;
 	private final MemberVocaRepository memberVocaRepository;
 
-	public VocaResDTO.WordList getWords(Long vocaId, int page) {
+	public VocaResDTO.WordList getWords(Long vocaId, int page, int pageSize) {
 		Voca voca = vocaRepository.findById(vocaId)
 				.orElseThrow(() -> new VocaException(VoceErrorCode.VOCA_NOT_FOUND));
-		Page<Word> wordPage = wordRepository.findByVoca(voca, PageRequest.of(page, 10));
+		Page<Word> wordPage = wordRepository.findByVoca(voca, PageRequest.of(page, pageSize));
 		return VocaConverter.toWordList(wordPage);
 	}
 
@@ -83,16 +83,16 @@ public class VocaService {
 	}
 
 	private void saveMemberVoca(Member member, Voca voca, Long correctCnt, Long learningWordCnt) {
-		if (memberVocaRepository.findByMemberAndVoca(member, voca).isPresent()) {
-			memberVocaRepository.updateResult(member, voca, correctCnt, learningWordCnt, LocalDateTime.now());
-		} else {
-			memberVocaRepository.save(MemberVoca.builder()
-					.member(member)
-					.voca(voca)
-					.correctCnt(correctCnt)
-					.learningWordCnt(learningWordCnt)
-					.solvedAt(LocalDateTime.now())
-					.build());
-		}
+		memberVocaRepository.findByMemberAndVoca(member, voca)
+				.ifPresentOrElse(
+						memberVoca -> memberVoca.updateResult(correctCnt, learningWordCnt, LocalDateTime.now()),
+						() -> memberVocaRepository.save(MemberVoca.builder()
+								.member(member)
+								.voca(voca)
+								.correctCnt(correctCnt)
+								.learningWordCnt(learningWordCnt)
+								.solvedAt(LocalDateTime.now())
+								.build())
+				);
 	}
 }

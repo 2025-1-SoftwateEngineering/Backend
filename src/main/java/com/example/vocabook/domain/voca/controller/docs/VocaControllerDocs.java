@@ -29,7 +29,7 @@ public interface VocaControllerDocs {
 					## 요청 형식
 					- vocaId: 단어장 ID
 					- page: 페이지 번호 (0부터 시작, 기본값 0)
-					- 10개씩 페이징
+					- pageSize: 페이지당 단어 수 (기본값 10)
 					"""
 	)
 	@ApiResponses(value = {
@@ -75,7 +75,8 @@ public interface VocaControllerDocs {
 	})
 	ApiResponse<VocaResDTO.WordList> getWords(
 			@PathVariable Long vocaId,
-			@RequestParam(defaultValue = "0") int page
+			@RequestParam(defaultValue = "0") int page,
+			@RequestParam(defaultValue = "10") int pageSize
 	);
 
 	@Operation(

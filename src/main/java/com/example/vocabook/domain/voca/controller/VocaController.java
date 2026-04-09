@@ -24,9 +24,10 @@ public class VocaController implements VocaControllerDocs {
 	@GetMapping("/{vocaId}/words")
 	public ApiResponse<VocaResDTO.WordList> getWords(
 			@PathVariable Long vocaId,
-			@RequestParam(defaultValue = "0") int page
+			@RequestParam(defaultValue = "0") int page,
+			@RequestParam(defaultValue = "10") int pageSize
 	) {
-		return ApiResponse.onSuccess(VocaSuccessCode.GET_WORDS, vocaService.getWords(vocaId, page));
+		return ApiResponse.onSuccess(VocaSuccessCode.GET_WORDS, vocaService.getWords(vocaId, page, pageSize));
 	}
 
 	@GetMapping("/{vocaId}/test")
