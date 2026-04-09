@@ -32,6 +32,7 @@ public class VocaResDTO {
 	@AllArgsConstructor
 	public static class TestQuestion {
 		private Long wordId;
+		private String englishWord;
 		private String meaning;
 	}
 

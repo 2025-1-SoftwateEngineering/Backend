@@ -26,6 +26,7 @@ public class VocaConverter {
 	public static VocaResDTO.TestQuestion toTestQuestion(Word word) {
 		return VocaResDTO.TestQuestion.builder()
 				.wordId(word.getId())
+				.englishWord(word.getEnglishWord())
 				.meaning(word.getMeaning())
 				.build();
 	}
