@@ -38,4 +38,10 @@ public class MemberVoca {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "voca_id", nullable = false)
     private Voca voca;
+
+    public void updateResult(Long correctCnt, Long learningWordCnt, LocalDateTime solvedAt) {
+        this.correctCnt = correctCnt;
+        this.learningWordCnt = learningWordCnt;
+        this.solvedAt = solvedAt;
+    }
 }
