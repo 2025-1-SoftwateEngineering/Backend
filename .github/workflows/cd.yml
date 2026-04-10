@@ -11,21 +11,13 @@ jobs:
 
     steps:
       - name: main 체크아웃
-        uses: actions/checkout@v4 # 체크아웃
+        uses: actions/checkout@v4
 
-      - name: 자바 설정 # Java 개발 킷 설정
+      - name: 자바 설정
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '21'
-
-      - name: .env 생성
-        run: |
-          mkdir -p ./src/main/resources
-          cat <<EOF > ./src/main/resources/.env
-          ${{ secrets.ENV }}
-          EOF
-        shell: bash
 
       - name: gradlew 실행 권한 부여
         run: chmod +x gradlew
@@ -51,8 +43,7 @@ jobs:
           context: .
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_IMAGENAME }}
-          secrets: |
-            "env=${{ secrets.ENV }}"
+          platforms: linux/amd64, linux/arm64
 
   deploy:
     needs: build
@@ -71,4 +62,6 @@ jobs:
             sudo docker stop ${{ secrets.DOCKER_IMAGENAME }}
             sudo docker rm ${{ secrets.DOCKER_IMAGENAME }}
             sudo docker pull ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_IMAGENAME }}
-            sudo docker run -it -d --network host --name ${{ secrets.DOCKER_IMAGENAME }} -e TZ=Asia/Seoul ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_IMAGENAME }}
+            echo "${{ secrets.ENV }}" > .env
+            sudo docker run -it -d --network host --name ${{ secrets.DOCKER_IMAGENAME }} --env-file .env ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_IMAGENAME }}
+            rm .env
