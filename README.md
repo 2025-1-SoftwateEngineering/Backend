@@ -1,4 +1,4 @@
-# 프로젝트명 미정 (영어 단어 학습 Web App 개발)
+# 보카버디 (VocaBuddy)
 
 ## 💡 Project Overview
 
@@ -46,4 +46,4 @@
     └── VocaBookApplication
 ```
 ### 서버 아키텍처
-<img width="878" height="673" alt="스크린샷 2026-04-06 14 47 25" src="https://github.com/user-attachments/assets/ab5990fd-5cd5-47ec-bb73-4b205d1e545c" />
+<img width="877" height="765" alt="스크린샷 2026-04-10 21 10 06" src="https://github.com/user-attachments/assets/2fa37e68-bcf0-483a-a932-8c61f701761f" />
