@@ -53,7 +53,7 @@ jobs:
       - name: EC2에 Docker Image 배포
         uses: appleboy/ssh-action@v0.1.6
         with:
-          host: ${{ secrets.EC2_HOST1 }}, ${{ secrets.EC2_HOST2 }}
+          host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
           port: 22
