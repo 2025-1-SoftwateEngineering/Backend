@@ -10,6 +10,7 @@ import com.example.vocabook.global.apiPayload.code.BaseSuccessCode;
 import com.example.vocabook.global.apiPayload.dto.PagingResDTO;
 import com.example.vocabook.global.security.entity.AuthMember;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -38,13 +39,11 @@ public class MemberController implements MemberControllerDocs {
     // 친구 요청 목록 조회
     @GetMapping("/v1/friends/request")
     public ApiResponse<PagingResDTO.Cursor<MemberResDTO.FriendRequestList>> getFriendRequestList(
-            @RequestParam(defaultValue = "-1") @NotBlank(message = "커서는 빈칸일 수 없습니다.")
-            String cursor,
-            @RequestParam(defaultValue = "10")
-            @Min(value = 1, message = "조회할 데이터 수는 양의 정수 범위로 입력해주세요")
-            Integer pageSize,
+            @RequestParam(defaultValue = "-1") @NotBlank(message = "커서는 빈칸일 수 없습니다.") String cursor,
+            @RequestParam(defaultValue = "10") @Min(value = 1, message = "조회할 데이터 수는 양의 정수 범위로 입력해주세요")
+            @Max(value = 100, message = "조회할 데이터 수는 100이하입니다.") Integer pageSize,
             @AuthenticationPrincipal AuthMember auth
-    ){
+    ) {
         BaseSuccessCode code = MemberSuccessCode.FRIEND_REQUEST_LIST;
         return ApiResponse.onSuccess(code, memberService.getFriendRequestList(cursor, pageSize, auth));
     }
@@ -55,7 +54,7 @@ public class MemberController implements MemberControllerDocs {
             @AuthenticationPrincipal AuthMember auth,
             @PathVariable @NotNull(message = "요청 보낼 친구 ID는 필수입니다.")
             Long friendId
-    ){
+    ) {
         BaseSuccessCode code = MemberSuccessCode.FRIEND_REQUEST;
         return ApiResponse.onSuccess(code, memberService.sendFriendRequest(auth, friendId));
     }
@@ -67,7 +66,7 @@ public class MemberController implements MemberControllerDocs {
             @PathVariable(name = "friendId") @NotNull(message = "요청 보낸 친구 ID는 필수입니다.")
             Long fromMemberId,
             @RequestBody @Valid MemberReqDTO.UpdateFriendRequest dto
-    ){
+    ) {
         BaseSuccessCode code = MemberSuccessCode.UPDATED_FRIEND_REQUEST;
         return ApiResponse.onSuccess(code, memberService.updateFriendRequest(auth, fromMemberId, dto));
     }
@@ -77,7 +76,7 @@ public class MemberController implements MemberControllerDocs {
     public ApiResponse<MemberResDTO.SearchMember> searchMember(
             @AuthenticationPrincipal AuthMember auth,
             @RequestBody @Valid MemberReqDTO.SearchMember dto
-    ){
+    ) {
         BaseSuccessCode code = MemberSuccessCode.SEARCH_MEMBER;
         return ApiResponse.onSuccess(code, memberService.searchMember(auth, dto));
     }
@@ -89,9 +88,10 @@ public class MemberController implements MemberControllerDocs {
             String cursor,
             @RequestParam(defaultValue = "10")
             @Min(value = 1, message = "조회할 데이터 수는 양의 정수 범위로 입력해주세요")
+            @Max(value = 100, message = "조회할 데이터 수는 100이하입니다.")
             Integer pageSize,
             @AuthenticationPrincipal AuthMember auth
-    ){
+    ) {
         BaseSuccessCode code = MemberSuccessCode.FRIEND_LIST;
         return ApiResponse.onSuccess(code, memberService.getFriendList(auth, cursor, pageSize));
     }
@@ -101,7 +101,7 @@ public class MemberController implements MemberControllerDocs {
     public ApiResponse<MemberResDTO.FriendProfile> getFriendProfile(
             @AuthenticationPrincipal AuthMember auth,
             @PathVariable Long friendId
-    ){
+    ) {
         BaseSuccessCode code = MemberSuccessCode.OK;
         return ApiResponse.onSuccess(code, memberService.getFriendProfile(auth, friendId));
     }
@@ -111,7 +111,7 @@ public class MemberController implements MemberControllerDocs {
     public ApiResponse<MemberResDTO.Blocking> blockMember(
             @AuthenticationPrincipal AuthMember auth,
             @PathVariable Long friendId
-    ){
+    ) {
         BaseSuccessCode code = MemberSuccessCode.BLOCKING;
         return ApiResponse.onSuccess(code, memberService.blockMember(auth, friendId));
     }

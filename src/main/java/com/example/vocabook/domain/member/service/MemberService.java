@@ -64,8 +64,7 @@ public class MemberService {
             friendList = friendRepository.findFriendRequestListWithoutCursor(
                     auth.getMember().getId(),
                     FriendState.WAITING.name(),
-                    pageRequest
-            );
+                    pageRequest);
         }
 
         if (friendList.isEmpty()) {
@@ -100,13 +99,24 @@ public class MemberService {
         Member friend = memberRepository.findById(friendId)
                 .orElseThrow(() -> new MemberException(MemberErrorCode.NOT_FOUND));
 
-        // 이미 친구인지 or 친구 요청을 보냈는지 확인
-        if (friendRepository.existsByFromMemberAndToMember(auth.getMember(), friend)){
+        // 자기 자신인지 확인
+        if (auth.getMember().getId().equals(friendId)) {
+            throw new MemberException(MemberErrorCode.EXISTS_SELF_REQUEST);
+        }
+
+        // 이미 친구인지 or 친구 요청을 보냈는지 or 상대방이 먼저 요청을 보냈는지 확인
+        if (friendRepository.existsByFromMemberAndToMember(friend, auth.getMember())
+                || friendRepository.existsByFromMemberAndToMember(auth.getMember(), friend)
+        ) {
             throw new MemberException(MemberErrorCode.EXISTS_FRIEND_REQUEST);
         }
 
         // 친구가 나를 차단했는지 확인
-        if (friendRepository.existsByFromMemberAndFriendStateIs(friend, FriendState.BLOCKED)){
+        if (friendRepository.existsByFromMemberAndToMemberAndFriendStateIs(
+                friend,
+                auth.getMember(),
+                FriendState.BLOCKED
+        )) {
             throw new MemberException(MemberErrorCode.BLOCKING);
         }
 
@@ -135,7 +145,7 @@ public class MemberService {
                 .orElseThrow(() -> new MemberException(MemberErrorCode.NOT_FOUND_FRIEND_REQUEST));
 
         // 친구 요청 상태인지 확인 (WAITING)
-        if (!fromFriendRequest.getFriendState().equals(FriendState.WAITING)){
+        if (!fromFriendRequest.getFriendState().equals(FriendState.WAITING)) {
             throw new MemberException(MemberErrorCode.NOT_REQUEST);
         }
 
@@ -191,8 +201,7 @@ public class MemberService {
                         auth.getMember().getId(),
                         FriendState.ACCEPTED.name(),
                         Long.parseLong(cursor),
-                        pageRequest
-                );
+                        pageRequest);
             } catch (NumberFormatException e) {
                 throw new MemberException(MemberErrorCode.INVADED_CURSOR);
             }
@@ -200,8 +209,7 @@ public class MemberService {
             friendList = friendRepository.findFriendListWithoutCursor(
                     auth.getMember().getId(),
                     FriendState.ACCEPTED.name(),
-                    pageRequest
-            );
+                    pageRequest);
         }
 
         if (friendList.isEmpty()) {
@@ -236,12 +244,20 @@ public class MemberService {
                 .orElseThrow(() -> new MemberException(MemberErrorCode.NOT_FOUND));
 
         // 사용자와 친구인지 확인
-        if (!friendRepository.existsByFromMemberAndToMember(auth.getMember(), friend)){
+        if (!friendRepository.existsByFromMemberAndToMemberAndFriendStateIs(
+                auth.getMember(),
+                friend,
+                FriendState.ACCEPTED
+        )) {
             throw new MemberException(MemberErrorCode.NOT_FRIEND);
         }
 
         // 사용자가 차단했는지 확인
-        if (friendRepository.existsByFromMemberAndFriendStateIs(friend, FriendState.BLOCKED)){
+        if (friendRepository.existsByFromMemberAndToMemberAndFriendStateIs(
+                friend,
+                auth.getMember(),
+                FriendState.BLOCKED
+        )) {
             throw new MemberException(MemberErrorCode.BLOCKING);
         }
 
@@ -254,24 +270,23 @@ public class MemberService {
             AuthMember auth,
             Long friendId
     ) {
-        // 차단할 사용자와 친구인지 확인
+        // 차단할 사용자 확인
         Member friend = memberRepository.findById(friendId)
                 .orElseThrow(() -> new MemberException(MemberErrorCode.NOT_FOUND));
 
-        // fromMemberFriend = (나 -> 상대)
-        // toMemberFriend = (상대 -> 나)
+        // 나 -> 상대방: 관계가 없다면 새로 생성, 있다면 가져오기
         Friend fromMemberFriend = friendRepository.findByFromMemberAndToMember(auth.getMember(), friend)
-                .orElseThrow(() -> new MemberException(MemberErrorCode.NOT_FRIEND));
-        Friend toMemberFriend = friendRepository.findByFromMemberAndToMember(friend, auth.getMember())
-                .orElseThrow(() -> new MemberException(MemberErrorCode.NOT_FRIEND));
+                .orElseGet(() -> FriendConverter.toFriend(auth.getMember(), friend));
 
-        if (!fromMemberFriend.getFriendState().equals(FriendState.ACCEPTED)){
-            throw new MemberException(MemberErrorCode.NOT_FRIEND);
-        }
-
-        // 사용자 관계 상태 변경
+        // 사용자 관계 상태 변경 (나 -> 상대)
         fromMemberFriend.updateState(FriendState.BLOCKED);
-        toMemberFriend.updateState(FriendState.BLOCKED);
+        friendRepository.save(fromMemberFriend);
+
+        // 상대방 -> 나: 요청이 존재한다면 거절(차단) 상태로 변경하여 무효화
+        friendRepository.findByFromMemberAndToMember(friend, auth.getMember()).ifPresent(toMemberFriend -> {
+            toMemberFriend.updateState(FriendState.BLOCKED);
+            friendRepository.save(toMemberFriend);
+        });
 
         return MemberConverter.toBlocking(friend);
     }

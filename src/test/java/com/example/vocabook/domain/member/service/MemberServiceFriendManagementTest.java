@@ -69,7 +69,7 @@ class MemberServiceFriendManagementTest {
     @DisplayName("친구 프로필 조회 실패 - 친구 아님 (NOT_FRIEND)")
     void getFriendProfile_Fail_NotFriend() {
         given(memberRepository.findById(2L)).willReturn(Optional.of(friendMember));
-        given(friendRepository.existsByFromMemberAndToMember(myMember, friendMember)).willReturn(false);
+        given(friendRepository.existsByFromMemberAndToMemberAndFriendStateIs(myMember, friendMember, FriendState.ACCEPTED)).willReturn(false);
         MemberException exception = assertThrows(MemberException.class, () ->
                 memberService.getFriendProfile(authMember, 2L)
         );
@@ -80,8 +80,8 @@ class MemberServiceFriendManagementTest {
     @DisplayName("친구 프로필 조회 실패 - 상대방이 차단함 (BLOCKING)")
     void getFriendProfile_Fail_Blocking() {
         given(memberRepository.findById(2L)).willReturn(Optional.of(friendMember));
-        given(friendRepository.existsByFromMemberAndToMember(myMember, friendMember)).willReturn(true);
-        given(friendRepository.existsByFromMemberAndFriendStateIs(friendMember, FriendState.BLOCKED)).willReturn(true);
+        given(friendRepository.existsByFromMemberAndToMemberAndFriendStateIs(myMember, friendMember, FriendState.ACCEPTED)).willReturn(true);
+        given(friendRepository.existsByFromMemberAndToMemberAndFriendStateIs(friendMember, myMember, FriendState.BLOCKED)).willReturn(true);
         MemberException exception = assertThrows(MemberException.class, () ->
                 memberService.getFriendProfile(authMember, 2L)
         );
@@ -98,41 +98,5 @@ class MemberServiceFriendManagementTest {
         assertEquals(MemberErrorCode.NOT_FOUND, exception.getCode());
     }
 
-    @Test
-    @DisplayName("사용자 차단 실패 - (나->상대) 친구 관계 데이터 없음 (NOT_FRIEND)")
-    void blockMember_Fail_NotFriend_NoFromRelation() {
-        given(memberRepository.findById(2L)).willReturn(Optional.of(friendMember));
-        given(friendRepository.findByFromMemberAndToMember(myMember, friendMember)).willReturn(Optional.empty());
-        MemberException exception = assertThrows(MemberException.class, () ->
-                memberService.blockMember(authMember, 2L)
-        );
-        assertEquals(MemberErrorCode.NOT_FRIEND, exception.getCode());
-    }
 
-    @Test
-    @DisplayName("사용자 차단 실패 - (상대->나) 친구 관계 데이터 없음 (NOT_FRIEND)")
-    void blockMember_Fail_NotFriend_NoToRelation() {
-        given(memberRepository.findById(2L)).willReturn(Optional.of(friendMember));
-        Friend fromRelation = Friend.builder().friendState(FriendState.ACCEPTED).build();
-        given(friendRepository.findByFromMemberAndToMember(myMember, friendMember)).willReturn(Optional.of(fromRelation));
-        given(friendRepository.findByFromMemberAndToMember(friendMember, myMember)).willReturn(Optional.empty());
-        MemberException exception = assertThrows(MemberException.class, () ->
-                memberService.blockMember(authMember, 2L)
-        );
-        assertEquals(MemberErrorCode.NOT_FRIEND, exception.getCode());
-    }
-
-    @Test
-    @DisplayName("사용자 차단 실패 - 수락된 친구(ACCEPTED)가 아님 (NOT_FRIEND)")
-    void blockMember_Fail_NotFriend_NotAccepted() {
-        given(memberRepository.findById(2L)).willReturn(Optional.of(friendMember));
-        Friend fromRelation = Friend.builder().friendState(FriendState.WAITING).build();
-        Friend toRelation = Friend.builder().friendState(FriendState.WAITING).build();
-        given(friendRepository.findByFromMemberAndToMember(myMember, friendMember)).willReturn(Optional.of(fromRelation));
-        given(friendRepository.findByFromMemberAndToMember(friendMember, myMember)).willReturn(Optional.of(toRelation));
-        MemberException exception = assertThrows(MemberException.class, () ->
-                memberService.blockMember(authMember, 2L)
-        );
-        assertEquals(MemberErrorCode.NOT_FRIEND, exception.getCode());
-    }
 }

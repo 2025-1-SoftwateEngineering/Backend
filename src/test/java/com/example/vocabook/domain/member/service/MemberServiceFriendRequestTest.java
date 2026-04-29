@@ -68,10 +68,21 @@ class MemberServiceFriendRequestTest {
     }
 
     @Test
+    @DisplayName("친구 요청 보내기 실패 - 자기 자신에게 요청 시도 (EXISTS_SELF_REQUEST)")
+    void sendFriendRequest_Fail_SelfRequest() {
+        given(memberRepository.findById(1L)).willReturn(Optional.of(myMember));
+        MemberException exception = assertThrows(MemberException.class, () ->
+                memberService.sendFriendRequest(authMember, 1L)
+        );
+        assertEquals(MemberErrorCode.EXISTS_SELF_REQUEST, exception.getCode());
+    }
+
+    @Test
     @DisplayName("친구 요청 보내기 실패 - 이미 친구이거나 요청 상태 (EXISTS_FRIEND_REQUEST)")
     void sendFriendRequest_Fail_ExistsFriendRequest() {
         given(memberRepository.findById(2L)).willReturn(Optional.of(friendMember));
-        given(friendRepository.existsByFromMemberAndToMember(myMember, friendMember)).willReturn(true);
+        // 조건식 첫번째: 상대방이 나에게 보낸 요청이 존재한다고 모킹
+        given(friendRepository.existsByFromMemberAndToMember(friendMember, myMember)).willReturn(true);
         MemberException exception = assertThrows(MemberException.class, () ->
                 memberService.sendFriendRequest(authMember, 2L)
         );
@@ -82,8 +93,9 @@ class MemberServiceFriendRequestTest {
     @DisplayName("친구 요청 보내기 실패 - 친구가 나를 차단함 (BLOCKING)")
     void sendFriendRequest_Fail_Blocking() {
         given(memberRepository.findById(2L)).willReturn(Optional.of(friendMember));
+        given(friendRepository.existsByFromMemberAndToMember(friendMember, myMember)).willReturn(false);
         given(friendRepository.existsByFromMemberAndToMember(myMember, friendMember)).willReturn(false);
-        given(friendRepository.existsByFromMemberAndFriendStateIs(friendMember, FriendState.BLOCKED)).willReturn(true);
+        given(friendRepository.existsByFromMemberAndToMemberAndFriendStateIs(friendMember, myMember, FriendState.BLOCKED)).willReturn(true);
         MemberException exception = assertThrows(MemberException.class, () ->
                 memberService.sendFriendRequest(authMember, 2L)
         );

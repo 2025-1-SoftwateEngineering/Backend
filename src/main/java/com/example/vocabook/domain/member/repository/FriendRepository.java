@@ -31,7 +31,7 @@ public interface FriendRepository extends JpaRepository<Friend, Long> {
 
     boolean existsByFromMemberAndToMember(Member member, Member friend);
 
-    boolean existsByFromMemberAndFriendStateIs(Member friend, FriendState friendState);
+    boolean existsByFromMemberAndToMemberAndFriendStateIs(Member friend, Member member, FriendState friendState);
 
     Optional<Friend> findByFromMemberAndToMember(Member fromMember, Member member);
 
@@ -52,4 +52,5 @@ public interface FriendRepository extends JpaRepository<Friend, Long> {
             nativeQuery = true
     )
     Slice<Friend> findFriendListWithoutCursor(Long fromId, String friendState, PageRequest pageRequest);
+
 }
