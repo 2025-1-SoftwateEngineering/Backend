@@ -22,7 +22,10 @@ public enum GeneralErrorCode implements BaseErrorCode{
             "해당 데이터를 찾지 못했습니다."),
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR,
             "COMMON500_1",
-            "서버의 예기치 못한 오류입니다.")
+            "서버의 예기치 못한 오류입니다."),
+    TYPE_MISMATCH(HttpStatus.BAD_REQUEST,
+            "COMMON400_2",
+            "타입을 잘못 입력했습니다."),
     ;
 
     private final HttpStatus status;
