@@ -1,6 +1,5 @@
 package com.example.vocabook.global.apiPayload.converter;
 
-import com.example.vocabook.domain.member.entity.Friend;
 import com.example.vocabook.global.apiPayload.dto.PagingResDTO;
 
 import java.util.List;
