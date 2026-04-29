@@ -51,5 +51,5 @@ public interface FriendRepository extends JpaRepository<Friend, Long> {
                     "ORDER BY friend_id DESC ",
             nativeQuery = true
     )
-    Slice<Friend> findFriendListWithoutCursor(Long id, FriendState friendState, PageRequest pageRequest);
+    Slice<Friend> findFriendListWithoutCursor(Long fromId, FriendState friendState, PageRequest pageRequest);
 }
