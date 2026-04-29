@@ -14,20 +14,20 @@ public interface FriendRepository extends JpaRepository<Friend, Long> {
     @Query(
             value = "SELECT * " +
                     "FROM friend " +
-                    "WHERE (to_id = :toId AND friend_state != :friendState) AND friend_id < :cursor " +
+                    "WHERE (to_id = :toId AND friend_state = :friendState) AND friend_id < :cursor " +
                     "ORDER BY friend_id DESC ",
             nativeQuery = true
     )
-    Slice<Friend> findFriendRequestListWithCursor(Long toId, FriendState friendState, Long cursor, PageRequest pageRequest);
+    Slice<Friend> findFriendRequestListWithCursor(Long toId, String friendState, Long cursor, PageRequest pageRequest);
 
     @Query(
             value = "SELECT * " +
                     "FROM friend " +
-                    "WHERE to_id = :toId AND friend_state != :friendState " +
+                    "WHERE to_id = :toId AND friend_state = :friendState " +
                     "ORDER BY friend_id DESC ",
             nativeQuery = true
     )
-    Slice<Friend> findFriendRequestListWithoutCursor(Long toId, FriendState friendState, PageRequest pageRequest);
+    Slice<Friend> findFriendRequestListWithoutCursor(Long toId, String friendState, PageRequest pageRequest);
 
     boolean existsByFromMemberAndToMember(Member member, Member friend);
 
@@ -42,7 +42,7 @@ public interface FriendRepository extends JpaRepository<Friend, Long> {
                     "ORDER BY friend_id DESC ",
             nativeQuery = true
     )
-    Slice<Friend> findFriendListWithCursor(Long fromId, FriendState friendState, Long cursor, PageRequest pageRequest);
+    Slice<Friend> findFriendListWithCursor(Long fromId, String friendState, Long cursor, PageRequest pageRequest);
 
     @Query(
             value = "SELECT * " +
@@ -51,5 +51,5 @@ public interface FriendRepository extends JpaRepository<Friend, Long> {
                     "ORDER BY friend_id DESC ",
             nativeQuery = true
     )
-    Slice<Friend> findFriendListWithoutCursor(Long fromId, FriendState friendState, PageRequest pageRequest);
+    Slice<Friend> findFriendListWithoutCursor(Long fromId, String friendState, PageRequest pageRequest);
 }

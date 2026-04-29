@@ -53,7 +53,7 @@ public class MemberService {
             try {
                 friendList = friendRepository.findFriendRequestListWithCursor(
                         auth.getMember().getId(),
-                        FriendState.ACCEPTED,
+                        FriendState.WAITING.name(),
                         Long.parseLong(cursor),
                         pageRequest
                 );
@@ -63,7 +63,7 @@ public class MemberService {
         } else {
             friendList = friendRepository.findFriendRequestListWithoutCursor(
                     auth.getMember().getId(),
-                    FriendState.ACCEPTED,
+                    FriendState.WAITING.name(),
                     pageRequest
             );
         }
@@ -189,7 +189,7 @@ public class MemberService {
             try {
                 friendList = friendRepository.findFriendListWithCursor(
                         auth.getMember().getId(),
-                        FriendState.ACCEPTED,
+                        FriendState.ACCEPTED.name(),
                         Long.parseLong(cursor),
                         pageRequest
                 );
@@ -199,7 +199,7 @@ public class MemberService {
         } else {
             friendList = friendRepository.findFriendListWithoutCursor(
                     auth.getMember().getId(),
-                    FriendState.ACCEPTED,
+                    FriendState.ACCEPTED.name(),
                     pageRequest
             );
         }
