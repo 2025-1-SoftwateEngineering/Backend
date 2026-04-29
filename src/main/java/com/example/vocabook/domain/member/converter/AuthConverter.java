@@ -11,7 +11,7 @@ public class AuthConverter {
             String accessToken,
             String refreshToken,
             Date refreshExpiration
-    ){
+    ) {
         return AuthResDTO.SignUp.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
@@ -24,7 +24,7 @@ public class AuthConverter {
             String accessToken,
             String refreshToken,
             Date refreshExpiration
-    ){
+    ) {
         return AuthResDTO.Login.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
@@ -37,7 +37,7 @@ public class AuthConverter {
             String accessToken,
             String refreshToken,
             Date refreshExpiration
-    ){
+    ) {
         return AuthResDTO.Reissue.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)

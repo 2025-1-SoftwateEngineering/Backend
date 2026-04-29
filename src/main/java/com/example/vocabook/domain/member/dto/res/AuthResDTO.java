@@ -12,7 +12,7 @@ public class AuthResDTO {
             String accessToken,
             String refreshToken,
             Date refreshExpiration
-    ){}
+    ) {}
 
     // 로그인
     @Builder
@@ -20,7 +20,7 @@ public class AuthResDTO {
             String accessToken,
             String refreshToken,
             Date refreshExpiration
-    ){}
+    ) {}
 
     // 토큰 재발급
     @Builder
@@ -28,5 +28,5 @@ public class AuthResDTO {
             String accessToken,
             String refreshToken,
             Date refreshExpiration
-    ){}
+    ) {}
 }

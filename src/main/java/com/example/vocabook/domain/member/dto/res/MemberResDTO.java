@@ -23,14 +23,14 @@ public class MemberResDTO {
             Long fromMemberId,
             String nickname,
             FriendState state
-    ){}
+    ) {}
 
     // 친구 요청 보내기
     @Builder
     public record SendFriendRequest(
             Long id,
             String nickname
-    ){}
+    ) {}
 
     // 친구 요청 토글 (수락 or 거절)
     @Builder
@@ -38,7 +38,7 @@ public class MemberResDTO {
             Long id,
             String nickname,
             FriendState state
-    ){}
+    ) {}
 
     // 사용자 단순 조회
     @Builder
@@ -46,14 +46,14 @@ public class MemberResDTO {
             Long id,
             String nickname,
             String email
-    ){}
+    ) {}
 
     // 친구 목록 조회
     @Builder
     public record FriendList(
             Long toMemberId,
             FriendState state
-    ){}
+    ) {}
 
     // 친구 프로필 조회
     @Builder
@@ -63,7 +63,7 @@ public class MemberResDTO {
             Long streak,
             Long coin,
             LocalDateTime loginAt
-    ){}
+    ) {}
 
     // 친구 차단
     @Builder
@@ -71,5 +71,5 @@ public class MemberResDTO {
             Long id,
             String nickname,
             LocalDateTime blockedAt
-    ){}
+    ) {}
 }
