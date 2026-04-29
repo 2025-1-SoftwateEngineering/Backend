@@ -21,7 +21,17 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.SliceImpl;
+import java.util.List;
+import com.example.vocabook.global.apiPayload.dto.PagingResDTO;
+import com.example.vocabook.domain.member.dto.res.MemberResDTO;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("MemberService 친구 요청 관련 예외 테스트")
@@ -55,6 +65,34 @@ class MemberServiceFriendRequestTest {
                 memberService.getFriendRequestList(invalidCursor, 10, authMember)
         );
         assertEquals(MemberErrorCode.INVADED_CURSOR, exception.getCode());
+    }
+
+    @Test
+    @DisplayName("친구 요청 목록 초기 조회 성공 (cursor = -1)")
+    void getFriendRequestList_Success_FirstPage() {
+        Friend friendReq = Friend.builder().id(100L).fromMember(friendMember).toMember(myMember).friendState(FriendState.WAITING).build();
+        Slice<Friend> slice = new SliceImpl<>(List.of(friendReq));
+        given(friendRepository.findFriendRequestListWithoutCursor(eq(myMember.getId()), eq("WAITING"), any(PageRequest.class))).willReturn(slice);
+
+        PagingResDTO.Cursor<MemberResDTO.FriendRequestList> response = memberService.getFriendRequestList("-1", 10, authMember);
+
+        assertNotNull(response);
+        assertEquals("100", response.nextCursor());
+        assertEquals(1, response.data().size());
+    }
+
+    @Test
+    @DisplayName("친구 요청 목록 이후 조회 성공 (cursor != -1)")
+    void getFriendRequestList_Success_NextPage() {
+        Friend friendReq = Friend.builder().id(99L).fromMember(friendMember).toMember(myMember).friendState(FriendState.WAITING).build();
+        Slice<Friend> slice = new SliceImpl<>(List.of(friendReq));
+        given(friendRepository.findFriendRequestListWithCursor(eq(myMember.getId()), eq("WAITING"), eq(100L), any(PageRequest.class))).willReturn(slice);
+
+        PagingResDTO.Cursor<MemberResDTO.FriendRequestList> response = memberService.getFriendRequestList("100", 10, authMember);
+
+        assertNotNull(response);
+        assertEquals("99", response.nextCursor());
+        assertEquals(1, response.data().size());
     }
 
     @Test

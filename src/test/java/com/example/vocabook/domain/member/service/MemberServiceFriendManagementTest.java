@@ -20,7 +20,17 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.SliceImpl;
+import java.util.List;
+import com.example.vocabook.global.apiPayload.dto.PagingResDTO;
+import com.example.vocabook.domain.member.dto.res.MemberResDTO;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("MemberService 친구 관리 관련 예외 테스트")
@@ -53,6 +63,34 @@ class MemberServiceFriendManagementTest {
                 memberService.getFriendList(authMember, "invalid", 10)
         );
         assertEquals(MemberErrorCode.INVADED_CURSOR, exception.getCode());
+    }
+
+    @Test
+    @DisplayName("친구 목록 초기 조회 성공 (cursor = -1)")
+    void getFriendList_Success_FirstPage() {
+        Friend friendRel = Friend.builder().id(100L).fromMember(myMember).toMember(friendMember).friendState(FriendState.ACCEPTED).build();
+        Slice<Friend> slice = new SliceImpl<>(List.of(friendRel));
+        given(friendRepository.findFriendListWithoutCursor(eq(myMember.getId()), eq("ACCEPTED"), any(PageRequest.class))).willReturn(slice);
+
+        PagingResDTO.Cursor<MemberResDTO.FriendList> response = memberService.getFriendList(authMember, "-1", 10);
+
+        assertNotNull(response);
+        assertEquals("100", response.nextCursor());
+        assertEquals(1, response.data().size());
+    }
+
+    @Test
+    @DisplayName("친구 목록 이후 조회 성공 (cursor != -1)")
+    void getFriendList_Success_NextPage() {
+        Friend friendRel = Friend.builder().id(99L).fromMember(myMember).toMember(friendMember).friendState(FriendState.ACCEPTED).build();
+        Slice<Friend> slice = new SliceImpl<>(List.of(friendRel));
+        given(friendRepository.findFriendListWithCursor(eq(myMember.getId()), eq("ACCEPTED"), eq(100L), any(PageRequest.class))).willReturn(slice);
+
+        PagingResDTO.Cursor<MemberResDTO.FriendList> response = memberService.getFriendList(authMember, "100", 10);
+
+        assertNotNull(response);
+        assertEquals("99", response.nextCursor());
+        assertEquals(1, response.data().size());
     }
 
     @Test
