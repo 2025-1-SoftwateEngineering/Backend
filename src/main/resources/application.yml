@@ -31,3 +31,6 @@ jwt:
 
 public:
   url: ${PUBLIC_URL}
+
+cors:
+  allowed-origins: ${ALLOWED_ORIGINS}
