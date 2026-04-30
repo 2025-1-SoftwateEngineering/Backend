@@ -13,6 +13,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -178,11 +179,9 @@ public interface MemberControllerDocs {
             )
     })
     ApiResponse<PagingResDTO.Cursor<MemberResDTO.FriendRequestList>> getFriendRequestList(
-            @RequestParam(defaultValue = "-1") @NotBlank(message = "커서는 빈칸일 수 없습니다.")
-            String cursor,
-            @RequestParam(defaultValue = "10")
-            @Min(value = 1, message = "조회할 데이터 수는 양의 정수 범위로 입력해주세요")
-            Integer pageSize,
+            @RequestParam(defaultValue = "-1") @NotBlank(message = "커서는 빈칸일 수 없습니다.") String cursor,
+            @RequestParam(defaultValue = "10") @Min(value = 1, message = "조회할 데이터 수는 양의 정수 범위로 입력해주세요")
+            @Max(value = 100, message = "조회할 데이터 수는 100이하입니다.") Integer pageSize,
             @AuthenticationPrincipal AuthMember auth
     );
 
@@ -585,6 +584,7 @@ public interface MemberControllerDocs {
             String cursor,
             @RequestParam(defaultValue = "10")
             @Min(value = 1, message = "조회할 데이터 수는 양의 정수 범위로 입력해주세요")
+            @Max(value = 100, message = "조회할 데이터 수는 100이하입니다.")
             Integer pageSize,
             @AuthenticationPrincipal AuthMember auth
     );
