@@ -19,6 +19,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.util.PathMatcher;
+import org.springframework.web.cors.CorsConfigurationSource;
 
 @EnableWebSecurity
 @Configuration
@@ -27,6 +28,7 @@ public class SecurityConfig {
 
     private final JwtUtil jwtUtil;
     private final CustomUserDetailsService customUserDetailsService;
+    private final CorsConfigurationSource corsConfigurationSource;
 
     // Public API
     @Value("${public.url}")
@@ -42,6 +44,8 @@ public class SecurityConfig {
         http
                 // CSRF 비활성화
                 .csrf(AbstractHttpConfigurer::disable)
+                // CORS 설정
+                .cors(cors -> cors.configurationSource(corsConfigurationSource))
                 // 요청 URI 설정
                 .authorizeHttpRequests(requests -> requests
                         // 허용 URI
