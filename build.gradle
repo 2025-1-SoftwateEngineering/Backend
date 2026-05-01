@@ -60,6 +60,9 @@ dependencies {
     implementation 'io.jsonwebtoken:jjwt-impl:0.12.3'
     implementation 'io.jsonwebtoken:jjwt-jackson:0.12.3'
     implementation 'org.springframework.boot:spring-boot-configuration-processor'
+
+    // Firebase
+    implementation 'com.google.firebase:firebase-admin:9.8.0'
 }
 tasks.named('test') {
     useJUnitPlatform()

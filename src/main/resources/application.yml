@@ -34,3 +34,6 @@ public:
 
 cors:
   allowed-origins: ${ALLOWED_ORIGINS}
+
+fcm:
+  path: ${FCM_PATH}
