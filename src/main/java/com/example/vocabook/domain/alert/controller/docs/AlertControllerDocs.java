@@ -22,7 +22,7 @@ public interface AlertControllerDocs {
             description = """
                     # FCM 토큰 등록
                     클라이언트에서 발급한 FCM 토큰을 DB에 저장합니다
-                    신규 등록 또는 기존 FCM 토큰을 대체랄 수 있습니다.
+                    신규 등록 또는 기존 FCM 토큰을 대체할 수 있습니다.
                     
                     ## 주의 사항
                     - 반드시 로그인을 먼저 해야 합니다 (JWT 토큰 필수)
