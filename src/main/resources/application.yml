@@ -22,9 +22,14 @@ spring:
         format_sql: true # ???? SQL ??? ?? ?? ???
         default_batch_fetch_size: 1000
 
+  quartz:
+    job-store-type: jdbc
+    jdbc:
+      initialize-schema: always
+
 jwt:
   token:
-    secretKey: ${JWT_SECRET_KEY}
+    secretKeOy: ${JWT_SECRET_KEY}
     expiration:
       access: ${JWT_ACCESS_EXP}
       refresh: ${JWT_REFRESH_EXP}

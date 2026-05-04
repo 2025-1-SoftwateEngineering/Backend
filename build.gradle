@@ -63,6 +63,9 @@ dependencies {
 
     // Firebase
     implementation 'com.google.firebase:firebase-admin:9.8.0'
+
+    // Spring Quartz
+    implementation 'org.springframework.boot:spring-boot-starter-quartz'
 }
 tasks.named('test') {
     useJUnitPlatform()
