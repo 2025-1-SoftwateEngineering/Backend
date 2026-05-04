@@ -16,7 +16,7 @@ public class FcmUtil {
             String title,
             String body,
             String token
-    ) {
+    ) throws FirebaseMessagingException {
 
         Message message = Message.builder()
                 .setToken(token)
@@ -24,10 +24,6 @@ public class FcmUtil {
                 .putData("body", body)
                 .build();
 
-        try {
-            firebaseMessaging.send(message);
-        } catch (FirebaseMessagingException e) {
-            throw new RuntimeException(e);
-        }
+        firebaseMessaging.send(message);
     }
 }
