@@ -29,7 +29,7 @@ spring:
 
 jwt:
   token:
-    secretKeOy: ${JWT_SECRET_KEY}
+    secretKey: ${JWT_SECRET_KEY}
     expiration:
       access: ${JWT_ACCESS_EXP}
       refresh: ${JWT_REFRESH_EXP}
