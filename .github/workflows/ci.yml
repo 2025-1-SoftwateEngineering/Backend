@@ -1,13 +1,14 @@
-name: CI (Develop PR)
+name: CI (Develop PR Test Verification)
 
 on:
   pull_request:
     branches: [ "develop" ]
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
 
+    # 테스트 환경용 DB 컨테이너 구동
     services:
       mysql:
         image: mysql:8.0
@@ -25,18 +26,34 @@ jobs:
           --health-retries=5
 
     steps:
-      - name: 체크아웃
+      - name: 소스 코드 체크아웃
         uses: actions/checkout@v4
 
-      - name: 자바 설정 Set up JDK 21
+      - name: JDK 21 설정 (Temurin)
         uses: actions/setup-java@v4
         with:
           java-version: '21'
           distribution: 'temurin'
           cache: 'gradle'
 
+      # 스프링 컨텍스트 로드 시 FileNotFoundException 방지용 더미 파일
+      - name: Firebase 설정 더미 파일 생성
+        run: |
+          mkdir -p src/main/resources
+          echo "{}" > src/main/resources/vocabook-firebase.json
+
       - name: gradlew 실행 권한 부여
         run: chmod +x gradlew
 
-      - name: gradle 빌드
-        run: ./gradlew build -x test
+      # 컴파일 및 테스트 수행 (-x test 제거)
+      - name: Gradle 테스트 실행
+        run: ./gradlew test
+
+      # 테스트 실패 시에도 원인을 파악할 수 있도록 리포트 아티팩트 저장
+      - name: 테스트 결과 리포트 업로드
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: spring-test-report
+          path: build/reports/tests/test/
+          retention-days: 7
