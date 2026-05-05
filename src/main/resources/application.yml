@@ -22,6 +22,11 @@ spring:
         format_sql: true # ???? SQL ??? ?? ?? ???
         default_batch_fetch_size: 1000
 
+  quartz:
+    job-store-type: jdbc
+    jdbc:
+      initialize-schema: always
+
 jwt:
   token:
     secretKey: ${JWT_SECRET_KEY}
@@ -34,3 +39,6 @@ public:
 
 cors:
   allowed-origins: ${ALLOWED_ORIGINS}
+
+fcm:
+  path: ${FCM_PATH}
