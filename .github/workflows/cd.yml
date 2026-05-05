@@ -58,10 +58,14 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           port: 22
           timeout: 60s
-          script: |
+          script:
             sudo docker stop ${{ secrets.DOCKER_IMAGENAME }}
             sudo docker rm ${{ secrets.DOCKER_IMAGENAME }}
             sudo docker pull ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_IMAGENAME }}
             echo "${{ secrets.ENV }}" > .env
-            sudo docker run -it -d --network host --name ${{ secrets.DOCKER_IMAGENAME }} --env-file .env ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_IMAGENAME }}
+            echo "${{ secrets.FCM }}" > vocabook-firebase.json
+            sudo docker run -it -d --network host --name ${{ secrets.DOCKER_IMAGENAME }} \
+            --env-file .env -v vocabook-firebase.json:/vocabook-firebase.json \ 
+            ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_IMAGENAME }}
             rm .env
+            rm vocabook-firebase.json
