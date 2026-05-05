@@ -64,7 +64,7 @@ jobs:
             sudo docker pull ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_IMAGENAME }}
             echo "${{ secrets.ENV }}" > .env
             echo "${{ secrets.FCM }}" > vocabook-firebase.json
-            sudo docker run -it -d --network host --name ${{ secrets.DOCKER_IMAGENAME }} \
+            sudo docker run -d --network host --name ${{ secrets.DOCKER_IMAGENAME }} \
             --env-file .env -v vocabook-firebase.json:/vocabook-firebase.json \ 
             ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_IMAGENAME }}
             rm .env
