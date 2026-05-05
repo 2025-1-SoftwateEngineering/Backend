@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FCM Notification Test</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 20px; background-color: #f4f7f6; color: #333; }
+        .container { max-width: 600px; margin: 40px auto; padding: 30px; background-color: #fff; box-shadow: 0 4px 8px rgba(0,0,0,0.1); border-radius: 8px; }
+        h2 { text-align: center; color: #2c3e50; }
+        .form-group { margin-bottom: 25px; padding-bottom: 20px; border-bottom: 1px solid #eee; }
+        .form-group:last-child { border-bottom: none; }
+        h3 { margin-top: 0; color: #34495e; font-size: 1.1em; }
+        label { display: block; margin-bottom: 8px; font-weight: bold; font-size: 0.9em; }
+        input[type="text"], input[type="password"], input[type="datetime-local"], select { width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-size: 1em; }
+        select { background-color: white; }
+        input:focus, select:focus { border-color: #3498db; outline: none; }
+        button { width: 100%; padding: 12px; background-color: #3498db; color: white; border: none; border-radius: 4px; font-size: 1em; cursor: pointer; transition: background-color 0.3s; }
+        button:hover { background-color: #2980b9; }
+        .result { margin-top: 20px; padding: 15px; background-color: #e8f4f8; border-left: 4px solid #3498db; border-radius: 4px; word-wrap: break-word; font-size: 0.95em; }
+        .success { color: #27ae60; font-weight: bold; }
+        .error { color: #e74c3c; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>FCM Notification Test</h2>
+        
+        <div class="form-group">
+            <h3>1. 로그인 (토큰 발급)</h3>
+            <label for="email">이메일</label>
+            <input type="text" id="email" placeholder="test@example.com">
+            <label for="password">비밀번호</label>
+            <input type="password" id="password" placeholder="비밀번호 입력">
+            <button onclick="login()">로그인</button>
+        </div>
+        
+        <div class="form-group">
+            <h3>2. FCM 토큰 발급 및 등록</h3>
+            <button onclick="getFcmToken()" style="margin-bottom: 10px; background-color: #27ae60;">앱에서 FCM 토큰 발급받기</button>
+            <label for="fcmToken">기기 FCM 토큰 (자동 입력됨)</label>
+            <input type="text" id="fcmToken" placeholder="버튼을 눌러 발급받으세요" readonly>
+            <button onclick="registerFcm()">FCM 토큰 등록</button>
+        </div>
+        
+        <div class="form-group">
+            <h3>3. 즉시 알림 전송 테스트</h3>
+            <button onclick="testNotification()">즉시 알림 전송</button>
+        </div>
+
+        <div class="form-group">
+            <h3>4. 커스텀 알림 스케줄링 등록</h3>
+            <label for="customMessage">알림 메시지 내용</label>
+            <input type="text" id="customMessage" placeholder="예: 복습 시간입니다!">
+            
+            <label for="repeatType">반복 유형</label>
+            <select id="repeatType">
+                <option value="NONE">반복 없음</option>
+                <option value="DAY">매일 반복</option>
+                <option value="WEEK">매주 반복</option>
+            </select>
+            
+            <label for="alertDate">등록할 시간</label>
+            <input type="datetime-local" id="alertDate">
+            
+            <button onclick="testCustomAlert()">커스텀 알림 등록</button>
+        </div>
+
+        <div class="result" id="resultBox">
+            <strong>상태:</strong> <span id="resultText">대기 중...</span>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
+        import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-messaging.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyC6mFrSXdyKG-hrzreQEcskt88r31HEHgA",
+            authDomain: "project-9afb2849-a8f7-481e-a41.firebaseapp.com",
+            projectId: "project-9afb2849-a8f7-481e-a41",
+            storageBucket: "project-9afb2849-a8f7-481e-a41.firebasestorage.app",
+            messagingSenderId: "14062205846",
+            appId: "1:14062205846:web:04eb325b56063459147bb7",
+            measurementId: "G-QHM8KX0VTW"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const messaging = getMessaging(app);
+
+        let accessToken = '';
+
+        window.login = async function() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const resultText = document.getElementById('resultText');
+
+            try {
+                const response = await fetch('/auth/v1/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                const data = await response.json();
+                
+                if (data.isSuccess) {
+                    accessToken = data.result.accessToken;
+                    resultText.innerText = '로그인 성공! 액세스 토큰을 발급받았습니다.';
+                    resultText.className = 'success';
+                } else {
+                    resultText.innerText = '로그인 실패: ' + data.message;
+                    resultText.className = 'error';
+                }
+            } catch (error) {
+                resultText.innerText = '로그인 에러: ' + error.message;
+                resultText.className = 'error';
+            }
+        };
+
+        window.getFcmToken = async function() {
+            const resultText = document.getElementById('resultText');
+            try {
+                resultText.innerText = '알림 권한을 요청 중입니다...';
+                resultText.className = '';
+                
+                const permission = await Notification.requestPermission();
+                if (permission === 'granted') {
+                    resultText.innerText = 'FCM 토큰을 발급받는 중입니다...';
+                    
+                    // VAPID 키가 있는 경우 getToken의 두번째 인자로 { vapidKey: '...' } 를 넘겨야 하지만,
+                    // 기본 설정만으로도 발급되는 경우가 있으므로 시도해봅니다.
+                    const currentToken = await getToken(messaging);
+                    
+                    if (currentToken) {
+                        document.getElementById('fcmToken').value = currentToken;
+                        resultText.innerText = 'FCM 토큰 발급 성공! 이제 토큰을 서버에 등록하세요.';
+                        resultText.className = 'success';
+                    } else {
+                        resultText.innerText = '토큰을 가져올 수 없습니다. 권한을 확인해주세요.';
+                        resultText.className = 'error';
+                    }
+                } else {
+                    resultText.innerText = '알림 권한이 거부되었습니다.';
+                    resultText.className = 'error';
+                }
+            } catch (err) {
+                resultText.innerText = '토큰 발급 에러: ' + err.message;
+                resultText.className = 'error';
+                console.error('FCM Token Error:', err);
+            }
+        };
+
+        window.registerFcm = async function() {
+            const fcmToken = document.getElementById('fcmToken').value;
+            const resultText = document.getElementById('resultText');
+
+            if (!accessToken) {
+                resultText.innerText = '먼저 로그인을 진행해주세요.';
+                resultText.className = 'error';
+                return;
+            }
+            if (!fcmToken) {
+                resultText.innerText = 'FCM 토큰을 발급받아주세요.';
+                resultText.className = 'error';
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/v1/fcm', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + accessToken
+                    },
+                    body: JSON.stringify({ fcmToken })
+                });
+                const data = await response.json();
+                
+                if (data.isSuccess) {
+                    resultText.innerText = 'FCM 토큰이 성공적으로 등록되었습니다!';
+                    resultText.className = 'success';
+                } else {
+                    resultText.innerText = 'FCM 토큰 등록 실패: ' + data.message;
+                    resultText.className = 'error';
+                }
+            } catch (error) {
+                resultText.innerText = '등록 에러: ' + error.message;
+                resultText.className = 'error';
+            }
+        };
+
+        window.testNotification = async function() {
+            const resultText = document.getElementById('resultText');
+
+            if (!accessToken) {
+                resultText.innerText = '먼저 로그인을 진행해주세요.';
+                resultText.className = 'error';
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/v1/alerts/test', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': 'Bearer ' + accessToken
+                    }
+                });
+                const data = await response.json();
+                
+                if (data.isSuccess) {
+                    resultText.innerText = '테스트 알림 전송 성공! 기기를 확인해보세요.';
+                    resultText.className = 'success';
+                } else {
+                    resultText.innerText = '테스트 알림 전송 실패: ' + data.message;
+                    resultText.className = 'error';
+                }
+            } catch (error) {
+                resultText.innerText = '알림 전송 에러: ' + error.message;
+                resultText.className = 'error';
+            }
+        };
+
+        window.testCustomAlert = async function() {
+            const resultText = document.getElementById('resultText');
+            if (!accessToken) {
+                resultText.innerText = '먼저 로그인을 진행해주세요.';
+                resultText.className = 'error';
+                return;
+            }
+
+            const message = document.getElementById('customMessage').value;
+            const repeat = document.getElementById('repeatType').value;
+            const alertDateStr = document.getElementById('alertDate').value;
+
+            if (!message || !alertDateStr) {
+                resultText.innerText = '메시지와 시간을 모두 입력해주세요.';
+                resultText.className = 'error';
+                return;
+            }
+
+            const localDate = new Date(alertDateStr);
+            const alertedAt = localDate.toISOString();
+
+            try {
+                const response = await fetch('/api/v1/alerts/custom', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + accessToken
+                    },
+                    body: JSON.stringify({ message, repeat, alertedAt })
+                });
+                const data = await response.json();
+                
+                if (data.isSuccess) {
+                    resultText.innerText = '커스텀 알림 스케줄링 성공!';
+                    resultText.className = 'success';
+                } else {
+                    resultText.innerText = '커스텀 알림 등록 실패: ' + data.message;
+                    resultText.className = 'error';
+                }
+            } catch (error) {
+                resultText.innerText = '알림 등록 에러: ' + error.message;
+                resultText.className = 'error';
+            }
+        };
+
+        // 포그라운드 메시지 수신 처리
+        onMessage(messaging, (payload) => {
+            console.log('Message received. ', payload);
+            const title = payload.data?.title || payload.notification?.title || '알림';
+            const body = payload.data?.body || payload.notification?.body || '내용 없음';
+            alert(`[푸시 알림 수신]\n제목: ${title}\n내용: ${body}`);
+        });
+    </script>
+</body>
+</html>

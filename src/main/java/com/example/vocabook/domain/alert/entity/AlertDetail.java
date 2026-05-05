@@ -4,6 +4,8 @@ import com.example.vocabook.domain.alert.enums.Repeat;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Getter
 @Builder
@@ -23,6 +25,9 @@ public class AlertDetail {
     @Column(name = "send_repeat", nullable = false)
     @Enumerated(EnumType.STRING)
     private Repeat repeat;
+
+    @Column(name = "alerted_at", nullable = false)
+    private LocalDateTime alertedAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "alert_id", nullable = false)
