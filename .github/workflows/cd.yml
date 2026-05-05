@@ -52,22 +52,26 @@ jobs:
     steps:
       - name: EC2에 Docker Image 배포
         uses: appleboy/ssh-action@v0.1.6
+        env:
+          ENV: ${{ secrets.ENV }}
+          FCM: ${{ secrets.FCM }}
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
           port: 22
           timeout: 60s
-          script:
-            sudo docker stop ${{ secrets.DOCKER_IMAGENAME }} || true ;
-            sudo docker rm ${{ secrets.DOCKER_IMAGENAME }} || true ;
-            sudo docker pull ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_IMAGENAME }} ;
+          envs: ENV,FCM
+          script: |
+            sudo docker stop ${{ secrets.DOCKER_IMAGENAME }} || true
+            sudo docker rm ${{ secrets.DOCKER_IMAGENAME }} || true
+            sudo docker pull ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_IMAGENAME }}
 
-            rm -rf $(pwd)/.env;
-            rm -rf $(pwd)/vocabook-firebase.json;
+            rm -rf $(pwd)/.env
+            rm -rf $(pwd)/vocabook-firebase.json
             
-            echo "${{ secrets.ENV }}" > $(pwd)/.env ;
-            echo "${{ secrets.FCM }}" > $(pwd)/vocabook-firebase.json ;
-            sudo docker run -d --network host --name ${{ secrets.DOCKER_IMAGENAME }} --env-file $(pwd)/.env -v $(pwd)/vocabook-firebase.json:/vocabook-firebase.json ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_IMAGENAME }} ;
-            rm .env ;
-            rm vocabook-firebase.json ;
+            echo "$ENV" > $(pwd)/.env
+            echo "$FCM" > $(pwd)/vocabook-firebase.json
+            sudo docker run -d --network host --name ${{ secrets.DOCKER_IMAGENAME }} --env-file $(pwd)/.env -v $(pwd)/vocabook-firebase.json:/vocabook-firebase.json ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_IMAGENAME }}
+            rm .env
+            rm vocabook-firebase.json
