@@ -37,10 +37,10 @@ jobs:
           cache: 'gradle'
 
       # 스프링 컨텍스트 로드 시 FileNotFoundException 방지용 더미 파일
-      - name: Firebase 설정 더미 파일 생성
+      - name: Firebase 설정
         run: |
           mkdir -p src/main/resources
-          echo "{}" > src/main/resources/vocabook-firebase.json
+          echo "${{ secrets.FCM_JSON }}" > src/main/resources/vocabook-firebase.json
 
       - name: gradlew 실행 권한 부여
         run: chmod +x gradlew
