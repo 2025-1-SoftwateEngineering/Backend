@@ -42,6 +42,8 @@ public class VocaResDTO {
 	public static class TestResult {
 		private int totalCount;
 		private int correctCount;
+		private int wrongCount;
+		private long earnedCoins;
 		private List<AnswerResult> results;
 	}
 
