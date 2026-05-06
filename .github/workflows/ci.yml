@@ -2,7 +2,7 @@ name: CI (Develop PR Test Verification)
 
 on:
   pull_request:
-    branches: [ "develop" ]
+    branches: ["develop"]
 
 jobs:
   test:
@@ -32,9 +32,9 @@ jobs:
       - name: JDK 21 설정 (Temurin)
         uses: actions/setup-java@v4
         with:
-          java-version: '21'
-          distribution: 'temurin'
-          cache: 'gradle'
+          java-version: "21"
+          distribution: "temurin"
+          cache: "gradle"
 
       # 스프링 컨텍스트 로드 시 FileNotFoundException 방지용 더미 파일
       - name: Firebase 설정
@@ -45,7 +45,11 @@ jobs:
       - name: gradlew 실행 권한 부여
         run: chmod +x gradlew
 
-      # 컴파일 및 테스트 수행 (-x test 제거)
+      - name: 환경 변수(.env) 설정
+        run: |
+          echo "${{ secrets.ENV_TEST }}" > .env
+
+      # 컴파일 및 테스트 수행
       - name: Gradle 테스트 실행
         run: ./gradlew test
 
