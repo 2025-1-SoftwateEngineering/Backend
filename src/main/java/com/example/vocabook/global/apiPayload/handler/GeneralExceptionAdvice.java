@@ -5,6 +5,7 @@ import com.example.vocabook.global.apiPayload.code.BaseErrorCode;
 import com.example.vocabook.global.apiPayload.code.GeneralErrorCode;
 import com.example.vocabook.global.apiPayload.exception.VocaBookException;
 import jakarta.validation.ConstraintViolationException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -16,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestControllerAdvice
+@Slf4j
 public class GeneralExceptionAdvice {
 
     // 프로젝트에서 발생한 예외 처리
@@ -23,6 +25,7 @@ public class GeneralExceptionAdvice {
     public ResponseEntity<ApiResponse<Void>> handleMemberException(
             VocaBookException e
     ) {
+        log.error("[ {} ]: {}", e.getClass().getSimpleName(), e.getCode().getMessage());
         BaseErrorCode errorCode = e.getCode();
         return ResponseEntity.status(errorCode.getStatus())
                 .body(ApiResponse.onFailure(errorCode, null));
@@ -33,6 +36,8 @@ public class GeneralExceptionAdvice {
     public ResponseEntity<ApiResponse<Map<String, String>>> handleMethodArgumentNotValidException(
             MethodArgumentNotValidException e
     ){
+        log.error("[ MethodArgumentNotValidException ]: {}", e.getBindingResult().getFieldError().getDefaultMessage());
+
         // 검증 실패한 변수명과 실패 이유를 담을 Map
         Map<String, String> errors = new HashMap<>();
         e.getBindingResult().getFieldErrors().forEach(error -> {
@@ -49,6 +54,8 @@ public class GeneralExceptionAdvice {
     public ResponseEntity<ApiResponse<Map<String, String>>> handleConstraintViolationException(
             ConstraintViolationException e
     ){
+        log.error("[ ConstraintViolationException ]: {}", e.getMessage());
+
         Map<String, String> errors = new HashMap<>();
         e.getConstraintViolations().forEach(violation -> {
             errors.put(
@@ -67,6 +74,8 @@ public class GeneralExceptionAdvice {
     public ResponseEntity<ApiResponse<String>> handleMethodArgumentTypeMismatchException(
             MethodArgumentTypeMismatchException e
     ){
+        log.error("[ MethodArgumentTypeMismatchException ]: 파라미터 타입을 잘못 입력했습니다.");
+
         BaseErrorCode code = GeneralErrorCode.TYPE_MISMATCH;
         return ResponseEntity.status(code.getStatus())
                 .body(ApiResponse.onFailure(code, null));
@@ -78,6 +87,7 @@ public class GeneralExceptionAdvice {
             Exception ex
     ) {
 
+        log.error("[ {} ]: {}",ex.getClass().getSimpleName(), ex.getMessage());
         BaseErrorCode code = GeneralErrorCode.INTERNAL_SERVER_ERROR;
         return ResponseEntity.status(code.getStatus())
                 .body(ApiResponse.onFailure(
