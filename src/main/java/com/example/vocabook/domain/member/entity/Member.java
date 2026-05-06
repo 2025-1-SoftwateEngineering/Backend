@@ -70,14 +70,7 @@ public class Member extends BaseEntity {
 
 
     public void updateStreak() {
-        LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
-
-        if (lastStudiedAt == null || lastStudiedAt.isBefore(today.minusDays(1))) {
-            this.streak = 1L;
-        } else if (lastStudiedAt.isEqual(today.minusDays(1))) {
-            this.streak += 1;
-        }
-
-        this.lastStudiedAt = today;
+        this.streak += 1;
+        this.lastStudiedAt = LocalDate.now(ZoneId.of("Asia/Seoul"));
     }
 }
