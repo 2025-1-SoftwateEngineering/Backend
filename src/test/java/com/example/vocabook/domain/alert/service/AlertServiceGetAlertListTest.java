@@ -1,6 +1,5 @@
 package com.example.vocabook.domain.alert.service;
 
-import com.example.vocabook.domain.alert.code.AlertErrorCode;
 import com.example.vocabook.domain.alert.dto.AlertResDTO;
 import com.example.vocabook.domain.alert.entity.Alert;
 import com.example.vocabook.domain.alert.entity.AlertDetail;
