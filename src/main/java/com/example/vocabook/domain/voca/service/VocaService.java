@@ -2,6 +2,7 @@ package com.example.vocabook.domain.voca.service;
 
 import com.example.vocabook.domain.member.entity.Member;
 import com.example.vocabook.domain.member.entity.mapping.MemberVoca;
+import com.example.vocabook.domain.member.repository.MemberRepository;
 import com.example.vocabook.domain.member.repository.MemberVocaRepository;
 import com.example.vocabook.domain.voca.converter.VocaConverter;
 import com.example.vocabook.domain.voca.dto.VocaReqDTO;
@@ -19,7 +20,9 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -31,6 +34,7 @@ public class VocaService {
 	private final VocaRepository vocaRepository;
 	private final WordRepository wordRepository;
 	private final MemberVocaRepository memberVocaRepository;
+	private final MemberRepository memberRepository;
 
 	public VocaResDTO.WordList getWords(Long vocaId, int page, int pageSize) {
 		Voca voca = vocaRepository.findById(vocaId)
@@ -53,7 +57,13 @@ public class VocaService {
 	public VocaResDTO.TestResult submitTest(Long vocaId, AuthMember authMember, VocaReqDTO.SubmitTest dto) {
 		Voca voca = vocaRepository.findById(vocaId)
 				.orElseThrow(() -> new VocaException(VoceErrorCode.VOCA_NOT_FOUND));
-		Member member = authMember.getMember();
+		Member member = memberRepository.findById(authMember.getMember().getId())
+				.orElseThrow(() -> new VocaException(VoceErrorCode.VOCA_NOT_FOUND));
+
+		LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
+		boolean alreadySubmittedToday = memberVocaRepository.findByMemberAndVoca(member, voca)
+				.map(mv -> mv.getSolvedAt() != null && mv.getSolvedAt().toLocalDate().isEqual(today))
+				.orElse(false);
 
 		List<VocaResDTO.AnswerResult> results = new ArrayList<>();
 		int correctCount = 0;
@@ -73,11 +83,24 @@ public class VocaService {
 					.build());
 		}
 
+		long earnedCoins = 0;
+		if (!alreadySubmittedToday) {
+			earnedCoins = (long) correctCount * 5;
+			member.addCoin(earnedCoins);
+			member.updateStreak();
+			if (member.getStreak() % 7 == 0) {
+				member.addCoin(500);
+				earnedCoins += 500;
+			}
+			memberRepository.saveAndFlush(member);
+		}
 		saveMemberVoca(member, voca, (long) correctCount, (long) dto.getAnswers().size());
 
 		return VocaResDTO.TestResult.builder()
 				.totalCount(dto.getAnswers().size())
 				.correctCount(correctCount)
+				.wrongCount(dto.getAnswers().size() - correctCount)
+				.earnedCoins(earnedCoins)
 				.results(results)
 				.build();
 	}

@@ -7,7 +7,9 @@ import lombok.*;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 @Entity
 @Getter
@@ -50,6 +52,9 @@ public class Member extends BaseEntity {
     @Builder.Default
     private Long coin = 0L;
 
+    @Column(name = "last_studied_at")
+    private LocalDate lastStudiedAt;
+
     @Column(name = "refresh_token", columnDefinition = "text", nullable = false)
     private String refreshToken;
 
@@ -58,5 +63,14 @@ public class Member extends BaseEntity {
     }
     public void updateLoginAt() {
         this.loginAt = LocalDateTime.now();
+    }
+    public void addCoin(long amount) {
+        this.coin += amount;
+    }
+
+
+    public void updateStreak() {
+        this.streak += 1;
+        this.lastStudiedAt = LocalDate.now(ZoneId.of("Asia/Seoul"));
     }
 }
