@@ -15,6 +15,12 @@ public enum AlertSuccessCode implements BaseSuccessCode {
     CUSTOM_ALERT(HttpStatus.OK,
             "ALERT200_2",
             "성공적으로 알림을 등록했습니다."),
+    GET_ALERT_LIST(HttpStatus.OK,
+            "ALERT200_3",
+            "성공적으로 알림 리스트를 조회했습니다."),
+    DELETE_ALERT(HttpStatus.OK,
+            "ALERT200_3",
+            "성공적으로 알림을 삭제했습니다."),
     ;
 
     private final HttpStatus status;

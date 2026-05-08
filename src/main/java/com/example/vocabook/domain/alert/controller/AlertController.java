@@ -7,13 +7,11 @@ import com.example.vocabook.domain.alert.dto.AlertResDTO;
 import com.example.vocabook.domain.alert.service.AlertService;
 import com.example.vocabook.global.apiPayload.ApiResponse;
 import com.example.vocabook.global.apiPayload.code.BaseSuccessCode;
+import com.example.vocabook.global.apiPayload.dto.PagingResDTO;
 import com.example.vocabook.global.security.entity.AuthMember;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -40,5 +38,26 @@ public class AlertController implements AlertControllerDocs {
     ) {
         BaseSuccessCode code = AlertSuccessCode.CUSTOM_ALERT;
         return ApiResponse.onSuccess(code, alertService.customAlert(auth, dto));
+    }
+
+    // 알림 목록 조회
+    @GetMapping("/v1/alerts")
+    public ApiResponse<PagingResDTO.Cursor<AlertResDTO.AlertList>> getAlertList(
+            @AuthenticationPrincipal AuthMember auth,
+            @RequestParam(defaultValue = "-1") String cursor,
+            @RequestParam(defaultValue = "10") Integer pageSize
+    ) {
+        BaseSuccessCode code = AlertSuccessCode.GET_ALERT_LIST;
+        return ApiResponse.onSuccess(code, alertService.getAlertList(auth, cursor, pageSize));
+    }
+
+    // 알림 삭제
+    @DeleteMapping("/v1/alerts/{alertId}")
+    public ApiResponse<AlertResDTO.DeleteAlert> deleteAlert(
+            @AuthenticationPrincipal AuthMember auth,
+            @PathVariable Long alertId
+    ) {
+        BaseSuccessCode code = AlertSuccessCode.DELETE_ALERT;
+        return ApiResponse.onSuccess(code, alertService.deleteAlert(auth, alertId));
     }
 }

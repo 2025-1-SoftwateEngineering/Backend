@@ -11,7 +11,10 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
+import com.example.vocabook.global.apiPayload.dto.PagingResDTO;
 
 @Tag(name = "알림 관련 API")
 public interface AlertControllerDocs {
@@ -173,5 +176,172 @@ public interface AlertControllerDocs {
     ApiResponse<AlertResDTO.CustomAlert> customAlert(
             @AuthenticationPrincipal AuthMember auth,
             @RequestBody AlertReqDTO.CustomAlert dto
+    );
+
+    // 알림 목록 조회
+    @Operation(
+            summary = "알림 목록 조회 API By 김주헌",
+            description = """
+                    # 알림 목록 조회
+                    자신이 등록한 커스텀 알림 목록을 커서 기반 페이징으로 조회합니다.
+                    
+                    ## 주의 사항
+                    - 반드시 로그인을 먼저 해야 합니다 (JWT 토큰 필수)
+                    - 첫 번째 페이지 조회 시 cursor 값을 주지 않거나 "-1"을 입력하세요.
+                    - pageSize 의 기본값은 10입니다.
+                    """
+    )
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "성공 예시",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ApiResponse.class),
+                            examples = @ExampleObject(value = """
+                                    {
+                                        "isSuccess": true,
+                                        "code": "ALERT200_3",
+                                        "message": "성공적으로 알림 목록을 조회했습니다.",
+                                        "result": {
+                                            "data": [
+                                                {
+                                                    "id": 1,
+                                                    "message": "test",
+                                                    "repeat": "NONE",
+                                                    "alertedAt": "2026-05-04T15:13:00"
+                                                }
+                                            ],
+                                            "nextCursor": "1",
+                                            "hasNext": false,
+                                            "totalElements": 1
+                                        }
+                                    }
+                                    """)
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "401",
+                    description = "실패 - 로그인이 필요한 경우",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ApiResponse.class),
+                            examples = @ExampleObject(value = """
+                                    {
+                                      "isSuccess": false,
+                                      "code": "COMMON401_1",
+                                      "message": "인증이 필요합니다.",
+                                      "result": null
+                                    }
+                                    """)
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "400",
+                    description = "실패 - 올바르지 않은 커서 형식",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ApiResponse.class),
+                            examples = @ExampleObject(value = """
+                                    {
+                                      "isSuccess": false,
+                                      "code": "COMMON400_3",
+                                      "message": "커서를 잘못입력했습니다.",
+                                      "result": null
+                                    }
+                                    """)
+                    )
+            )
+    })
+    ApiResponse<PagingResDTO.Cursor<AlertResDTO.AlertList>> getAlertList(
+            @AuthenticationPrincipal AuthMember auth,
+            @RequestParam(defaultValue = "-1") String cursor,
+            @RequestParam(defaultValue = "10") Integer pageSize
+    );
+
+    // 알림 삭제
+    @Operation(
+            summary = "알림 삭제 API By 김주헌",
+            description = """
+                    # 알림 삭제
+                    특정 알림을 삭제합니다.
+                    
+                    ## 주의 사항
+                    - 반드시 로그인을 먼저 해야 합니다 (JWT 토큰 필수)
+                    - 자신이 직접 설정한 알림만 삭제할 수 있습니다.
+                    """
+    )
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "성공 예시",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ApiResponse.class),
+                            examples = @ExampleObject(value = """
+                                    {
+                                        "isSuccess": true,
+                                        "code": "ALERT200_4",
+                                        "message": "성공적으로 알림을 삭제했습니다.",
+                                        "result": {
+                                            "id": 1,
+                                            "deletedAt": "2026-05-04T15:15:00.000000"
+                                        }
+                                    }
+                                    """)
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "401",
+                    description = "실패 - 로그인이 필요한 경우",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ApiResponse.class),
+                            examples = @ExampleObject(value = """
+                                    {
+                                      "isSuccess": false,
+                                      "code": "COMMON401_1",
+                                      "message": "인증이 필요합니다.",
+                                      "result": null
+                                    }
+                                    """)
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "404",
+                    description = "실패 - 알림을 찾을 수 없는 경우",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ApiResponse.class),
+                            examples = @ExampleObject(value = """
+                                    {
+                                      "isSuccess": false,
+                                      "code": "ALERT404_1",
+                                      "message": "알림을 찾지 못했습니다.",
+                                      "result": null
+                                    }
+                                    """)
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "400",
+                    description = "실패 - 알림을 등록한 사용자와 다른 경우",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ApiResponse.class),
+                            examples = @ExampleObject(value = """
+                                    {
+                                      "isSuccess": false,
+                                      "code": "ALERT400_3",
+                                      "message": "알림 설정한 사용자가 아닙니다.",
+                                      "result": null
+                                    }
+                                    """)
+                    )
+            )
+    })
+    ApiResponse<AlertResDTO.DeleteAlert> deleteAlert(
+            @AuthenticationPrincipal AuthMember auth,
+            @PathVariable Long alertId
     );
 }

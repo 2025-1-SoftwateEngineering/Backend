@@ -26,6 +26,9 @@ public enum GeneralErrorCode implements BaseErrorCode{
     TYPE_MISMATCH(HttpStatus.BAD_REQUEST,
             "COMMON400_2",
             "타입을 잘못 입력했습니다."),
+    INVADED_CURSOR(HttpStatus.BAD_REQUEST,
+            "COMMON400_3",
+            "커서를 잘못입력했습니다."),
     ;
 
     private final HttpStatus status;
