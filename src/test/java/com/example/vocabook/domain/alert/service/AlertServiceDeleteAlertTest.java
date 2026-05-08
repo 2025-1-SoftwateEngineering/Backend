@@ -73,7 +73,7 @@ public class AlertServiceDeleteAlertTest {
 
         // then
         assertNotNull(result);
-        assertEquals(1L, result.id());
+        assertEquals(1L, result.alertId());
         verify(alertDetailRepository).delete(myAlertDetail);
     }
 

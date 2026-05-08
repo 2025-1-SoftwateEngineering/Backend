@@ -173,6 +173,6 @@ public class AlertControllerTest {
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.isSuccess").value(true))
-                .andExpect(jsonPath("$.result.id").value(1L));
+                .andExpect(jsonPath("$.result.alertId").value(1L));
     }
 }

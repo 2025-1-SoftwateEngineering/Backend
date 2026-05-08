@@ -79,10 +79,10 @@ public class AlertServiceGetAlertListTest {
 
         // then
         assertNotNull(result);
-        assertFalse(result.getHasNext());
-        assertEquals("1", result.getNextCursor());
-        assertEquals(1, result.getData().size());
-        assertEquals("test message", result.getData().get(0).message());
+        assertFalse(result.hasNext());
+        assertEquals("1", result.nextCursor());
+        assertEquals(1, result.data().size());
+        assertEquals("test message", result.data().get(0).message());
     }
 
     @Test
@@ -97,7 +97,7 @@ public class AlertServiceGetAlertListTest {
 
         // then
         assertNotNull(result);
-        assertEquals(1, result.getData().size());
+        assertEquals(1, result.data().size());
     }
 
     @Test
@@ -112,8 +112,8 @@ public class AlertServiceGetAlertListTest {
 
         // then
         assertNotNull(result);
-        assertNull(result.getData());
-        assertFalse(result.getHasNext());
+        assertNull(result.data());
+        assertFalse(result.hasNext());
     }
 
     @Test

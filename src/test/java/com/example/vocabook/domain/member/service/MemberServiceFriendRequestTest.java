@@ -8,6 +8,7 @@ import com.example.vocabook.domain.member.enums.FriendState;
 import com.example.vocabook.domain.member.exception.MemberException;
 import com.example.vocabook.domain.member.repository.FriendRepository;
 import com.example.vocabook.domain.member.repository.MemberRepository;
+import com.example.vocabook.global.apiPayload.code.GeneralErrorCode;
 import com.example.vocabook.global.security.entity.AuthMember;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -64,7 +65,7 @@ class MemberServiceFriendRequestTest {
         MemberException exception = assertThrows(MemberException.class, () ->
                 memberService.getFriendRequestList(invalidCursor, 10, authMember)
         );
-        assertEquals(MemberErrorCode.INVADED_CURSOR, exception.getCode());
+        assertEquals(GeneralErrorCode.INVADED_CURSOR, exception.getCode());
     }
 
     @Test

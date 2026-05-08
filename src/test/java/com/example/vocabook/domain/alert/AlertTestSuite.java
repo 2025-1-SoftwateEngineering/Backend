@@ -2,6 +2,8 @@ package com.example.vocabook.domain.alert;
 
 import com.example.vocabook.domain.alert.controller.AlertControllerTest;
 import com.example.vocabook.domain.alert.service.AlertServiceCustomAlertTest;
+import com.example.vocabook.domain.alert.service.AlertServiceDeleteAlertTest;
+import com.example.vocabook.domain.alert.service.AlertServiceGetAlertListTest;
 import com.example.vocabook.domain.alert.service.AlertServiceRegisterFcmTest;
 import org.junit.platform.suite.api.SelectClasses;
 import org.junit.platform.suite.api.Suite;
