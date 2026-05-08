@@ -6,6 +6,7 @@ import com.example.vocabook.domain.alert.enums.Repeat;
 import com.example.vocabook.domain.alert.service.AlertService;
 import com.example.vocabook.domain.member.entity.Member;
 import com.example.vocabook.global.security.entity.AuthMember;
+import com.example.vocabook.global.apiPayload.dto.PagingResDTO;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.junit.jupiter.api.BeforeEach;
@@ -26,10 +27,14 @@ import org.springframework.web.method.support.ModelAndViewContainer;
 
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
+import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -120,5 +125,54 @@ public class AlertControllerTest {
                 .andExpect(jsonPath("$.isSuccess").value(true))
                 .andExpect(jsonPath("$.result.message").value("test message"))
                 .andExpect(jsonPath("$.result.repeat").value("NONE"));
+    }
+
+    @Test
+    @DisplayName("알림 리스트 조회 API 성공")
+    void getAlertList_Success() throws Exception {
+        // given
+        AlertResDTO.AlertList alertListItem = AlertResDTO.AlertList.builder()
+                .alertId(1L)
+                .message("test")
+                .repeat(Repeat.NONE)
+                .alertedAt(LocalDateTime.now())
+                .build();
+                
+        PagingResDTO.Cursor<AlertResDTO.AlertList> response = PagingResDTO.Cursor.<AlertResDTO.AlertList>builder()
+                .data(List.of(alertListItem))
+                .nextCursor("1")
+                .hasNext(false)
+                .pageSize(1)
+                .build();
+
+        given(alertService.getAlertList(any(AuthMember.class), eq("-1"), eq(10))).willReturn(response);
+
+        // when & then
+        mockMvc.perform(get("/api/v1/alerts")
+                        .param("cursor", "-1")
+                        .param("pageSize", "10")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.isSuccess").value(true))
+                .andExpect(jsonPath("$.result.nextCursor").value("1"));
+    }
+
+    @Test
+    @DisplayName("알림 삭제 API 성공")
+    void deleteAlert_Success() throws Exception {
+        // given
+        AlertResDTO.DeleteAlert response = AlertResDTO.DeleteAlert.builder()
+                .alertId(1L)
+                .deletedAt(LocalDateTime.now())
+                .build();
+
+        given(alertService.deleteAlert(any(AuthMember.class), eq(1L))).willReturn(response);
+
+        // when & then
+        mockMvc.perform(delete("/api/v1/alerts/{alertId}", 1L)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.isSuccess").value(true))
+                .andExpect(jsonPath("$.result.alertId").value(1L));
     }
 }

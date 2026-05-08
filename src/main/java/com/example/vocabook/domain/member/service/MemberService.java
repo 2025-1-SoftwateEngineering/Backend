@@ -11,6 +11,7 @@ import com.example.vocabook.domain.member.enums.FriendState;
 import com.example.vocabook.domain.member.exception.MemberException;
 import com.example.vocabook.domain.member.repository.FriendRepository;
 import com.example.vocabook.domain.member.repository.MemberRepository;
+import com.example.vocabook.global.apiPayload.code.GeneralErrorCode;
 import com.example.vocabook.global.apiPayload.converter.PagingConverter;
 import com.example.vocabook.global.apiPayload.dto.PagingResDTO;
 import com.example.vocabook.global.security.entity.AuthMember;
@@ -58,7 +59,7 @@ public class MemberService {
                         pageRequest
                 );
             } catch (NumberFormatException e) {
-                throw new MemberException(MemberErrorCode.INVADED_CURSOR);
+                throw new MemberException(GeneralErrorCode.INVADED_CURSOR);
             }
         } else {
             friendList = friendRepository.findFriendRequestListWithoutCursor(
@@ -203,7 +204,7 @@ public class MemberService {
                         Long.parseLong(cursor),
                         pageRequest);
             } catch (NumberFormatException e) {
-                throw new MemberException(MemberErrorCode.INVADED_CURSOR);
+                throw new MemberException(GeneralErrorCode.INVADED_CURSOR);
             }
         } else {
             friendList = friendRepository.findFriendListWithoutCursor(

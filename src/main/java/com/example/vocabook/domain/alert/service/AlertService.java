@@ -10,10 +10,15 @@ import com.example.vocabook.domain.alert.enums.Repeat;
 import com.example.vocabook.domain.alert.exception.AlertException;
 import com.example.vocabook.domain.alert.repository.AlertDetailRepository;
 import com.example.vocabook.domain.alert.repository.AlertRepository;
+import com.example.vocabook.global.apiPayload.code.GeneralErrorCode;
+import com.example.vocabook.global.apiPayload.converter.PagingConverter;
+import com.example.vocabook.global.apiPayload.dto.PagingResDTO;
 import com.example.vocabook.global.security.entity.AuthMember;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.quartz.SchedulerException;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 
 import java.time.OffsetDateTime;
@@ -86,5 +91,79 @@ public class AlertService {
         }
 
         return AlertConverter.toCustomAlert(alertDetail);
+    }
+
+    // 알림 삭제
+    @Transactional
+    public AlertResDTO.DeleteAlert deleteAlert(
+            AuthMember auth,
+            Long alertId
+    ) {
+        AlertDetail alertDetail = alertDetailRepository.findById(alertId)
+                .orElseThrow(() -> new AlertException(AlertErrorCode.NOT_FOUND));
+
+        // 알림 설정한 사용자와 일치하는가 확인 (N+1 문제)
+        if (!alertDetail.getAlert().getMember().getId().equals(auth.getMember().getId())){
+            throw new AlertException(AlertErrorCode.MISMATCH_USER);
+        }
+
+        // DB 삭제
+        alertDetailRepository.delete(alertDetail);
+
+        // 스케쥴러 삭제
+        try {
+            alertScheduleService.deleteAlarm(alertDetail.getId());
+        } catch (SchedulerException e) {
+            throw new AlertException(AlertErrorCode.FAILED_DELETE_ALERT);
+        }
+
+        return AlertConverter.toDeleteAlert(alertDetail);
+    }
+
+    // 알림 리스트 조회
+    public PagingResDTO.Cursor<AlertResDTO.AlertList> getAlertList(
+            AuthMember auth,
+            String cursor,
+            Integer pageSize
+    ) {
+        PageRequest pageRequest = PageRequest.ofSize(pageSize);
+
+        Slice<AlertDetail> alertDetailList;
+        if (!cursor.equals("-1")){
+            Long idCursor;
+            try {
+                idCursor = Long.parseLong(cursor);
+            } catch (NumberFormatException e) {
+                throw new AlertException(GeneralErrorCode.INVADED_CURSOR);
+            }
+
+            alertDetailList = alertDetailRepository.findAlertListWithCursor(
+                    auth.getMember(),
+                    idCursor,
+                    pageRequest
+            );
+        } else {
+            alertDetailList = alertDetailRepository.findAlertListWithoutCursor(
+                    auth.getMember(),
+                    pageRequest
+            );
+        }
+
+        // 만약 알림 리스트가 없는 경우
+        if (alertDetailList.isEmpty()){
+            return PagingConverter.toCursor(null, null, false, 0);
+        }
+
+        // 다음 커서 제작
+        String nextCursor = alertDetailList.getContent().getLast().getId().toString();
+
+        return PagingConverter.toCursor(
+                alertDetailList.getContent().stream()
+                        .map(AlertConverter::toAlertList)
+                        .toList(),
+                nextCursor,
+                alertDetailList.hasNext(),
+                alertDetailList.getNumberOfElements()
+        );
     }
 }

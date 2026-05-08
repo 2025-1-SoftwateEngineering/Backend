@@ -52,4 +52,26 @@ public class AlertConverter {
                 .repeat(alertDetail.getRepeat())
                 .build();
     }
+
+    // 알림 목록 조회
+    public static AlertResDTO.AlertList toAlertList(
+            AlertDetail alertDetail
+    ){
+        return AlertResDTO.AlertList.builder()
+                .alertId(alertDetail.getId())
+                .message(alertDetail.getContent())
+                .alertedAt(alertDetail.getAlertedAt())
+                .repeat(alertDetail.getRepeat())
+                .build();
+    }
+
+    // 알림 삭제
+    public static AlertResDTO.DeleteAlert toDeleteAlert(
+            AlertDetail alertDetail
+    ){
+        return AlertResDTO.DeleteAlert.builder()
+                .alertId(alertDetail.getId())
+                .deletedAt(LocalDateTime.now())
+                .build();
+    }
 }
