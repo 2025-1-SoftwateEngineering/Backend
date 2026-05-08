@@ -19,7 +19,8 @@ public interface AlertDetailRepository extends JpaRepository<AlertDetail, Long> 
             value = "SELECT ad " +
                     "FROM AlertDetail ad " +
                     "LEFT JOIN ad.alert a " +
-                    "WHERE a.member = :member AND ad.id < :cursor "
+                    "WHERE a.member = :member AND ad.id < :cursor " +
+                    "ORDER BY ad.id DESC "
     )
     Slice<AlertDetail> findAlertListWithCursor(Member member, Long cursor, Pageable pageRequest);
 
@@ -27,7 +28,8 @@ public interface AlertDetailRepository extends JpaRepository<AlertDetail, Long> 
             value = "SELECT ad " +
                     "FROM AlertDetail ad " +
                     "LEFT JOIN ad.alert a " +
-                    "WHERE a.member = :member "
+                    "WHERE a.member = :member " +
+                    "ORDER BY ad.id DESC "
     )
     Slice<AlertDetail> findAlertListWithoutCursor(Member member, Pageable pageRequest);
 }
