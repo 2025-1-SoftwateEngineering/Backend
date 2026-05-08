@@ -17,12 +17,15 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import org.quartz.SchedulerException;
+
 import java.time.LocalDateTime;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
@@ -31,6 +34,9 @@ public class AlertServiceDeleteAlertTest {
 
     @Mock
     private AlertDetailRepository alertDetailRepository;
+
+    @Mock
+    private AlertScheduleService alertScheduleService;
 
     @InjectMocks
     private AlertService alertService;
@@ -64,7 +70,7 @@ public class AlertServiceDeleteAlertTest {
 
     @Test
     @DisplayName("알림 삭제 성공")
-    void deleteAlert_Success() {
+    void deleteAlert_Success() throws SchedulerException {
         // given
         given(alertDetailRepository.findById(eq(1L))).willReturn(Optional.of(myAlertDetail));
 
@@ -75,6 +81,23 @@ public class AlertServiceDeleteAlertTest {
         assertNotNull(result);
         assertEquals(1L, result.alertId());
         verify(alertDetailRepository).delete(myAlertDetail);
+        verify(alertScheduleService).deleteAlarm(1L);
+    }
+
+    @Test
+    @DisplayName("알림 삭제 실패 - 스케줄러 삭제 오류 (FAILED_DELETE_ALERT)")
+    void deleteAlert_Fail_SchedulerError() throws SchedulerException {
+        // given
+        given(alertDetailRepository.findById(eq(1L))).willReturn(Optional.of(myAlertDetail));
+        willThrow(new SchedulerException("quartz error")).given(alertScheduleService).deleteAlarm(1L);
+
+        // when
+        AlertException exception = assertThrows(AlertException.class, () ->
+                alertService.deleteAlert(authMember, 1L)
+        );
+
+        // then
+        assertEquals(AlertErrorCode.FAILED_DELETE_ALERT, exception.getCode());
     }
 
     @Test
