@@ -107,7 +107,15 @@ public class AlertService {
             throw new AlertException(AlertErrorCode.MISMATCH_USER);
         }
 
+        // DB 삭제
         alertDetailRepository.delete(alertDetail);
+
+        // 스케쥴러 삭제
+        try {
+            alertScheduleService.deleteAlarm(alertDetail.getId());
+        } catch (SchedulerException e) {
+            throw new AlertException(AlertErrorCode.FAILED_DELETE_ALERT);
+        }
 
         return AlertConverter.toDeleteAlert(alertDetail);
     }
