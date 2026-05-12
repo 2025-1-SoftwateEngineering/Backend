@@ -212,7 +212,6 @@ public class MemberService {
 
     // 사용자 단순 조회
     public MemberResDTO.SearchMember searchMember(
-            AuthMember auth,
             MemberReqDTO.SearchMember dto
     ) {
         Member member = memberRepository.findByEmail(dto.email())

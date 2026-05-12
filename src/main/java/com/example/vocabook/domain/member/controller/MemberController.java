@@ -74,11 +74,10 @@ public class MemberController implements MemberControllerDocs {
     // 사용자 단순 조회
     @PostMapping("/v1/members/search")
     public ApiResponse<MemberResDTO.SearchMember> searchMember(
-            @AuthenticationPrincipal AuthMember auth,
             @RequestBody @Valid MemberReqDTO.SearchMember dto
     ) {
         BaseSuccessCode code = MemberSuccessCode.SEARCH_MEMBER;
-        return ApiResponse.onSuccess(code, memberService.searchMember(auth, dto));
+        return ApiResponse.onSuccess(code, memberService.searchMember(dto));
     }
 
     // 친구 목록 조회

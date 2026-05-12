@@ -460,7 +460,6 @@ public interface MemberControllerDocs {
             )
     })
     ApiResponse<MemberResDTO.SearchMember> searchMember(
-            @AuthenticationPrincipal AuthMember auth,
             @RequestBody @Valid MemberReqDTO.SearchMember dto
     );
 
