@@ -115,4 +115,15 @@ public class MemberController implements MemberControllerDocs {
         BaseSuccessCode code = MemberSuccessCode.BLOCKING;
         return ApiResponse.onSuccess(code, memberService.blockMember(auth, friendId));
     }
+
+    // 사용자 신고
+    @PostMapping("/v1/members/{memberId}/report")
+    public ApiResponse<MemberResDTO.ReportMember> reportMember(
+            @AuthenticationPrincipal AuthMember auth,
+            @PathVariable Long memberId,
+            @RequestBody @Valid MemberReqDTO.ReportMember dto
+    ) {
+        BaseSuccessCode code = MemberSuccessCode.REPORTING;
+        return ApiResponse.onSuccess(code, memberService.reportMember(auth, memberId, dto));
+    }
 }

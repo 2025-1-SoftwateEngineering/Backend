@@ -66,6 +66,11 @@ public class AuthService {
         Member member = memberRepository.findByEmail(dto.email())
                 .orElseThrow(() -> new MemberException(MemberErrorCode.NOT_FOUND));
 
+        // 영구 정지 유저라면 거부
+        if (member.isSuspended()){
+            throw new MemberException(MemberErrorCode.SUSPENDED);
+        }
+
         // 비밀번호 검증
         if (!passwordEncoder.matches(dto.password(), member.getPassword())) {
             throw new AuthException(AuthErrorCode.WRONG_PASSWORD);
