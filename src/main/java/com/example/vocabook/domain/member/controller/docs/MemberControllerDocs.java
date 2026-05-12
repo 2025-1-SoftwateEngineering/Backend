@@ -773,4 +773,116 @@ public interface MemberControllerDocs {
             @AuthenticationPrincipal AuthMember auth,
             @PathVariable Long friendId
     );
+
+    // 사용자 신고
+    @Operation(
+            summary = "사용자 신고 API By 김주헌",
+            description = """
+                    # 사용자 신고
+                    특정 사용자를 신고합니다. 신고 사유와 상세 사유를 입력할 수 있습니다.
+                    
+                    ## 주의사항
+                    - 반드시 로그인을 해야 합니다.
+                    - 자기 자신을 신고할 수 없습니다.
+                    - 이미 신고한 사용자를 중복 신고할 수 없습니다.
+                    """
+    )
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "성공 예시",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ApiResponse.class),
+                            examples = @ExampleObject(value = """
+                                    {
+                                      "isSuccess": true,
+                                      "code": "MEMBER200_7",
+                                      "message": "성공적으로 사용자를 신고했습니다.",
+                                      "result": {
+                                        "targetMemberId": 2,
+                                        "reason": "SPAM",
+                                        "detailReason": "광고 도배",
+                                        "reportedAt": "2026-05-13T01:45:00"
+                                      }
+                                    }
+                                    """)
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "400",
+                    description = "실패 - 자기 자신 신고",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ApiResponse.class),
+                            examples = @ExampleObject(value = """
+                                    {
+                                      "isSuccess": false,
+                                      "code": "MEMBER400_5",
+                                      "message": "자기 자신을 신고할 수 없습니다.",
+                                      "result": null
+                                    }
+                                    """)
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "208",
+                    description = "실패 - 이미 신고한 사용자",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ApiResponse.class),
+                            examples = @ExampleObject(value = """
+                                    {
+                                      "isSuccess": false,
+                                      "code": "MEMBER208_1",
+                                      "message": "이미 해당 사용자를 신고했습니다.",
+                                      "result": null
+                                    }
+                                    """)
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "404",
+                    description = "실패 - 사용자를 찾지 못한 경우",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ApiResponse.class),
+                            examples = @ExampleObject(value = """
+                                    {
+                                      "isSuccess": false,
+                                      "code": "MEMBER404_1",
+                                      "message": "해당 사용자를 찾지 못했습니다.",
+                                      "result": null
+                                    }
+                                    """)
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "401",
+                    description = "실패 - 로그인이 필요한 경우",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ApiResponse.class),
+                            examples = @ExampleObject(value = """
+                                    {
+                                      "isSuccess": false,
+                                      "code": "COMMON401_1",
+                                      "message": "인증이 필요합니다.",
+                                      "result": null
+                                    }
+                                    """)
+                    )
+            )
+    })
+    @Parameter(
+            name = "memberId",
+            description = "신고할 사용자 ID",
+            example = "2",
+            required = true
+    )
+    ApiResponse<MemberResDTO.ReportMember> reportMember(
+            @AuthenticationPrincipal AuthMember auth,
+            @PathVariable Long memberId,
+            @RequestBody @Valid MemberReqDTO.ReportMember dto
+    );
 }
