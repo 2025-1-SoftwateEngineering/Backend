@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -232,7 +233,7 @@ public interface AdminControllerDocs {
             )
     })
     ApiResponse<List<AdminResDTO.AddVocabulary>> addVocabulary(
-            @RequestBody List<AdminReqDTO.AddVocabulary> dto
+            @RequestBody @Valid List<AdminReqDTO.AddVocabulary> dto
     );
 
     @Operation(
@@ -382,7 +383,7 @@ public interface AdminControllerDocs {
     })
     ApiResponse<AdminResDTO.UpdateVocabulary> updateVocabulary(
             @PathVariable Long vocaId,
-            @RequestBody AdminReqDTO.UpdateVocabulary dto
+            @RequestBody @Valid AdminReqDTO.UpdateVocabulary dto
     );
 
     @Operation(
@@ -506,7 +507,7 @@ public interface AdminControllerDocs {
             )
     })
     ApiResponse<List<AdminResDTO.AddWord>> addWord(
-            @RequestBody List<AdminReqDTO.AddWord> dto
+            @RequestBody @Valid List<AdminReqDTO.AddWord> dto
     );
 
     @Operation(
@@ -647,7 +648,7 @@ public interface AdminControllerDocs {
     })
     ApiResponse<AdminResDTO.UpdateWord> updateWord(
             @PathVariable Long wordId,
-            @RequestBody AdminReqDTO.UpdateWord dto
+            @RequestBody @Valid AdminReqDTO.UpdateWord dto
     );
 
     @Operation(
