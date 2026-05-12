@@ -81,7 +81,7 @@ public class AlertServiceGetAlertListTest {
         assertFalse(result.hasNext());
         assertEquals("1", result.nextCursor());
         assertEquals(1, result.data().size());
-        assertEquals("test message", result.data().get(0).message());
+        assertEquals("test message", result.data().getFirst().message());
     }
 
     @Test
