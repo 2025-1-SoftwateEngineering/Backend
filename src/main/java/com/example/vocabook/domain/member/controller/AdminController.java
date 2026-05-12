@@ -1,10 +1,9 @@
 package com.example.vocabook.domain.member.controller;
 
-import com.example.vocabook.domain.member.code.AdminErrorCode;
 import com.example.vocabook.domain.member.code.AdminSuccessCode;
+import com.example.vocabook.domain.member.controller.docs.AdminControllerDocs;
 import com.example.vocabook.domain.member.dto.req.AdminReqDTO;
 import com.example.vocabook.domain.member.dto.res.AdminResDTO;
-import com.example.vocabook.domain.member.exception.AdminException;
 import com.example.vocabook.domain.member.service.AdminService;
 import com.example.vocabook.global.apiPayload.ApiResponse;
 import com.example.vocabook.global.apiPayload.code.BaseSuccessCode;
@@ -14,8 +13,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-
-import com.example.vocabook.domain.member.controller.docs.AdminControllerDocs;
 
 @RestController
 @RequiredArgsConstructor

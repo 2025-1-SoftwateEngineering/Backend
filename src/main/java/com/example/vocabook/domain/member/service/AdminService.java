@@ -15,26 +15,20 @@ import com.example.vocabook.domain.member.repository.ReportRepository;
 import com.example.vocabook.domain.voca.converter.VocaConverter;
 import com.example.vocabook.domain.voca.converter.WordConverter;
 import com.example.vocabook.domain.voca.entity.Voca;
+import com.example.vocabook.domain.voca.entity.Word;
 import com.example.vocabook.domain.voca.repository.VocaRepository;
+import com.example.vocabook.domain.voca.repository.WordRepository;
 import com.example.vocabook.global.apiPayload.code.GeneralErrorCode;
 import com.example.vocabook.global.apiPayload.converter.PagingConverter;
 import com.example.vocabook.global.apiPayload.dto.PagingResDTO;
 import jakarta.transaction.Transactional;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
-
-import com.example.vocabook.domain.voca.entity.Word;
-import com.example.vocabook.domain.voca.repository.WordRepository;
 
 @Service
 @RequiredArgsConstructor

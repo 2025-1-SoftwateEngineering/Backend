@@ -10,7 +10,7 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 
 public interface VocaRepository extends JpaRepository<Voca, Long> {
-    boolean existsByDescriptionAndSolvedCoin(String description, Long solvedCoin);
+
     List<Voca> findByDescriptionIn(List<String> descriptions);
 
     @Query("SELECT v FROM Voca v ORDER BY v.id DESC")
