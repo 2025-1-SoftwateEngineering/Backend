@@ -32,7 +32,6 @@ public class StreakScheduler {
     private static final ZoneId zoneId = ZoneId.of("Asia/Seoul");
 
     // 매일 자정에 실행 — 어제 이전 마지막 학습자 streak 리셋
-    @SneakyThrows
     @Scheduled(cron = "0 0 0 * * *", zone = "Asia/Seoul")
     @Transactional
     public void resetStreak() {
@@ -60,6 +59,12 @@ public class StreakScheduler {
 
         alertDetailRepository.saveAll(alertDetailList);
 
-        alertDetailList.forEach(alertScheduleService::schedule);
+        alertDetailList.forEach(i -> {
+            try {
+                alertScheduleService.schedule(i);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 }
