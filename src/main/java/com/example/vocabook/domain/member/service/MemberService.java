@@ -25,8 +25,6 @@ import com.example.vocabook.global.apiPayload.code.GeneralErrorCode;
 import com.example.vocabook.global.apiPayload.converter.PagingConverter;
 import com.example.vocabook.global.apiPayload.dto.PagingResDTO;
 import com.example.vocabook.global.security.entity.AuthMember;
-import com.example.vocabook.global.util.FcmUtil;
-import com.google.firebase.messaging.FirebaseMessagingException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.quartz.SchedulerException;
