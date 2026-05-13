@@ -85,6 +85,7 @@ public class VocaService {
 
 		long earnedCoins = 0;
 		if (!alreadySubmittedToday) {
+			// 당일 첫 제출시 정답 1개당 5코인
 			earnedCoins = (long) correctCount * 5;
 			member.addCoin(earnedCoins);
 			member.updateStreak();
@@ -92,8 +93,12 @@ public class VocaService {
 				member.addCoin(500);
 				earnedCoins += 500;
 			}
-			memberRepository.saveAndFlush(member);
+		} else {
+			// 당일 재제출시 정답 1개당 3코인
+			earnedCoins = (long) correctCount * 3;
+			member.addCoin(earnedCoins);
 		}
+		memberRepository.saveAndFlush(member);
 		saveMemberVoca(member, voca, (long) correctCount, (long) dto.getAnswers().size());
 
 		return VocaResDTO.TestResult.builder()
