@@ -8,6 +8,8 @@ import lombok.RequiredArgsConstructor;
 import org.quartz.*;
 import org.springframework.stereotype.Service;
 
+import java.util.TimeZone;
+
 @Service
 @RequiredArgsConstructor
 public class AlertScheduleService {
@@ -29,7 +31,9 @@ public class AlertScheduleService {
         String cronExpression = generateCronExpression(alertDetail);
         Trigger trigger = TriggerBuilder.newTrigger()
                 .withIdentity(alertDetail.getId().toString(), "ALARM_GROUP")
-                .withSchedule(CronScheduleBuilder.cronSchedule(cronExpression))
+                .withSchedule(CronScheduleBuilder.cronSchedule(cronExpression)
+                        .inTimeZone(TimeZone.getTimeZone("Asia/Seoul"))
+                )
                 .build();
 
         // Quartz 스케줄러에 등록
