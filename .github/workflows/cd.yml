@@ -24,9 +24,11 @@ jobs:
 
       - name: gradle 세팅
         uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-overwrite-existing: true
 
       - name: gradle 빌드
-        run: ./gradlew clean build -x test
+        run: ./gradlew clean build -x test --no-daemon --parallel --build-cache
 
       - name: Docker Hub 로그인
         uses: docker/login-action@v2
@@ -44,6 +46,8 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_IMAGENAME }}
           platforms: linux/amd64, linux/arm64
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
   deploy:
     needs: build
@@ -63,8 +67,6 @@ jobs:
           timeout: 60s
           envs: ENV,FCM
           script: |
-            sudo docker stop ${{ secrets.DOCKER_IMAGENAME }} || true
-            sudo docker rm ${{ secrets.DOCKER_IMAGENAME }} || true
             sudo docker pull ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_IMAGENAME }}
 
             rm -rf $(pwd)/.env
@@ -72,6 +74,10 @@ jobs:
             
             echo "$ENV" > $(pwd)/.env
             echo "$FCM" > $(pwd)/vocabook-firebase.json
+            
+            sudo docker stop ${{ secrets.DOCKER_IMAGENAME }} || true
+            sudo docker rm ${{ secrets.DOCKER_IMAGENAME }} || true
+
             sudo docker run -d --network host --name ${{ secrets.DOCKER_IMAGENAME }} --env-file $(pwd)/.env -v $(pwd)/vocabook-firebase.json:/vocabook-firebase.json ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_IMAGENAME }}
             rm .env
             rm vocabook-firebase.json
