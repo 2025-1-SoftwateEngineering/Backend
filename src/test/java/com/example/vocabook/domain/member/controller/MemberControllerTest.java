@@ -156,7 +156,7 @@ class MemberControllerTest {
         MemberReqDTO.SearchMember request = new MemberReqDTO.SearchMember("friend@example.com");
         MemberResDTO.SearchMember response = new MemberResDTO.SearchMember(2L, "Friend", "friend@example.com");
         
-        given(memberService.searchMember(any(AuthMember.class), any())).willReturn(response);
+        given(memberService.searchMember(any())).willReturn(response);
 
         // when & then
         mockMvc.perform(post("/api/v1/members/search")

@@ -23,6 +23,16 @@ public class Word {
     private String meaning;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "voca_id", nullable = false)
+    @JoinColumn(name = "voca_id")
     private Voca voca;
+
+    public void update(String englishWord, String meaning, Voca voca) {
+        if (englishWord != null) {
+            this.englishWord = englishWord;
+        }
+        if (meaning != null) {
+            this.meaning = meaning;
+        }
+        this.voca = voca;
+    }
 }

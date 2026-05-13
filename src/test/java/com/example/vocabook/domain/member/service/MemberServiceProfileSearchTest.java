@@ -53,7 +53,7 @@ class MemberServiceProfileSearchTest {
 
         // when
         MemberException exception = assertThrows(MemberException.class, () ->
-                memberService.searchMember(authMember, dto)
+                memberService.searchMember(dto)
         );
 
         // then

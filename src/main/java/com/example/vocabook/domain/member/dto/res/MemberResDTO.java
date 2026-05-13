@@ -72,4 +72,12 @@ public class MemberResDTO {
             String nickname,
             LocalDateTime blockedAt
     ) {}
+
+    // 사용자 신고
+    @Builder
+    public record ReportMember(
+            Long id,
+            String email,
+            LocalDateTime reportedAt
+    ) {}
 }

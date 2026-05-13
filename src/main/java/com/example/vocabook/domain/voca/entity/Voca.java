@@ -18,9 +18,8 @@ public class Voca {
     @Column(name = "voca_id")
     private Long id;
 
-    @Column(name = "level", nullable = false)
-    @Builder.Default
-    private Long level = 1L;
+    @Column(name = "description", nullable = false)
+    private String description;
 
     @Column(name = "solved_coin", nullable = false)
     @Builder.Default
@@ -29,4 +28,13 @@ public class Voca {
     @Column(name = "created_at", nullable = false)
     @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();
+
+    public void update(String description, Long solvedCoin) {
+        if (description != null) {
+            this.description = description;
+        }
+        if (solvedCoin != null) {
+            this.solvedCoin = solvedCoin;
+        }
+    }
 }
