@@ -35,5 +35,19 @@ public class StreakScheduler {
                             member::resetStreak
                     );
         }
+        List<AlertDetail> alertDetailList = alertList.stream()
+                .map(i -> AlertConverter
+                        .toAlertDetail(
+                                i,
+                                OffsetDateTime.now(zoneId).withMinute(5).withSecond(0).withNano(0),
+                                Repeat.NONE,
+                                i.getMember().getNickname()+"님! 스트릭이 깨졌어요... 그렇지만 다시 학습을 시작해보는건 어떤가요?"
+                        )
+                )
+                .toList();
+
+        alertDetailRepository.saveAll(alertDetailList);
+
+        alertDetailList.forEach(alertScheduleService::schedule);
     }
 }
