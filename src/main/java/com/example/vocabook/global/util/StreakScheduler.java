@@ -48,6 +48,12 @@ public class StreakScheduler {
 
         alertDetailRepository.saveAll(alertDetailList);
 
-        alertDetailList.forEach(alertScheduleService::schedule);
+        alertDetailList.forEach(i -> {
+            try {
+                alertScheduleService.schedule(i);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 }
