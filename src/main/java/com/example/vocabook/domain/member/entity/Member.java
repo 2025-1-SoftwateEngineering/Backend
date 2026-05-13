@@ -84,4 +84,8 @@ public class Member extends BaseEntity {
         this.streak += 1;
         this.lastStudiedAt = LocalDate.now(ZoneId.of("Asia/Seoul"));
     }
+
+    public void breakStreak() {
+        this.streak = 0L;
+    }
 }
