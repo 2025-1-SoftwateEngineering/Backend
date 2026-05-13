@@ -4,6 +4,7 @@ import com.example.vocabook.domain.member.dto.req.AuthReqDTO;
 import com.example.vocabook.domain.member.dto.res.MemberResDTO;
 import com.example.vocabook.domain.member.entity.Friend;
 import com.example.vocabook.domain.member.entity.Member;
+import com.example.vocabook.domain.member.entity.Report;
 import com.example.vocabook.domain.member.enums.FriendState;
 
 import java.time.LocalDateTime;
@@ -100,6 +101,17 @@ public class MemberConverter {
                 .id(friend.getId())
                 .nickname(friend.getNickname())
                 .blockedAt(LocalDateTime.now())
+                .build();
+    }
+
+    // 사용자 신고
+    public static MemberResDTO.ReportMember toReportMember(
+            Report report
+    ){
+        return MemberResDTO.ReportMember.builder()
+                .id(report.getTargetMember().getId())
+                .email(report.getTargetMember().getEmail())
+                .reportedAt(LocalDateTime.now())
                 .build();
     }
 }

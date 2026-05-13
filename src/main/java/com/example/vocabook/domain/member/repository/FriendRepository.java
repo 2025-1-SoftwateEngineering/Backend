@@ -36,20 +36,18 @@ public interface FriendRepository extends JpaRepository<Friend, Long> {
     Optional<Friend> findByFromMemberAndToMember(Member fromMember, Member member);
 
     @Query(
-            value = "SELECT * " +
-                    "FROM friend " +
-                    "WHERE (from_id = :fromId AND friend_state = :friendState) AND friend_id < :cursor " +
-                    "ORDER BY friend_id DESC ",
-            nativeQuery = true
+            value = "SELECT f " +
+                    "FROM Friend f " +
+                    "WHERE (f.fromMember.id = :fromId AND f.friendState = :friendState) AND f.id < :cursor AND f.toMember.isSuspended is false " +
+                    "ORDER BY f.id DESC "
     )
     Slice<Friend> findFriendListWithCursor(Long fromId, String friendState, Long cursor, PageRequest pageRequest);
 
     @Query(
-            value = "SELECT * " +
-                    "FROM friend " +
-                    "WHERE from_id = :fromId AND friend_state = :friendState " +
-                    "ORDER BY friend_id DESC ",
-            nativeQuery = true
+            value = "SELECT f " +
+                    "FROM Friend f " +
+                    "WHERE f.fromMember.id = :fromId AND f.friendState = :friendState AND f.toMember.isSuspended is false " +
+                    "ORDER BY f.id DESC "
     )
     Slice<Friend> findFriendListWithoutCursor(Long fromId, String friendState, PageRequest pageRequest);
 

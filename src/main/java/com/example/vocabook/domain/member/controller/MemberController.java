@@ -74,11 +74,10 @@ public class MemberController implements MemberControllerDocs {
     // 사용자 단순 조회
     @PostMapping("/v1/members/search")
     public ApiResponse<MemberResDTO.SearchMember> searchMember(
-            @AuthenticationPrincipal AuthMember auth,
             @RequestBody @Valid MemberReqDTO.SearchMember dto
     ) {
         BaseSuccessCode code = MemberSuccessCode.SEARCH_MEMBER;
-        return ApiResponse.onSuccess(code, memberService.searchMember(auth, dto));
+        return ApiResponse.onSuccess(code, memberService.searchMember(dto));
     }
 
     // 친구 목록 조회
@@ -114,5 +113,16 @@ public class MemberController implements MemberControllerDocs {
     ) {
         BaseSuccessCode code = MemberSuccessCode.BLOCKING;
         return ApiResponse.onSuccess(code, memberService.blockMember(auth, friendId));
+    }
+
+    // 사용자 신고
+    @PostMapping("/v1/members/{memberId}/report")
+    public ApiResponse<MemberResDTO.ReportMember> reportMember(
+            @AuthenticationPrincipal AuthMember auth,
+            @PathVariable Long memberId,
+            @RequestBody @Valid MemberReqDTO.ReportMember dto
+    ) {
+        BaseSuccessCode code = MemberSuccessCode.REPORTING;
+        return ApiResponse.onSuccess(code, memberService.reportMember(auth, memberId, dto));
     }
 }

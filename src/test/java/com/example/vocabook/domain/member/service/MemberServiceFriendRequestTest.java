@@ -107,13 +107,13 @@ class MemberServiceFriendRequestTest {
     }
 
     @Test
-    @DisplayName("친구 요청 보내기 실패 - 자기 자신에게 요청 시도 (EXISTS_SELF_REQUEST)")
+    @DisplayName("친구 요청 보내기 실패 - 자기 자신에게 요청 시도 (SELF_REQUEST)")
     void sendFriendRequest_Fail_SelfRequest() {
         given(memberRepository.findById(1L)).willReturn(Optional.of(myMember));
         MemberException exception = assertThrows(MemberException.class, () ->
                 memberService.sendFriendRequest(authMember, 1L)
         );
-        assertEquals(MemberErrorCode.EXISTS_SELF_REQUEST, exception.getCode());
+        assertEquals(MemberErrorCode.SELF_REQUEST, exception.getCode());
     }
 
     @Test

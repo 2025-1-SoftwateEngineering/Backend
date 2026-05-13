@@ -16,7 +16,7 @@ public enum MemberErrorCode implements BaseErrorCode {
                         "MEMBER404_2",
                         "친구 요청을 찾지 못했습니다."),
         INVADED_STATE(HttpStatus.BAD_REQUEST,
-                        "MEMBER400_2",
+                        "MEMBER400_1",
                         "잘못된 친구 요청 상태입니다. (accept, reject)"),
         EXISTS_FRIEND_REQUEST(HttpStatus.CONFLICT,
                         "MEMBER409_1",
@@ -25,14 +25,24 @@ public enum MemberErrorCode implements BaseErrorCode {
                         "MEMBER403_1",
                         "대상 사용자가 차단했습니다."),
         NOT_REQUEST(HttpStatus.BAD_REQUEST,
-                        "MEMBER400_3",
+                        "MEMBER400_2",
                         "친구 요청 대기 상태가 아닙니다."),
         NOT_FRIEND(HttpStatus.BAD_REQUEST,
-                        "MEMBER400_4",
+                        "MEMBER400_3",
                         "대상과 친구가 아닙니다."),
-        EXISTS_SELF_REQUEST(HttpStatus.CONFLICT,
-                        "MEMBER409_2",
-                        "자기 자신에게 친구 요청을 보낼 수 없습니다.");
+        SELF_REQUEST(HttpStatus.BAD_REQUEST,
+                        "MEMBER400_4",
+                        "자기 자신에게 친구 요청을 보낼 수 없습니다."),
+        ALREADY_REPORT(HttpStatus.ALREADY_REPORTED,
+                "MEMBER208_1",
+                "이미 해당 사용자를 신고했습니다."),
+        SELF_REPORT(HttpStatus.BAD_REQUEST,
+                "MEMBER400_5",
+                "자기 자신을 신고할 수 없습니다."),
+        SUSPENDED(HttpStatus.FORBIDDEN,
+                "MEMBER403_2",
+                "해당 사용자는 영구 정지된 상태입니다. 관리자에게 문의해주세요."),
+    ;
 
         private final HttpStatus status;
         private final String code;

@@ -30,6 +30,9 @@ public enum MemberSuccessCode implements BaseSuccessCode {
     BLOCKING(HttpStatus.OK,
             "MEMBER200_6",
             "성공적으로 사용자를 차단했습니다."),
+    REPORTING(HttpStatus.OK,
+            "MEMBER200_7",
+            "성공적으로 사용자를 신고했습니다."),
     ;
 
     private final HttpStatus status;
