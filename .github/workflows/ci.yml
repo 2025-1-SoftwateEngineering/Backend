@@ -52,7 +52,7 @@ jobs:
 
       # 컴파일 및 테스트 수행
       - name: Gradle 테스트 실행
-        run: ./gradlew test
+        run: ./gradlew test --no-daemon --parallel --build-cache
 
       # 테스트 실패 시에도 원인을 파악할 수 있도록 리포트 아티팩트 저장
       - name: 테스트 결과 리포트 업로드
