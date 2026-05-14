@@ -24,9 +24,17 @@ public class FcmConfig {
             return FirebaseApp.getInstance();
         }
         try {
+            ClassPathResource resource = new ClassPathResource(path);
+
+            // 파일이 없는 경우 (CI/테스트 환경) → 빈 생성 건너뜀
+            // 테스트에서는 @MockitoBean FirebaseMessaging으로 대체됨
+            if (!resource.exists()) {
+                return null;
+            }
+
             FirebaseOptions options = FirebaseOptions.builder()
                     .setCredentials(
-                            GoogleCredentials.fromStream(new ClassPathResource(path).getInputStream())
+                            GoogleCredentials.fromStream(resource.getInputStream())
                     )
                     .build();
 
@@ -37,7 +45,12 @@ public class FcmConfig {
     }
 
     @Bean
-    public FirebaseMessaging firebaseMessaging(FirebaseApp firebaseApp){
+    public FirebaseMessaging firebaseMessaging(FirebaseApp firebaseApp) {
+        // firebaseApp이 null인 경우 (파일 없음) → null 반환
+        // 테스트에서는 @MockitoBean FirebaseMessaging으로 대체됨
+        if (firebaseApp == null) {
+            return null;
+        }
         return FirebaseMessaging.getInstance(firebaseApp);
     }
 }
