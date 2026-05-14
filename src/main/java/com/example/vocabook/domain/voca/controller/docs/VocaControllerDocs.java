@@ -22,6 +22,67 @@ import java.util.List;
 public interface VocaControllerDocs {
 
 	@Operation(
+			summary = "학습한 단어장 목록 조회 API By 윤민재",
+			description = """
+					# 학습한 단어장 목록 조회
+
+					## 요청 형식
+					- 인증 토큰 필요 (JWT)
+
+					## 응답
+					- 학습한 단어장 목록 및 총 개수 반환
+					"""
+	)
+	@ApiResponses(value = {
+			@io.swagger.v3.oas.annotations.responses.ApiResponse(
+					responseCode = "200",
+					description = "성공 예시",
+					content = @Content(
+							mediaType = "application/json",
+							schema = @Schema(implementation = ApiResponse.class),
+							examples = @ExampleObject(value = """
+									{
+									  "isSuccess": true,
+									  "code": "VOCA200_4",
+									  "message": "학습한 단어장 목록을 성공적으로 불러왔습니다.",
+									  "result": {
+									    "vocas": [
+									      {
+									        "vocaId": 1,
+									        "description": "기초 영단어",
+									        "learningWordCnt": 20,
+									        "correctCnt": 15,
+									        "solvedAt": "2026-05-10T12:00:00"
+									      }
+									    ],
+									    "totalCount": 1
+									  }
+									}
+									""")
+					)
+			),
+			@io.swagger.v3.oas.annotations.responses.ApiResponse(
+					responseCode = "404",
+					description = "실패 - 존재하지 않는 사용자",
+					content = @Content(
+							mediaType = "application/json",
+							schema = @Schema(implementation = ApiResponse.class),
+							examples = @ExampleObject(value = """
+									{
+									  "isSuccess": false,
+									  "code": "VOCA404_1",
+									  "message": "단어장을 찾을 수 없습니다.",
+									  "result": null
+									}
+									""")
+					)
+			)
+	})
+	ApiResponse<VocaResDTO.StudiedVocaList> getStudiedVocas(
+			@AuthenticationPrincipal AuthMember authMember
+	);
+
+	@Operation(
 			summary = "단어 목록 조회 API By 윤민재",
 			description = """
 					# 단어 목록 조회

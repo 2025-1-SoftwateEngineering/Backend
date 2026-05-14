@@ -1,6 +1,7 @@
 package com.example.vocabook.domain.voca.converter;
 
 import com.example.vocabook.domain.member.dto.req.AdminReqDTO;
+import com.example.vocabook.domain.member.entity.mapping.MemberVoca;
 import com.example.vocabook.domain.voca.dto.VocaResDTO;
 import com.example.vocabook.domain.voca.entity.Voca;
 import com.example.vocabook.domain.voca.entity.Word;
@@ -41,6 +42,23 @@ public class VocaConverter {
 				.wordId(word.getId())
 				.englishWord(word.getEnglishWord())
 				.meaning(word.getMeaning())
+				.build();
+	}
+
+	// 학습한 단어장 목록 변환
+	public static VocaResDTO.StudiedVocaList toStudiedVocaList(List<MemberVoca> memberVocas) {
+		List<VocaResDTO.StudiedVocaInfo> vocas = memberVocas.stream()
+				.map(mv -> VocaResDTO.StudiedVocaInfo.builder()
+						.vocaId(mv.getVoca().getId())
+						.description(mv.getVoca().getDescription())
+						.learningWordCnt(mv.getLearningWordCnt())
+						.correctCnt(mv.getCorrectCnt())
+						.solvedAt(mv.getSolvedAt())
+						.build())
+				.toList();
+		return VocaResDTO.StudiedVocaList.builder()
+				.vocas(vocas)
+				.totalCount(vocas.size())
 				.build();
 	}
 }

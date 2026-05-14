@@ -26,6 +26,8 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -35,6 +37,14 @@ public class VocaService {
 	private final WordRepository wordRepository;
 	private final MemberVocaRepository memberVocaRepository;
 	private final MemberRepository memberRepository;
+
+	// 학습한 단어장 목록 조회
+	@Transactional(readOnly = true)
+	public VocaResDTO.StudiedVocaList getStudiedVocas(AuthMember authMember) {
+		Member member = authMember.getMember();
+		List<MemberVoca> memberVocas = memberVocaRepository.findAllByMember(member);
+		return VocaConverter.toStudiedVocaList(memberVocas);
+	}
 
 	public VocaResDTO.WordList getWords(Long vocaId, int page, int pageSize) {
 		Voca voca = vocaRepository.findById(vocaId)
@@ -65,11 +75,18 @@ public class VocaService {
 				.map(mv -> mv.getSolvedAt() != null && mv.getSolvedAt().toLocalDate().isEqual(today))
 				.orElse(false);
 
+		// wordId 목록 추출 후 한 번에 조회 (N+1 방지)
+		List<Long> wordIds = dto.getAnswers().stream()
+				.map(VocaReqDTO.SubmitTest.Answer::getWordId)
+				.toList();
+		Map<Long, Word> wordMap = wordRepository.findAllById(wordIds).stream()
+				.collect(java.util.stream.Collectors.toMap(Word::getId, w -> w));
+
 		List<VocaResDTO.AnswerResult> results = new ArrayList<>();
 		int correctCount = 0;
 
 		for (VocaReqDTO.SubmitTest.Answer answer : dto.getAnswers()) {
-			Word word = wordRepository.findById(answer.getWordId())
+			Word word = Optional.ofNullable(wordMap.get(answer.getWordId()))
 					.orElseThrow(() -> new VocaException(VoceErrorCode.WORD_NOT_FOUND));
 			boolean isCorrect = word.getEnglishWord().equalsIgnoreCase(answer.getAnswer());
 			if (isCorrect) correctCount++;
