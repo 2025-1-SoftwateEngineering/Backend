@@ -268,17 +268,18 @@ public interface VocaControllerDocs {
 	);
 
 	@Operation(
-			summary = "단어 테스트 결과 제출 API By 윤민재",
+			summary = "단어 하나 즉시 채점 API By 윤민재",
 			description = """
-					# 단어 테스트 결과 제출
+					# 단어 하나 즉시 채점
 
 					## 요청 형식
 					- vocaId: 단어장 ID
-					- answers: 단어별 답안 목록 (wordId + answer)
-					- 대소문자 구분 없이 채점
+					- wordId: 단어 ID
+					- answer: 제출 답안
+					- 대소문자 구분 없이 채점, 인증 불필요
 
 					## 응답
-					- 정답 개수, 획득 재화, 단어별 채점 결과 반환
+					- 해당 단어의 채점 결과 즉시 반환
 					"""
 	)
 	@ApiResponses(value = {
@@ -292,10 +293,54 @@ public interface VocaControllerDocs {
 									{
 									  "isSuccess": true,
 									  "code": "VOCA200_3",
-									  "message": "테스트 결과를 성공적으로 제출했습니다.",
+									  "message": "채점 결과를 성공적으로 반환했습니다.",
+									  "result": {
+									    "wordId": 1,
+									    "meaning": "사과",
+									    "correctAnswer": "apple",
+									    "submittedAnswer": "apple",
+									    "isCorrect": true
+									  }
+									}
+									""")
+					)
+			)
+	})
+	ApiResponse<VocaResDTO.AnswerResult> submitAnswer(
+			@PathVariable Long vocaId,
+			@RequestBody @Valid VocaReqDTO.SubmitAnswer dto
+	);
+
+	@Operation(
+			summary = "테스트 완료 API By 윤민재",
+			description = """
+					# 테스트 완료
+
+					## 요청 형식
+					- vocaId: 단어장 ID
+					- answers: 전체 답안 목록 (wordId + answer)
+					- 인증 토큰 필요 (JWT)
+
+					## 응답
+					- 최종 결과, 획득 코인, 스트릭 반영
+					"""
+	)
+	@ApiResponses(value = {
+			@io.swagger.v3.oas.annotations.responses.ApiResponse(
+					responseCode = "200",
+					description = "성공 예시",
+					content = @Content(
+							mediaType = "application/json",
+							schema = @Schema(implementation = ApiResponse.class),
+							examples = @ExampleObject(value = """
+									{
+									  "isSuccess": true,
+									  "code": "VOCA200_9",
+									  "message": "테스트를 성공적으로 완료했습니다.",
 									  "result": {
 									    "totalCount": 2,
 									    "correctCount": 1,
+									    "wrongCount": 1,
 									    "earnedCoins": 5,
 									    "results": [
 									      {
@@ -312,9 +357,9 @@ public interface VocaControllerDocs {
 					)
 			)
 	})
-	ApiResponse<VocaResDTO.TestResult> submitTest(
+	ApiResponse<VocaResDTO.TestResult> completeTest(
 			@PathVariable Long vocaId,
 			@AuthenticationPrincipal AuthMember authMember,
-			@RequestBody @Valid VocaReqDTO.SubmitTest dto
+			@RequestBody @Valid VocaReqDTO.CompleteTest dto
 	);
 }

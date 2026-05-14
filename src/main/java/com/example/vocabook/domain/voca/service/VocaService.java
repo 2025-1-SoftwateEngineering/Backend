@@ -115,8 +115,26 @@ public class VocaService {
 				.toList();
 	}
 
+	// 단어 하나씩 즉시 채점
+	@Transactional(readOnly = true)
+	public VocaResDTO.AnswerResult submitAnswer(Long vocaId, VocaReqDTO.SubmitAnswer dto) {
+		vocaRepository.findById(vocaId)
+				.orElseThrow(() -> new VocaException(VoceErrorCode.VOCA_NOT_FOUND));
+		Word word = wordRepository.findById(dto.getWordId())
+				.orElseThrow(() -> new VocaException(VoceErrorCode.WORD_NOT_FOUND));
+		boolean isCorrect = word.getEnglishWord().equalsIgnoreCase(dto.getAnswer());
+		return VocaResDTO.AnswerResult.builder()
+				.wordId(word.getId())
+				.meaning(word.getMeaning())
+				.correctAnswer(word.getEnglishWord())
+				.submittedAnswer(dto.getAnswer())
+				.correct(isCorrect)
+				.build();
+	}
+
+	// 테스트 전체 완료 - 코인/스트릭 처리
 	@Transactional
-	public VocaResDTO.TestResult submitTest(Long vocaId, AuthMember authMember, VocaReqDTO.SubmitTest dto) {
+	public VocaResDTO.TestResult completeTest(Long vocaId, AuthMember authMember, VocaReqDTO.CompleteTest dto) {
 		Voca voca = vocaRepository.findById(vocaId)
 				.orElseThrow(() -> new VocaException(VoceErrorCode.VOCA_NOT_FOUND));
 		Member member = memberRepository.findById(authMember.getMember().getId())
@@ -128,7 +146,7 @@ public class VocaService {
 				.orElse(false);
 
 		List<Long> wordIds = dto.getAnswers().stream()
-				.map(VocaReqDTO.SubmitTest.Answer::getWordId)
+				.map(VocaReqDTO.CompleteTest.Answer::getWordId)
 				.toList();
 		Map<Long, Word> wordMap = wordRepository.findAllById(wordIds).stream()
 				.collect(java.util.stream.Collectors.toMap(Word::getId, w -> w));
@@ -136,7 +154,7 @@ public class VocaService {
 		List<VocaResDTO.AnswerResult> results = new ArrayList<>();
 		int correctCount = 0;
 
-		for (VocaReqDTO.SubmitTest.Answer answer : dto.getAnswers()) {
+		for (VocaReqDTO.CompleteTest.Answer answer : dto.getAnswers()) {
 			Word word = Optional.ofNullable(wordMap.get(answer.getWordId()))
 					.orElseThrow(() -> new VocaException(VoceErrorCode.WORD_NOT_FOUND));
 			boolean isCorrect = word.getEnglishWord().equalsIgnoreCase(answer.getAnswer());

@@ -69,11 +69,19 @@ public class VocaController implements VocaControllerDocs {
 	}
 
 	@PostMapping("/{vocaId}/test/submit")
-	public ApiResponse<VocaResDTO.TestResult> submitTest(
+	public ApiResponse<VocaResDTO.AnswerResult> submitAnswer(
+			@PathVariable Long vocaId,
+			@RequestBody @Valid VocaReqDTO.SubmitAnswer dto
+	) {
+		return ApiResponse.onSuccess(VocaSuccessCode.SUBMIT_TEST, vocaService.submitAnswer(vocaId, dto));
+	}
+
+	@PostMapping("/{vocaId}/test/complete")
+	public ApiResponse<VocaResDTO.TestResult> completeTest(
 			@PathVariable Long vocaId,
 			@AuthenticationPrincipal AuthMember authMember,
-			@RequestBody @Valid VocaReqDTO.SubmitTest dto
+			@RequestBody @Valid VocaReqDTO.CompleteTest dto
 	) {
-		return ApiResponse.onSuccess(VocaSuccessCode.SUBMIT_TEST, vocaService.submitTest(vocaId, authMember, dto));
+		return ApiResponse.onSuccess(VocaSuccessCode.COMPLETE_TEST, vocaService.completeTest(vocaId, authMember, dto));
 	}
 }
