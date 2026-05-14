@@ -21,6 +21,9 @@ public enum VocaSuccessCode implements BaseSuccessCode {
 	GET_STUDIED_VOCAS(HttpStatus.OK,
 			"VOCA200_4",
 			"학습한 단어장 목록을 성공적으로 불러왔습니다."),
+	GET_VOCA_LIST(HttpStatus.OK,
+			"VOCA200_5",
+			"단어장 목록을 성공적으로 불러왔습니다."),
 	;
 
 	private final HttpStatus status;

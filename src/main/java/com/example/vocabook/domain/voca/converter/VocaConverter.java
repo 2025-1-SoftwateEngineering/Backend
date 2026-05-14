@@ -9,6 +9,7 @@ import org.springframework.data.domain.Page;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 public class VocaConverter {
 
@@ -42,6 +43,22 @@ public class VocaConverter {
 				.wordId(word.getId())
 				.englishWord(word.getEnglishWord())
 				.meaning(word.getMeaning())
+				.build();
+	}
+
+	// 단어장 목록 변환
+	public static VocaResDTO.VocaList toVocaList(List<Voca> vocas, Map<Long, Long> wordCountMap) {
+		List<VocaResDTO.VocaInfo> vocaInfos = vocas.stream()
+				.map(v -> VocaResDTO.VocaInfo.builder()
+						.vocaId(v.getId())
+						.description(v.getDescription())
+						.wordCount(wordCountMap.getOrDefault(v.getId(), 0L))
+						.createdAt(v.getCreatedAt())
+						.build())
+				.toList();
+		return VocaResDTO.VocaList.builder()
+				.vocas(vocaInfos)
+				.totalCount(vocaInfos.size())
 				.build();
 	}
 

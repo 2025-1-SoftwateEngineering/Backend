@@ -21,6 +21,11 @@ public class VocaController implements VocaControllerDocs {
 
 	private final VocaService vocaService;
 
+	@GetMapping
+	public ApiResponse<VocaResDTO.VocaList> getVocaList() {
+		return ApiResponse.onSuccess(VocaSuccessCode.GET_VOCA_LIST, vocaService.getVocaList());
+	}
+
 	@GetMapping("/my")
 	public ApiResponse<VocaResDTO.StudiedVocaList> getStudiedVocas(
 			@AuthenticationPrincipal AuthMember authMember

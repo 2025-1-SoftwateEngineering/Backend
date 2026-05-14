@@ -63,6 +63,24 @@ public class VocaResDTO {
 	@Getter
 	@Builder
 	@AllArgsConstructor
+	public static class VocaInfo {
+		private Long vocaId;
+		private String description;
+		private long wordCount;
+		private LocalDateTime createdAt;
+	}
+
+	@Getter
+	@Builder
+	@AllArgsConstructor
+	public static class VocaList {
+		private List<VocaInfo> vocas;
+		private int totalCount;
+	}
+
+	@Getter
+	@Builder
+	@AllArgsConstructor
 	public static class StudiedVocaList {
 		private List<StudiedVocaInfo> vocas;
 		private int totalCount;

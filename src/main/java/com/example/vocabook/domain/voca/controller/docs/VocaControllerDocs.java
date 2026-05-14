@@ -22,6 +22,48 @@ import java.util.List;
 public interface VocaControllerDocs {
 
 	@Operation(
+			summary = "단어장 전체 목록 조회 API By 윤민재",
+			description = """
+					# 단어장 전체 목록 조회
+
+					## 요청 형식
+					- 인증 불필요
+
+					## 응답
+					- 전체 단어장 목록, 단어장별 단어 수 반환
+					"""
+	)
+	@ApiResponses(value = {
+			@io.swagger.v3.oas.annotations.responses.ApiResponse(
+					responseCode = "200",
+					description = "성공 예시",
+					content = @Content(
+							mediaType = "application/json",
+							schema = @Schema(implementation = ApiResponse.class),
+							examples = @ExampleObject(value = """
+									{
+									  "isSuccess": true,
+									  "code": "VOCA200_5",
+									  "message": "단어장 목록을 성공적으로 불러왔습니다.",
+									  "result": {
+									    "vocas": [
+									      {
+									        "vocaId": 1,
+									        "description": "TOEIC 핵심 동사",
+									        "wordCount": 20,
+									        "createdAt": "2026-01-10T09:00:00"
+									      }
+									    ],
+									    "totalCount": 1
+									  }
+									}
+									""")
+					)
+			)
+	})
+	ApiResponse<VocaResDTO.VocaList> getVocaList();
+
+	@Operation(
 			summary = "학습한 단어장 목록 조회 API By 윤민재",
 			description = """
 					# 학습한 단어장 목록 조회
@@ -57,22 +99,6 @@ public interface VocaControllerDocs {
 									    ],
 									    "totalCount": 1
 									  }
-									}
-									""")
-					)
-			),
-			@io.swagger.v3.oas.annotations.responses.ApiResponse(
-					responseCode = "404",
-					description = "실패 - 존재하지 않는 사용자",
-					content = @Content(
-							mediaType = "application/json",
-							schema = @Schema(implementation = ApiResponse.class),
-							examples = @ExampleObject(value = """
-									{
-									  "isSuccess": false,
-									  "code": "VOCA404_1",
-									  "message": "단어장을 찾을 수 없습니다.",
-									  "result": null
 									}
 									""")
 					)
@@ -116,22 +142,6 @@ public interface VocaControllerDocs {
 									}
 									""")
 					)
-			),
-			@io.swagger.v3.oas.annotations.responses.ApiResponse(
-					responseCode = "404",
-					description = "실패 - 존재하지 않는 단어장",
-					content = @Content(
-							mediaType = "application/json",
-							schema = @Schema(implementation = ApiResponse.class),
-							examples = @ExampleObject(value = """
-									{
-									  "isSuccess": false,
-									  "code": "VOCA404_1",
-									  "message": "단어장을 찾을 수 없습니다.",
-									  "result": null
-									}
-									""")
-					)
 			)
 	})
 	ApiResponse<VocaResDTO.WordList> getWords(
@@ -166,22 +176,6 @@ public interface VocaControllerDocs {
 									    { "wordId": 3, "meaning": "바나나" },
 									    { "wordId": 1, "meaning": "사과" }
 									  ]
-									}
-									""")
-					)
-			),
-			@io.swagger.v3.oas.annotations.responses.ApiResponse(
-					responseCode = "404",
-					description = "실패 - 존재하지 않는 단어장",
-					content = @Content(
-							mediaType = "application/json",
-							schema = @Schema(implementation = ApiResponse.class),
-							examples = @ExampleObject(value = """
-									{
-									  "isSuccess": false,
-									  "code": "VOCA404_1",
-									  "message": "단어장을 찾을 수 없습니다.",
-									  "result": null
 									}
 									""")
 					)
@@ -220,7 +214,7 @@ public interface VocaControllerDocs {
 									  "result": {
 									    "totalCount": 2,
 									    "correctCount": 1,
-									    "earnedCoin": 10,
+									    "earnedCoins": 5,
 									    "results": [
 									      {
 									        "wordId": 1,
@@ -228,48 +222,9 @@ public interface VocaControllerDocs {
 									        "correctAnswer": "apple",
 									        "submittedAnswer": "apple",
 									        "isCorrect": true
-									      },
-									      {
-									        "wordId": 2,
-									        "meaning": "바나나",
-									        "correctAnswer": "banana",
-									        "submittedAnswer": "bananaa",
-									        "isCorrect": false
 									      }
 									    ]
 									  }
-									}
-									""")
-					)
-			),
-			@io.swagger.v3.oas.annotations.responses.ApiResponse(
-					responseCode = "404",
-					description = "실패 - 존재하지 않는 단어장",
-					content = @Content(
-							mediaType = "application/json",
-							schema = @Schema(implementation = ApiResponse.class),
-							examples = @ExampleObject(value = """
-									{
-									  "isSuccess": false,
-									  "code": "VOCA404_1",
-									  "message": "단어장을 찾을 수 없습니다.",
-									  "result": null
-									}
-									""")
-					)
-			),
-			@io.swagger.v3.oas.annotations.responses.ApiResponse(
-					responseCode = "404",
-					description = "실패 - 존재하지 않는 단어",
-					content = @Content(
-							mediaType = "application/json",
-							schema = @Schema(implementation = ApiResponse.class),
-							examples = @ExampleObject(value = """
-									{
-									  "isSuccess": false,
-									  "code": "VOCA404_2",
-									  "message": "단어를 찾을 수 없습니다.",
-									  "result": null
 									}
 									""")
 					)

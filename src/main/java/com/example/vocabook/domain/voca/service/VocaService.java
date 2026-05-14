@@ -38,6 +38,16 @@ public class VocaService {
 	private final MemberVocaRepository memberVocaRepository;
 	private final MemberRepository memberRepository;
 
+	// 단어장 전체 목록 조회
+	@Transactional(readOnly = true)
+	public VocaResDTO.VocaList getVocaList() {
+		List<Voca> vocas = vocaRepository.findAll();
+		List<Word> allWords = wordRepository.findByVocaIn(vocas);
+		Map<Long, Long> wordCountMap = allWords.stream()
+				.collect(java.util.stream.Collectors.groupingBy(w -> w.getVoca().getId(), java.util.stream.Collectors.counting()));
+		return VocaConverter.toVocaList(vocas, wordCountMap);
+	}
+
 	// 학습한 단어장 목록 조회
 	@Transactional(readOnly = true)
 	public VocaResDTO.StudiedVocaList getStudiedVocas(AuthMember authMember) {
@@ -75,7 +85,6 @@ public class VocaService {
 				.map(mv -> mv.getSolvedAt() != null && mv.getSolvedAt().toLocalDate().isEqual(today))
 				.orElse(false);
 
-		// wordId 목록 추출 후 한 번에 조회 (N+1 방지)
 		List<Long> wordIds = dto.getAnswers().stream()
 				.map(VocaReqDTO.SubmitTest.Answer::getWordId)
 				.toList();
@@ -102,7 +111,6 @@ public class VocaService {
 
 		long earnedCoins = 0;
 		if (!alreadySubmittedToday) {
-			// 당일 첫 제출시 정답 1개당 5코인
 			earnedCoins = (long) correctCount * 5;
 			member.addCoin(earnedCoins);
 			member.updateStreak();
@@ -111,7 +119,6 @@ public class VocaService {
 				earnedCoins += 500;
 			}
 		} else {
-			// 당일 재제출시 정답 1개당 3코인
 			earnedCoins = (long) correctCount * 3;
 			member.addCoin(earnedCoins);
 		}
