@@ -24,6 +24,12 @@ public enum VocaSuccessCode implements BaseSuccessCode {
 	GET_VOCA_LIST(HttpStatus.OK,
 			"VOCA200_5",
 			"단어장 목록을 성공적으로 불러왔습니다."),
+	MEMORIZE(HttpStatus.OK,
+			"VOCA200_7",
+			"암기한 단어를 성공적으로 저장했습니다."),
+	GET_MEMORIZED_WORDS(HttpStatus.OK,
+			"VOCA200_8",
+			"암기한 단어 목록을 성공적으로 불러왔습니다."),
 	;
 
 	private final HttpStatus status;

@@ -9,6 +9,13 @@ import java.util.List;
 public class VocaReqDTO {
 
 	@Getter
+	public static class Memorize {
+
+		@NotNull
+		private List<Long> wordIds;
+	}
+
+	@Getter
 	public static class SubmitTest {
 
 		@NotNull

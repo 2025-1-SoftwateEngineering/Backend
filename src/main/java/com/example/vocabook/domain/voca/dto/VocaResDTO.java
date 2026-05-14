@@ -69,6 +69,7 @@ public class VocaResDTO {
 		private Long vocaId;
 		private String description;
 		private long wordCount;
+		private long memorizedCount;
 		private LocalDateTime createdAt;
 	}
 
@@ -77,6 +78,14 @@ public class VocaResDTO {
 	@AllArgsConstructor
 	public static class VocaList {
 		private List<VocaInfo> vocas;
+		private int totalCount;
+	}
+
+	@Getter
+	@Builder
+	@AllArgsConstructor
+	public static class MemorizeInfo {
+		private List<Long> memorizedWordIds;
 		private int totalCount;
 	}
 

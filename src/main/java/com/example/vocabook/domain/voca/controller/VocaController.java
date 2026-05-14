@@ -22,8 +22,27 @@ public class VocaController implements VocaControllerDocs {
 	private final VocaService vocaService;
 
 	@GetMapping
-	public ApiResponse<VocaResDTO.VocaList> getVocaList() {
-		return ApiResponse.onSuccess(VocaSuccessCode.GET_VOCA_LIST, vocaService.getVocaList());
+	public ApiResponse<VocaResDTO.VocaList> getVocaList(
+			@AuthenticationPrincipal AuthMember authMember
+	) {
+		return ApiResponse.onSuccess(VocaSuccessCode.GET_VOCA_LIST, vocaService.getVocaList(authMember));
+	}
+
+	@PostMapping("/{vocaId}/memorize")
+	public ApiResponse<VocaResDTO.MemorizeInfo> memorizeWords(
+			@PathVariable Long vocaId,
+			@AuthenticationPrincipal AuthMember authMember,
+			@RequestBody @Valid VocaReqDTO.Memorize dto
+	) {
+		return ApiResponse.onSuccess(VocaSuccessCode.MEMORIZE, vocaService.memorizeWords(vocaId, authMember, dto));
+	}
+
+	@GetMapping("/{vocaId}/memorize")
+	public ApiResponse<VocaResDTO.MemorizeInfo> getMemorizedWords(
+			@PathVariable Long vocaId,
+			@AuthenticationPrincipal AuthMember authMember
+	) {
+		return ApiResponse.onSuccess(VocaSuccessCode.GET_MEMORIZED_WORDS, vocaService.getMemorizedWords(vocaId, authMember));
 	}
 
 	@GetMapping("/my")

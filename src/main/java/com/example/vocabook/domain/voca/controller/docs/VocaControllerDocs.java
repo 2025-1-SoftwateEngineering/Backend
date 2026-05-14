@@ -61,7 +61,87 @@ public interface VocaControllerDocs {
 					)
 			)
 	})
-	ApiResponse<VocaResDTO.VocaList> getVocaList();
+	ApiResponse<VocaResDTO.VocaList> getVocaList(
+			@AuthenticationPrincipal AuthMember authMember
+	);
+
+	@Operation(
+			summary = "단어 암기 저장 API By 윤민재",
+			description = """
+					# 단어 암기 저장
+
+					## 요청 형식
+					- vocaId: 단어장 ID
+					- wordIds: 암기한 단어 ID 목록
+
+					## 응답
+					- 해당 단어장에서 암기한 전체 단어 ID 목록 반환
+					"""
+	)
+	@ApiResponses(value = {
+			@io.swagger.v3.oas.annotations.responses.ApiResponse(
+					responseCode = "200",
+					description = "성공 예시",
+					content = @Content(
+							mediaType = "application/json",
+							schema = @Schema(implementation = ApiResponse.class),
+							examples = @ExampleObject(value = """
+									{
+									  "isSuccess": true,
+									  "code": "VOCA200_7",
+									  "message": "암기한 단어를 성공적으로 저장했습니다.",
+									  "result": {
+									    "memorizedWordIds": [1, 2, 3],
+									    "totalCount": 3
+									  }
+									}
+									""")
+					)
+			)
+	})
+	ApiResponse<VocaResDTO.MemorizeInfo> memorizeWords(
+			@PathVariable Long vocaId,
+			@AuthenticationPrincipal AuthMember authMember,
+			@RequestBody @Valid VocaReqDTO.Memorize dto
+	);
+
+	@Operation(
+			summary = "암기한 단어 목록 조회 API By 윤민재",
+			description = """
+					# 암기한 단어 목록 조회
+
+					## 요청 형식
+					- vocaId: 단어장 ID
+
+					## 응답
+					- 해당 단어장에서 암기한 단어 ID 목록 반환
+					"""
+	)
+	@ApiResponses(value = {
+			@io.swagger.v3.oas.annotations.responses.ApiResponse(
+					responseCode = "200",
+					description = "성공 예시",
+					content = @Content(
+							mediaType = "application/json",
+							schema = @Schema(implementation = ApiResponse.class),
+							examples = @ExampleObject(value = """
+									{
+									  "isSuccess": true,
+									  "code": "VOCA200_8",
+									  "message": "암기한 단어 목록을 성공적으로 불러왔습니다.",
+									  "result": {
+									    "memorizedWordIds": [1, 2, 3],
+									    "totalCount": 3
+									  }
+									}
+									""")
+					)
+			)
+	})
+	ApiResponse<VocaResDTO.MemorizeInfo> getMemorizedWords(
+			@PathVariable Long vocaId,
+			@AuthenticationPrincipal AuthMember authMember
+	);
 
 	@Operation(
 			summary = "학습한 단어장 목록 조회 API By 윤민재",

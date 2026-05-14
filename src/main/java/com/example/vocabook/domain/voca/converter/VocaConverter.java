@@ -49,12 +49,13 @@ public class VocaConverter {
 	}
 
 	// 단어장 목록 변환
-	public static VocaResDTO.VocaList toVocaList(List<Voca> vocas, Map<Long, Long> wordCountMap) {
+	public static VocaResDTO.VocaList toVocaList(List<Voca> vocas, Map<Long, Long> wordCountMap, Map<Long, Long> memorizedCountMap) {
 		List<VocaResDTO.VocaInfo> vocaInfos = vocas.stream()
 				.map(v -> VocaResDTO.VocaInfo.builder()
 						.vocaId(v.getId())
 						.description(v.getDescription())
 						.wordCount(wordCountMap.getOrDefault(v.getId(), 0L))
+						.memorizedCount(memorizedCountMap.getOrDefault(v.getId(), 0L))
 						.createdAt(v.getCreatedAt())
 						.build())
 				.toList();

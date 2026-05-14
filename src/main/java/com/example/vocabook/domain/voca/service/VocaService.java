@@ -2,8 +2,10 @@ package com.example.vocabook.domain.voca.service;
 
 import com.example.vocabook.domain.member.entity.Member;
 import com.example.vocabook.domain.member.entity.mapping.MemberVoca;
+import com.example.vocabook.domain.member.entity.mapping.MemberWord;
 import com.example.vocabook.domain.member.repository.MemberRepository;
 import com.example.vocabook.domain.member.repository.MemberVocaRepository;
+import com.example.vocabook.domain.member.repository.MemberWordRepository;
 import com.example.vocabook.domain.voca.converter.VocaConverter;
 import com.example.vocabook.domain.voca.dto.VocaReqDTO;
 import com.example.vocabook.domain.voca.dto.VocaResDTO;
@@ -37,15 +39,55 @@ public class VocaService {
 	private final WordRepository wordRepository;
 	private final MemberVocaRepository memberVocaRepository;
 	private final MemberRepository memberRepository;
+	private final MemberWordRepository memberWordRepository;
 
 	// 단어장 전체 목록 조회
 	@Transactional(readOnly = true)
-	public VocaResDTO.VocaList getVocaList() {
+	public VocaResDTO.VocaList getVocaList(AuthMember authMember) {
+		Member member = memberRepository.findById(authMember.getMember().getId())
+				.orElseThrow(() -> new VocaException(VoceErrorCode.VOCA_NOT_FOUND));
 		List<Voca> vocas = vocaRepository.findAll();
 		List<Word> allWords = wordRepository.findByVocaIn(vocas);
 		Map<Long, Long> wordCountMap = allWords.stream()
 				.collect(java.util.stream.Collectors.groupingBy(w -> w.getVoca().getId(), java.util.stream.Collectors.counting()));
-		return VocaConverter.toVocaList(vocas, wordCountMap);
+		Map<Long, Long> memorizedCountMap = memberWordRepository.countByMemberGroupByVoca(member, vocas).stream()
+				.collect(java.util.stream.Collectors.toMap(row -> (Long) row[0], row -> (Long) row[1]));
+		return VocaConverter.toVocaList(vocas, wordCountMap, memorizedCountMap);
+	}
+
+	// 암기한 단어 저장
+	@Transactional
+	public VocaResDTO.MemorizeInfo memorizeWords(Long vocaId, AuthMember authMember, VocaReqDTO.Memorize dto) {
+		Voca voca = vocaRepository.findById(vocaId)
+				.orElseThrow(() -> new VocaException(VoceErrorCode.VOCA_NOT_FOUND));
+		Member member = memberRepository.findById(authMember.getMember().getId())
+				.orElseThrow(() -> new VocaException(VoceErrorCode.VOCA_NOT_FOUND));
+		List<Word> words = wordRepository.findAllById(dto.getWordIds());
+
+		java.util.Set<Long> alreadyMemorized = memberWordRepository.findWordIdsByMemberAndWordIn(member, words);
+		words.stream()
+				.filter(w -> !alreadyMemorized.contains(w.getId()))
+				.forEach(w -> memberWordRepository.save(MemberWord.builder().member(member).word(w).build()));
+
+		List<Long> allMemorizedIds = memberWordRepository.findWordIdsByMemberAndVocaId(member, vocaId);
+		return VocaResDTO.MemorizeInfo.builder()
+				.memorizedWordIds(allMemorizedIds)
+				.totalCount(allMemorizedIds.size())
+				.build();
+	}
+
+	// 암기한 단어 목록 조회
+	@Transactional(readOnly = true)
+	public VocaResDTO.MemorizeInfo getMemorizedWords(Long vocaId, AuthMember authMember) {
+		vocaRepository.findById(vocaId)
+				.orElseThrow(() -> new VocaException(VoceErrorCode.VOCA_NOT_FOUND));
+		Member member = memberRepository.findById(authMember.getMember().getId())
+				.orElseThrow(() -> new VocaException(VoceErrorCode.VOCA_NOT_FOUND));
+		List<Long> memorizedWordIds = memberWordRepository.findWordIdsByMemberAndVocaId(member, vocaId);
+		return VocaResDTO.MemorizeInfo.builder()
+				.memorizedWordIds(memorizedWordIds)
+				.totalCount(memorizedWordIds.size())
+				.build();
 	}
 
 	// 학습한 단어장 목록 조회
