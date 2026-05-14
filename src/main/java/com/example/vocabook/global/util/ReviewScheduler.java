@@ -43,7 +43,7 @@ public class ReviewScheduler {
                 .map(i -> AlertConverter
                         .toAlertDetail(
                                 i,
-                                OffsetDateTime.now(zoneId).withMinute(5).withSecond(0).withNano(0),
+                                OffsetDateTime.now(zoneId).plusMinutes(5).withSecond(0).withNano(0),
                                 Repeat.NONE,
                                 "오늘 남은 시간이 얼마 남지 않았아요!! 연속 학습 일자가 깨지지 않도록 지금 학습하세요!"
                         )
