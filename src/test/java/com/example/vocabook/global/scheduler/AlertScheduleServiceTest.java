@@ -8,6 +8,7 @@ import com.example.vocabook.domain.alert.repository.AlertRepository;
 import com.example.vocabook.domain.alert.service.AlertScheduleService;
 import com.example.vocabook.domain.member.entity.Member;
 import com.example.vocabook.domain.member.repository.MemberRepository;
+import com.google.firebase.messaging.FirebaseMessaging;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -16,6 +17,7 @@ import org.quartz.Scheduler;
 import org.quartz.TriggerKey;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
@@ -23,6 +25,14 @@ import java.time.ZoneId;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * AlertScheduleService Quartz 실제 등록 여부 통합 테스트
+ *
+ * [주의] 이 테스트는 AlertScheduleService를 실제로 주입받으므로
+ * AlertScheduleService를 @MockitoBean으로 처리하는 Streak/ReviewSchedulerTest와
+ * 스프링 컨텍스트가 다릅니다. Suite에 포함되지 않으며 단독으로 실행하세요.
+ * 실행: ./gradlew test --tests "com.example.vocabook.global.scheduler.AlertScheduleServiceTest"
+ */
 @SpringBootTest
 @Transactional
 @DisplayName("AlertScheduleService Quartz 등록 통합 테스트")
@@ -33,6 +43,9 @@ class AlertScheduleServiceTest {
     @Autowired private AlertRepository alertRepository;
     @Autowired private AlertDetailRepository alertDetailRepository;
     @Autowired private Scheduler quartzScheduler; // 실제 Quartz Scheduler 주입
+
+    // Firebase는 실제 초기화가 안 되므로 Mock 처리
+    @MockitoBean private FirebaseMessaging firebaseMessaging;
 
     private static final ZoneId ZONE = ZoneId.of("Asia/Seoul");
     private static final String ALARM_GROUP = "ALARM_GROUP";
@@ -57,12 +70,12 @@ class AlertScheduleServiceTest {
     @Test
     @DisplayName("[NONE] 일회성 알림을 등록하면 QRTZ_TRIGGERS 테이블에 Job이 생성된다")
     void schedule_none_shouldRegisterQuartzJob() throws Exception {
-        // given
+        // given - 반드시 미래 시간으로 설정
         AlertDetail alertDetail = alertDetailRepository.save(AlertDetail.builder()
                 .alert(testAlert)
                 .content("일회성 테스트 알림")
                 .repeat(Repeat.NONE)
-                .alertedAt(LocalDateTime.now(ZONE).plusHours(1)) // 1시간 뒤
+                .alertedAt(LocalDateTime.now(ZONE).plusHours(1))
                 .build());
 
         // when

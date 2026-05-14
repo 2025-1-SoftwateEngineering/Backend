@@ -8,6 +8,7 @@ import com.example.vocabook.domain.alert.service.AlertScheduleService;
 import com.example.vocabook.domain.member.entity.Member;
 import com.example.vocabook.domain.member.repository.MemberRepository;
 import com.example.vocabook.global.util.ReviewScheduler;
+import com.google.firebase.messaging.FirebaseMessaging;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -35,8 +36,10 @@ class ReviewSchedulerTest {
     @Autowired private AlertRepository alertRepository;
     @Autowired private AlertDetailRepository alertDetailRepository;
 
-    @MockitoBean
-    private AlertScheduleService alertScheduleService;
+    // Quartz 실제 등록은 AlertScheduleServiceTest에서 별도 검증 → 여기선 Mock 처리
+    @MockitoBean private AlertScheduleService alertScheduleService;
+    // Firebase는 실제 초기화가 안 되므로 Mock 처리
+    @MockitoBean private FirebaseMessaging firebaseMessaging;
 
     private static final ZoneId ZONE = ZoneId.of("Asia/Seoul");
 
@@ -90,7 +93,7 @@ class ReviewSchedulerTest {
     }
 
     @Test
-    @DisplayName("[정상] 어제 학습한 사람에게 AlertDetail이 1건 생성된다")
+    @DisplayName("[정상] 어제 학습한 사람에게 AlertDetail이 1건 생성되고 schedule()이 호출된다")
     void reviewScheduler_shouldCreateAlertForYesterdayLearner() throws Exception {
         // when
         reviewScheduler.reviewScheduler();
@@ -101,13 +104,13 @@ class ReviewSchedulerTest {
         assertThat(details.get(0).getAlert().getMember().getId())
                 .isEqualTo(memberStudiedYesterday.getId());
 
-        // Quartz 등록 메서드가 정확히 1번 호출되었는지 확인
+        // AlertScheduleService.schedule()이 정확히 1번 호출되었는지 확인
         verify(alertScheduleService, times(1)).schedule(any(AlertDetail.class));
     }
 
     @Test
-    @DisplayName("[정상] 생성된 알림에 학습 독려 메시지가 포함된다")
-    void reviewScheduler_shouldContainEncouragementMessage() throws Exception {
+    @DisplayName("[정상] 생성된 알림 내용이 비어있지 않다")
+    void reviewScheduler_shouldContainMessage() throws Exception {
         // when
         reviewScheduler.reviewScheduler();
 

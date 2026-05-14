@@ -8,6 +8,7 @@ import com.example.vocabook.domain.alert.service.AlertScheduleService;
 import com.example.vocabook.domain.member.entity.Member;
 import com.example.vocabook.domain.member.repository.MemberRepository;
 import com.example.vocabook.global.util.StreakScheduler;
+import com.google.firebase.messaging.FirebaseMessaging;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -35,19 +36,20 @@ class StreakSchedulerTest {
     @Autowired private AlertRepository alertRepository;
     @Autowired private AlertDetailRepository alertDetailRepository;
 
-    // 실제 Quartz 등록은 이 테스트 범위 밖 → Mock으로 대체
-    @MockitoBean
-    private AlertScheduleService alertScheduleService;
+    // Quartz 실제 등록은 AlertScheduleServiceTest에서 별도 검증 → 여기선 Mock 처리
+    @MockitoBean private AlertScheduleService alertScheduleService;
+    // Firebase는 실제 초기화가 안 되므로 Mock 처리
+    @MockitoBean private FirebaseMessaging firebaseMessaging;
 
     private static final ZoneId ZONE = ZoneId.of("Asia/Seoul");
 
-    private Member memberWithStreak;     // 어제 이전 학습 → 깨져야 함
+    private Member memberWithStreak;     // 어제 이전 학습 → 스트릭 초기화 대상
     private Member memberStudiedToday;   // 오늘 학습 → 스트릭 유지
-    private Member memberWithZeroStreak; // 스트릭 원래 0 → 알림X
+    private Member memberWithZeroStreak; // 스트릭 원래 0 → 알림 대상 아님
 
     @BeforeEach
     void setUp() {
-        // 1. 스트릭이 5이며, 마지막 학습이 이틀 전인 사람 (오늘 자정에 스트릭 깨져야 함)
+        // 1. 스트릭 5, 마지막 학습이 이틀 전인 사람 → 자정에 스트릭 깨져야 함
         memberWithStreak = memberRepository.save(Member.builder()
                 .email("break@test.com")
                 .password("pw")
@@ -61,7 +63,7 @@ class StreakSchedulerTest {
                 .fcmToken("fcm-token-1")
                 .build());
 
-        // 2. 오늘 학습한 사람 (스트릭 유지되어야 함)
+        // 2. 오늘 학습한 사람 → 스트릭 유지
         memberStudiedToday = memberRepository.save(Member.builder()
                 .email("today@test.com")
                 .password("pw")
@@ -75,7 +77,7 @@ class StreakSchedulerTest {
                 .fcmToken("fcm-token-2")
                 .build());
 
-        // 3. 처음부터 스트릭이 0인 사람 (알림 대상 아님)
+        // 3. 처음부터 스트릭이 0인 사람 → 알림 대상 아님
         memberWithZeroStreak = memberRepository.save(Member.builder()
                 .email("zero@test.com")
                 .password("pw")
@@ -113,7 +115,7 @@ class StreakSchedulerTest {
     }
 
     @Test
-    @DisplayName("[정상] 스트릭이 깨진 사람에게만 AlertDetail이 생성되고 스케줄러에 등록된다")
+    @DisplayName("[정상] 스트릭이 깨진 사람에게만 AlertDetail이 생성되고 schedule()이 호출된다")
     void resetStreak_shouldCreateAlertOnlyForTargetMember() throws Exception {
         // when
         streakScheduler.resetStreak();
@@ -123,7 +125,7 @@ class StreakSchedulerTest {
         assertThat(details).hasSize(1);
         assertThat(details.get(0).getContent()).isNotBlank();
 
-        // Quartz 등록 메서드가 정확히 1번 호출되었는지 확인
+        // AlertScheduleService.schedule()이 정확히 1번 호출되었는지 확인
         verify(alertScheduleService, times(1)).schedule(any(AlertDetail.class));
     }
 
@@ -133,7 +135,7 @@ class StreakSchedulerTest {
         // when
         streakScheduler.resetStreak();
 
-        // then - fcm-token-3 으로는 알림이 가지 않아야 함
+        // then - memberWithZeroStreak은 알림 대상이 아님
         List<AlertDetail> details = alertDetailRepository.findAll();
         boolean isZeroStreakMemberIncluded = details.stream()
                 .anyMatch(d -> d.getAlert().getMember().getId().equals(memberWithZeroStreak.getId()));
