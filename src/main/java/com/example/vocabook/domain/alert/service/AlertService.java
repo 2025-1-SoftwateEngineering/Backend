@@ -80,7 +80,7 @@ public class AlertService {
         }
 
         // 알림 제작 & 저장
-        AlertDetail alertDetail = AlertConverter.toAlertDetail(alert, dto);
+        AlertDetail alertDetail = AlertConverter.toAlertDetail(alert, dto.alertedAt(), dto.repeat(), dto.message());
         alertDetailRepository.save(alertDetail);
 
         // 스케쥴러 등록
