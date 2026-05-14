@@ -19,7 +19,11 @@ public class FcmConfig {
 
     @Bean
     public FirebaseApp firebaseApp() {
-        try{
+        // 이미 초기화된 경우 기존 인스턴스 반환 (테스트 시 여러 컨텍스트 로드 대비)
+        if (!FirebaseApp.getApps().isEmpty()) {
+            return FirebaseApp.getInstance();
+        }
+        try {
             FirebaseOptions options = FirebaseOptions.builder()
                     .setCredentials(
                             GoogleCredentials.fromStream(new ClassPathResource(path).getInputStream())
