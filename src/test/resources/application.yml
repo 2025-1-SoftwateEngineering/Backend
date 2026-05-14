@@ -1,0 +1,44 @@
+spring:
+  config:
+    import: optional:file:.env[.properties]
+
+  application:
+    name: "VocaBook"
+
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: ${DB_URL}
+    username: ${DB_USER}
+    password: ${DB_PW}
+
+  jpa:
+    database: mysql
+    database-platform: org.hibernate.dialect.MySQLDialect
+    show-sql: false
+    hibernate:
+      ddl-auto: create-drop   # 테스트마다 스키마 초기화
+    properties:
+      hibernate:
+        format_sql: false
+        default_batch_fetch_size: 1000
+
+  quartz:
+    job-store-type: jdbc
+    jdbc:
+      initialize-schema: always  # 테스트 시 Quartz 테이블 항상 생성
+
+jwt:
+  token:
+    secretKey: ${JWT_SECRET_KEY}
+    expiration:
+      access: ${JWT_ACCESS_EXP}
+      refresh: ${JWT_REFRESH_EXP}
+
+public:
+  url: ${PUBLIC_URL}
+
+cors:
+  allowed-origins: ${ALLOWED_ORIGINS}
+
+fcm:
+  path: dummy-firebase.json  # 테스트 환경에서는 Firebase를 Mock으로 대체하므로 더미값 사용
