@@ -60,7 +60,7 @@ public class VocaService {
 		Voca voca = vocaRepository.findById(vocaId)
 				.orElseThrow(() -> new VocaException(VoceErrorCode.VOCA_NOT_FOUND));
 		Page<Word> wordPage = wordRepository.findByVoca(voca, PageRequest.of(page, pageSize));
-		return VocaConverter.toWordList(wordPage);
+		return VocaConverter.toWordList(voca, wordPage);
 	}
 
 	public List<VocaResDTO.TestQuestion> getTestQuestions(Long vocaId) {

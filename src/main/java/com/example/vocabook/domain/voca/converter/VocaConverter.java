@@ -23,7 +23,7 @@ public class VocaConverter {
                 .build();
     }
 
-	public static VocaResDTO.WordList toWordList(Page<Word> wordPage) {
+	public static VocaResDTO.WordList toWordList(Voca voca, Page<Word> wordPage) {
 		List<VocaResDTO.WordInfo> words = wordPage.getContent().stream()
 				.map(word -> VocaResDTO.WordInfo.builder()
 						.wordId(word.getId())
@@ -32,6 +32,8 @@ public class VocaConverter {
 						.build())
 				.toList();
 		return VocaResDTO.WordList.builder()
+				.vocaId(voca.getId())
+				.description(voca.getDescription())
 				.words(words)
 				.totalPages(wordPage.getTotalPages())
 				.totalElements(wordPage.getTotalElements())

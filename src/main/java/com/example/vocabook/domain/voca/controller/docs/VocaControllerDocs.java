@@ -132,6 +132,8 @@ public interface VocaControllerDocs {
 									  "code": "VOCA200_1",
 									  "message": "단어 목록을 성공적으로 불러왔습니다.",
 									  "result": {
+									    "vocaId": 1,
+									    "description": "TOEIC 핵심 동사",
 									    "words": [
 									      { "wordId": 1, "englishWord": "apple", "meaning": "사과" },
 									      { "wordId": 2, "englishWord": "banana", "meaning": "바나나" }

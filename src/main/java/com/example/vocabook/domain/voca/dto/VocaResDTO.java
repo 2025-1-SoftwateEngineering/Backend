@@ -14,6 +14,8 @@ public class VocaResDTO {
 	@Builder
 	@AllArgsConstructor
 	public static class WordList {
+		private Long vocaId;
+		private String description;
 		private List<WordInfo> words;
 		private int totalPages;
 		private long totalElements;
