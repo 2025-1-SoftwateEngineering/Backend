@@ -22,6 +22,173 @@ import java.util.List;
 public interface VocaControllerDocs {
 
 	@Operation(
+			summary = "단어장 전체 목록 조회 API By 윤민재",
+			description = """
+					# 단어장 전체 목록 조회
+
+					## 요청 형식
+					- 인증 불필요
+
+					## 응답
+					- 전체 단어장 목록, 단어장별 단어 수 반환
+					"""
+	)
+	@ApiResponses(value = {
+			@io.swagger.v3.oas.annotations.responses.ApiResponse(
+					responseCode = "200",
+					description = "성공 예시",
+					content = @Content(
+							mediaType = "application/json",
+							schema = @Schema(implementation = ApiResponse.class),
+							examples = @ExampleObject(value = """
+									{
+									  "isSuccess": true,
+									  "code": "VOCA200_5",
+									  "message": "단어장 목록을 성공적으로 불러왔습니다.",
+									  "result": {
+									    "vocas": [
+									      {
+									        "vocaId": 1,
+									        "description": "TOEIC 핵심 동사",
+									        "wordCount": 20,
+									        "createdAt": "2026-01-10T09:00:00"
+									      }
+									    ],
+									    "totalCount": 1
+									  }
+									}
+									""")
+					)
+			)
+	})
+	ApiResponse<VocaResDTO.VocaList> getVocaList(
+			@AuthenticationPrincipal AuthMember authMember
+	);
+
+	@Operation(
+			summary = "단어 암기 저장 API By 윤민재",
+			description = """
+					# 단어 암기 저장
+
+					## 요청 형식
+					- vocaId: 단어장 ID
+					- wordIds: 암기한 단어 ID 목록
+
+					## 응답
+					- 해당 단어장에서 암기한 전체 단어 ID 목록 반환
+					"""
+	)
+	@ApiResponses(value = {
+			@io.swagger.v3.oas.annotations.responses.ApiResponse(
+					responseCode = "200",
+					description = "성공 예시",
+					content = @Content(
+							mediaType = "application/json",
+							schema = @Schema(implementation = ApiResponse.class),
+							examples = @ExampleObject(value = """
+									{
+									  "isSuccess": true,
+									  "code": "VOCA200_7",
+									  "message": "암기한 단어를 성공적으로 저장했습니다.",
+									  "result": {
+									    "memorizedWordIds": [1, 2, 3],
+									    "totalCount": 3
+									  }
+									}
+									""")
+					)
+			)
+	})
+	ApiResponse<VocaResDTO.MemorizeInfo> memorizeWords(
+			@PathVariable Long vocaId,
+			@AuthenticationPrincipal AuthMember authMember,
+			@RequestBody @Valid VocaReqDTO.Memorize dto
+	);
+
+	@Operation(
+			summary = "암기한 단어 목록 조회 API By 윤민재",
+			description = """
+					# 암기한 단어 목록 조회
+
+					## 요청 형식
+					- vocaId: 단어장 ID
+
+					## 응답
+					- 해당 단어장에서 암기한 단어 ID 목록 반환
+					"""
+	)
+	@ApiResponses(value = {
+			@io.swagger.v3.oas.annotations.responses.ApiResponse(
+					responseCode = "200",
+					description = "성공 예시",
+					content = @Content(
+							mediaType = "application/json",
+							schema = @Schema(implementation = ApiResponse.class),
+							examples = @ExampleObject(value = """
+									{
+									  "isSuccess": true,
+									  "code": "VOCA200_8",
+									  "message": "암기한 단어 목록을 성공적으로 불러왔습니다.",
+									  "result": {
+									    "memorizedWordIds": [1, 2, 3],
+									    "totalCount": 3
+									  }
+									}
+									""")
+					)
+			)
+	})
+	ApiResponse<VocaResDTO.MemorizeInfo> getMemorizedWords(
+			@PathVariable Long vocaId,
+			@AuthenticationPrincipal AuthMember authMember
+	);
+
+	@Operation(
+			summary = "학습한 단어장 목록 조회 API By 윤민재",
+			description = """
+					# 학습한 단어장 목록 조회
+
+					## 요청 형식
+					- 인증 토큰 필요 (JWT)
+
+					## 응답
+					- 학습한 단어장 목록 및 총 개수 반환
+					"""
+	)
+	@ApiResponses(value = {
+			@io.swagger.v3.oas.annotations.responses.ApiResponse(
+					responseCode = "200",
+					description = "성공 예시",
+					content = @Content(
+							mediaType = "application/json",
+							schema = @Schema(implementation = ApiResponse.class),
+							examples = @ExampleObject(value = """
+									{
+									  "isSuccess": true,
+									  "code": "VOCA200_4",
+									  "message": "학습한 단어장 목록을 성공적으로 불러왔습니다.",
+									  "result": {
+									    "vocas": [
+									      {
+									        "vocaId": 1,
+									        "description": "기초 영단어",
+									        "learningWordCnt": 20,
+									        "correctCnt": 15,
+									        "solvedAt": "2026-05-10T12:00:00"
+									      }
+									    ],
+									    "totalCount": 1
+									  }
+									}
+									""")
+					)
+			)
+	})
+	ApiResponse<VocaResDTO.StudiedVocaList> getStudiedVocas(
+			@AuthenticationPrincipal AuthMember authMember
+	);
+
+	@Operation(
 			summary = "단어 목록 조회 API By 윤민재",
 			description = """
 					# 단어 목록 조회
@@ -45,6 +212,8 @@ public interface VocaControllerDocs {
 									  "code": "VOCA200_1",
 									  "message": "단어 목록을 성공적으로 불러왔습니다.",
 									  "result": {
+									    "vocaId": 1,
+									    "description": "TOEIC 핵심 동사",
 									    "words": [
 									      { "wordId": 1, "englishWord": "apple", "meaning": "사과" },
 									      { "wordId": 2, "englishWord": "banana", "meaning": "바나나" }
@@ -52,22 +221,6 @@ public interface VocaControllerDocs {
 									    "totalPages": 5,
 									    "totalElements": 50
 									  }
-									}
-									""")
-					)
-			),
-			@io.swagger.v3.oas.annotations.responses.ApiResponse(
-					responseCode = "404",
-					description = "실패 - 존재하지 않는 단어장",
-					content = @Content(
-							mediaType = "application/json",
-							schema = @Schema(implementation = ApiResponse.class),
-							examples = @ExampleObject(value = """
-									{
-									  "isSuccess": false,
-									  "code": "VOCA404_1",
-									  "message": "단어장을 찾을 수 없습니다.",
-									  "result": null
 									}
 									""")
 					)
@@ -108,22 +261,6 @@ public interface VocaControllerDocs {
 									}
 									""")
 					)
-			),
-			@io.swagger.v3.oas.annotations.responses.ApiResponse(
-					responseCode = "404",
-					description = "실패 - 존재하지 않는 단어장",
-					content = @Content(
-							mediaType = "application/json",
-							schema = @Schema(implementation = ApiResponse.class),
-							examples = @ExampleObject(value = """
-									{
-									  "isSuccess": false,
-									  "code": "VOCA404_1",
-									  "message": "단어장을 찾을 수 없습니다.",
-									  "result": null
-									}
-									""")
-					)
 			)
 	})
 	ApiResponse<List<VocaResDTO.TestQuestion>> getTestQuestions(
@@ -131,17 +268,18 @@ public interface VocaControllerDocs {
 	);
 
 	@Operation(
-			summary = "단어 테스트 결과 제출 API By 윤민재",
+			summary = "단어 하나 즉시 채점 API By 윤민재",
 			description = """
-					# 단어 테스트 결과 제출
+					# 단어 하나 즉시 채점
 
 					## 요청 형식
 					- vocaId: 단어장 ID
-					- answers: 단어별 답안 목록 (wordId + answer)
-					- 대소문자 구분 없이 채점
+					- wordId: 단어 ID
+					- answer: 제출 답안
+					- 대소문자 구분 없이 채점, 인증 불필요
 
 					## 응답
-					- 정답 개수, 획득 재화, 단어별 채점 결과 반환
+					- 해당 단어의 채점 결과 즉시 반환
 					"""
 	)
 	@ApiResponses(value = {
@@ -155,11 +293,55 @@ public interface VocaControllerDocs {
 									{
 									  "isSuccess": true,
 									  "code": "VOCA200_3",
-									  "message": "테스트 결과를 성공적으로 제출했습니다.",
+									  "message": "채점 결과를 성공적으로 반환했습니다.",
+									  "result": {
+									    "wordId": 1,
+									    "meaning": "사과",
+									    "correctAnswer": "apple",
+									    "submittedAnswer": "apple",
+									    "isCorrect": true
+									  }
+									}
+									""")
+					)
+			)
+	})
+	ApiResponse<VocaResDTO.AnswerResult> submitAnswer(
+			@PathVariable Long vocaId,
+			@RequestBody @Valid VocaReqDTO.SubmitAnswer dto
+	);
+
+	@Operation(
+			summary = "테스트 완료 API By 윤민재",
+			description = """
+					# 테스트 완료
+
+					## 요청 형식
+					- vocaId: 단어장 ID
+					- answers: 전체 답안 목록 (wordId + answer)
+					- 인증 토큰 필요 (JWT)
+
+					## 응답
+					- 최종 결과, 획득 코인, 스트릭 반영
+					"""
+	)
+	@ApiResponses(value = {
+			@io.swagger.v3.oas.annotations.responses.ApiResponse(
+					responseCode = "200",
+					description = "성공 예시",
+					content = @Content(
+							mediaType = "application/json",
+							schema = @Schema(implementation = ApiResponse.class),
+							examples = @ExampleObject(value = """
+									{
+									  "isSuccess": true,
+									  "code": "VOCA200_9",
+									  "message": "테스트를 성공적으로 완료했습니다.",
 									  "result": {
 									    "totalCount": 2,
 									    "correctCount": 1,
-									    "earnedCoin": 10,
+									    "wrongCount": 1,
+									    "earnedCoins": 5,
 									    "results": [
 									      {
 									        "wordId": 1,
@@ -167,56 +349,17 @@ public interface VocaControllerDocs {
 									        "correctAnswer": "apple",
 									        "submittedAnswer": "apple",
 									        "isCorrect": true
-									      },
-									      {
-									        "wordId": 2,
-									        "meaning": "바나나",
-									        "correctAnswer": "banana",
-									        "submittedAnswer": "bananaa",
-									        "isCorrect": false
 									      }
 									    ]
 									  }
 									}
 									""")
 					)
-			),
-			@io.swagger.v3.oas.annotations.responses.ApiResponse(
-					responseCode = "404",
-					description = "실패 - 존재하지 않는 단어장",
-					content = @Content(
-							mediaType = "application/json",
-							schema = @Schema(implementation = ApiResponse.class),
-							examples = @ExampleObject(value = """
-									{
-									  "isSuccess": false,
-									  "code": "VOCA404_1",
-									  "message": "단어장을 찾을 수 없습니다.",
-									  "result": null
-									}
-									""")
-					)
-			),
-			@io.swagger.v3.oas.annotations.responses.ApiResponse(
-					responseCode = "404",
-					description = "실패 - 존재하지 않는 단어",
-					content = @Content(
-							mediaType = "application/json",
-							schema = @Schema(implementation = ApiResponse.class),
-							examples = @ExampleObject(value = """
-									{
-									  "isSuccess": false,
-									  "code": "VOCA404_2",
-									  "message": "단어를 찾을 수 없습니다.",
-									  "result": null
-									}
-									""")
-					)
 			)
 	})
-	ApiResponse<VocaResDTO.TestResult> submitTest(
+	ApiResponse<VocaResDTO.TestResult> completeTest(
 			@PathVariable Long vocaId,
 			@AuthenticationPrincipal AuthMember authMember,
-			@RequestBody @Valid VocaReqDTO.SubmitTest dto
+			@RequestBody @Valid VocaReqDTO.CompleteTest dto
 	);
 }

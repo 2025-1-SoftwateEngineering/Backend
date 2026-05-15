@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 public class VocaResDTO {
@@ -13,6 +14,8 @@ public class VocaResDTO {
 	@Builder
 	@AllArgsConstructor
 	public static class WordList {
+		private Long vocaId;
+		private String description;
 		private List<WordInfo> words;
 		private int totalPages;
 		private long totalElements;
@@ -57,5 +60,51 @@ public class VocaResDTO {
 		private String submittedAnswer;
 		@JsonProperty("isCorrect")
 		private boolean correct;
+	}
+
+	@Getter
+	@Builder
+	@AllArgsConstructor
+	public static class VocaInfo {
+		private Long vocaId;
+		private String description;
+		private long wordCount;
+		private long memorizedCount;
+		private LocalDateTime createdAt;
+	}
+
+	@Getter
+	@Builder
+	@AllArgsConstructor
+	public static class VocaList {
+		private List<VocaInfo> vocas;
+		private int totalCount;
+	}
+
+	@Getter
+	@Builder
+	@AllArgsConstructor
+	public static class MemorizeInfo {
+		private List<Long> memorizedWordIds;
+		private int totalCount;
+	}
+
+	@Getter
+	@Builder
+	@AllArgsConstructor
+	public static class StudiedVocaList {
+		private List<StudiedVocaInfo> vocas;
+		private int totalCount;
+	}
+
+	@Getter
+	@Builder
+	@AllArgsConstructor
+	public static class StudiedVocaInfo {
+		private Long vocaId;
+		private String description;
+		private Long learningWordCnt;
+		private Long correctCnt;
+		private LocalDateTime solvedAt;
 	}
 }
