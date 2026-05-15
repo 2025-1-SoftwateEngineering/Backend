@@ -22,8 +22,27 @@ public class VocaController implements VocaControllerDocs {
 	private final VocaService vocaService;
 
 	@GetMapping
-	public ApiResponse<VocaResDTO.VocaList> getVocaList() {
-		return ApiResponse.onSuccess(VocaSuccessCode.GET_VOCA_LIST, vocaService.getVocaList());
+	public ApiResponse<VocaResDTO.VocaList> getVocaList(
+			@AuthenticationPrincipal AuthMember authMember
+	) {
+		return ApiResponse.onSuccess(VocaSuccessCode.GET_VOCA_LIST, vocaService.getVocaList(authMember));
+	}
+
+	@PostMapping("/{vocaId}/memorize")
+	public ApiResponse<VocaResDTO.MemorizeInfo> memorizeWords(
+			@PathVariable Long vocaId,
+			@AuthenticationPrincipal AuthMember authMember,
+			@RequestBody @Valid VocaReqDTO.Memorize dto
+	) {
+		return ApiResponse.onSuccess(VocaSuccessCode.MEMORIZE, vocaService.memorizeWords(vocaId, authMember, dto));
+	}
+
+	@GetMapping("/{vocaId}/memorize")
+	public ApiResponse<VocaResDTO.MemorizeInfo> getMemorizedWords(
+			@PathVariable Long vocaId,
+			@AuthenticationPrincipal AuthMember authMember
+	) {
+		return ApiResponse.onSuccess(VocaSuccessCode.GET_MEMORIZED_WORDS, vocaService.getMemorizedWords(vocaId, authMember));
 	}
 
 	@GetMapping("/my")
@@ -50,11 +69,19 @@ public class VocaController implements VocaControllerDocs {
 	}
 
 	@PostMapping("/{vocaId}/test/submit")
-	public ApiResponse<VocaResDTO.TestResult> submitTest(
+	public ApiResponse<VocaResDTO.AnswerResult> submitAnswer(
+			@PathVariable Long vocaId,
+			@RequestBody @Valid VocaReqDTO.SubmitAnswer dto
+	) {
+		return ApiResponse.onSuccess(VocaSuccessCode.SUBMIT_TEST, vocaService.submitAnswer(vocaId, dto));
+	}
+
+	@PostMapping("/{vocaId}/test/complete")
+	public ApiResponse<VocaResDTO.TestResult> completeTest(
 			@PathVariable Long vocaId,
 			@AuthenticationPrincipal AuthMember authMember,
-			@RequestBody @Valid VocaReqDTO.SubmitTest dto
+			@RequestBody @Valid VocaReqDTO.CompleteTest dto
 	) {
-		return ApiResponse.onSuccess(VocaSuccessCode.SUBMIT_TEST, vocaService.submitTest(vocaId, authMember, dto));
+		return ApiResponse.onSuccess(VocaSuccessCode.COMPLETE_TEST, vocaService.completeTest(vocaId, authMember, dto));
 	}
 }
