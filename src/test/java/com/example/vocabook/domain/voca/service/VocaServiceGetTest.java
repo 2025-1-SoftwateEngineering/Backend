@@ -9,7 +9,7 @@ import com.example.vocabook.domain.voca.dto.VocaResDTO;
 import com.example.vocabook.domain.voca.entity.Voca;
 import com.example.vocabook.domain.voca.entity.Word;
 import com.example.vocabook.domain.voca.exception.VocaException;
-import com.example.vocabook.domain.voca.exception.code.VoceErrorCode;
+import com.example.vocabook.domain.voca.code.VocaErrorCode;
 import com.example.vocabook.domain.voca.repository.VocaRepository;
 import com.example.vocabook.domain.voca.repository.WordRepository;
 import com.example.vocabook.global.security.entity.AuthMember;
@@ -155,7 +155,7 @@ public class VocaServiceGetTest {
         // when & then
         VocaException exception = assertThrows(VocaException.class,
                 () -> vocaService.getVocaList(authMember));
-        assertEquals(VoceErrorCode.VOCA_NOT_FOUND, exception.getCode());
+        assertEquals(VocaErrorCode.VOCA_NOT_FOUND, exception.getCode());
     }
 
     @Test
@@ -167,7 +167,7 @@ public class VocaServiceGetTest {
         // when & then
         VocaException exception = assertThrows(VocaException.class,
                 () -> vocaService.getWords(999L, 0, 10));
-        assertEquals(VoceErrorCode.VOCA_NOT_FOUND, exception.getCode());
+        assertEquals(VocaErrorCode.VOCA_NOT_FOUND, exception.getCode());
     }
 
     @Test
@@ -179,7 +179,7 @@ public class VocaServiceGetTest {
         // when & then
         VocaException exception = assertThrows(VocaException.class,
                 () -> vocaService.getTestQuestions(999L));
-        assertEquals(VoceErrorCode.VOCA_NOT_FOUND, exception.getCode());
+        assertEquals(VocaErrorCode.VOCA_NOT_FOUND, exception.getCode());
     }
 
     // ===================== 엣지 케이스 =====================

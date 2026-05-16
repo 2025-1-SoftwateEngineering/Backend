@@ -21,7 +21,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.example.vocabook.domain.voca.exception.VocaException;
-import com.example.vocabook.domain.voca.exception.code.VoceErrorCode;
+import com.example.vocabook.domain.voca.code.VocaErrorCode;
 
 import java.lang.reflect.Field;
 import java.time.LocalDateTime;
@@ -231,7 +231,7 @@ public class VocaServiceCompleteTestTest {
         // when & then
         VocaException exception = assertThrows(VocaException.class,
                 () -> vocaService.submitAnswer(999L, dto));
-        assertEquals(VoceErrorCode.VOCA_NOT_FOUND, exception.getCode());
+        assertEquals(VocaErrorCode.VOCA_NOT_FOUND, exception.getCode());
     }
 
     @Test
@@ -247,7 +247,7 @@ public class VocaServiceCompleteTestTest {
         // when & then
         VocaException exception = assertThrows(VocaException.class,
                 () -> vocaService.submitAnswer(1L, dto));
-        assertEquals(VoceErrorCode.WORD_NOT_FOUND, exception.getCode());
+        assertEquals(VocaErrorCode.WORD_NOT_FOUND, exception.getCode());
     }
 
     @Test
@@ -260,7 +260,7 @@ public class VocaServiceCompleteTestTest {
         // when & then
         VocaException exception = assertThrows(VocaException.class,
                 () -> vocaService.completeTest(999L, authMember, dto));
-        assertEquals(VoceErrorCode.VOCA_NOT_FOUND, exception.getCode());
+        assertEquals(VocaErrorCode.VOCA_NOT_FOUND, exception.getCode());
     }
 
     @Test
@@ -274,7 +274,7 @@ public class VocaServiceCompleteTestTest {
         // when & then
         VocaException exception = assertThrows(VocaException.class,
                 () -> vocaService.completeTest(1L, authMember, dto));
-        assertEquals(VoceErrorCode.VOCA_NOT_FOUND, exception.getCode());
+        assertEquals(VocaErrorCode.VOCA_NOT_FOUND, exception.getCode());
     }
 
     @Test
@@ -290,7 +290,7 @@ public class VocaServiceCompleteTestTest {
         // when & then
         VocaException exception = assertThrows(VocaException.class,
                 () -> vocaService.completeTest(1L, authMember, dto));
-        assertEquals(VoceErrorCode.WORD_NOT_FOUND, exception.getCode());
+        assertEquals(VocaErrorCode.WORD_NOT_FOUND, exception.getCode());
     }
 
     // ===================== 엣지 케이스 =====================

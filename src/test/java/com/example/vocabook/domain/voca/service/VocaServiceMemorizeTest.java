@@ -10,7 +10,7 @@ import com.example.vocabook.domain.voca.dto.VocaResDTO;
 import com.example.vocabook.domain.voca.entity.Voca;
 import com.example.vocabook.domain.voca.entity.Word;
 import com.example.vocabook.domain.voca.exception.VocaException;
-import com.example.vocabook.domain.voca.exception.code.VoceErrorCode;
+import com.example.vocabook.domain.voca.code.VocaErrorCode;
 import com.example.vocabook.domain.voca.repository.VocaRepository;
 import com.example.vocabook.domain.voca.repository.WordRepository;
 import com.example.vocabook.global.security.entity.AuthMember;
@@ -142,7 +142,7 @@ public class VocaServiceMemorizeTest {
         // when & then
         VocaException exception = assertThrows(VocaException.class,
                 () -> vocaService.memorizeWords(999L, authMember, dto));
-        assertEquals(VoceErrorCode.VOCA_NOT_FOUND, exception.getCode());
+        assertEquals(VocaErrorCode.VOCA_NOT_FOUND, exception.getCode());
     }
 
     @Test
@@ -156,7 +156,7 @@ public class VocaServiceMemorizeTest {
         // when & then
         VocaException exception = assertThrows(VocaException.class,
                 () -> vocaService.memorizeWords(1L, authMember, dto));
-        assertEquals(VoceErrorCode.VOCA_NOT_FOUND, exception.getCode());
+        assertEquals(VocaErrorCode.VOCA_NOT_FOUND, exception.getCode());
     }
 
     @Test
@@ -168,7 +168,7 @@ public class VocaServiceMemorizeTest {
         // when & then
         VocaException exception = assertThrows(VocaException.class,
                 () -> vocaService.getMemorizedWords(999L, authMember));
-        assertEquals(VoceErrorCode.VOCA_NOT_FOUND, exception.getCode());
+        assertEquals(VocaErrorCode.VOCA_NOT_FOUND, exception.getCode());
     }
 
     @Test
@@ -181,7 +181,7 @@ public class VocaServiceMemorizeTest {
         // when & then
         VocaException exception = assertThrows(VocaException.class,
                 () -> vocaService.getMemorizedWords(1L, authMember));
-        assertEquals(VoceErrorCode.VOCA_NOT_FOUND, exception.getCode());
+        assertEquals(VocaErrorCode.VOCA_NOT_FOUND, exception.getCode());
     }
 
     // ===================== 엣지 케이스 =====================

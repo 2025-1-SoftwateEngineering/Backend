@@ -89,7 +89,7 @@ public class VocaControllerTest {
         given(vocaService.getVocaList(any(AuthMember.class))).willReturn(response);
 
         // when & then
-        mockMvc.perform(get("/api/v1/voca"))
+        mockMvc.perform(get("/api"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.isSuccess").value(true))
                 .andExpect(jsonPath("$.result.totalCount").value(1))
@@ -160,7 +160,7 @@ public class VocaControllerTest {
         given(vocaService.memorizeWords(eq(1L), any(AuthMember.class), any())).willReturn(response);
 
         // when & then
-        mockMvc.perform(post("/api/v1/voca/1/memorize")
+        mockMvc.perform(post("/api/1/memorize")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"wordIds\":[1,2]}"))
                 .andExpect(status().isOk())
@@ -181,7 +181,7 @@ public class VocaControllerTest {
         given(vocaService.getStudiedVocas(any(AuthMember.class))).willReturn(response);
 
         // when & then
-        mockMvc.perform(get("/api/v1/voca/my"))
+        mockMvc.perform(get("/api/my"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.isSuccess").value(true))
                 .andExpect(jsonPath("$.result.totalCount").value(1));
@@ -198,7 +198,7 @@ public class VocaControllerTest {
         given(vocaService.completeTest(eq(1L), any(AuthMember.class), any())).willReturn(response);
 
         // when & then
-        mockMvc.perform(post("/api/v1/voca/1/test/complete")
+        mockMvc.perform(post("/api/1/test/complete")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"answers\":[{\"wordId\":1,\"answer\":\"apple\"},{\"wordId\":2,\"answer\":\"banana\"}]}"))
                 .andExpect(status().isOk())
@@ -220,7 +220,7 @@ public class VocaControllerTest {
     @Test
     @DisplayName("테스트 완료 API - body 없이 요청하면 400")
     void completeTest_NoBody_BadRequest() throws Exception {
-        mockMvc.perform(post("/api/v1/voca/1/test/complete")
+        mockMvc.perform(post("/api/1/test/complete")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest());
     }
@@ -228,7 +228,7 @@ public class VocaControllerTest {
     @Test
     @DisplayName("암기 저장 API - body 없이 요청하면 400")
     void memorize_NoBody_BadRequest() throws Exception {
-        mockMvc.perform(post("/api/v1/voca/1/memorize")
+        mockMvc.perform(post("/api/1/memorize")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest());
     }
