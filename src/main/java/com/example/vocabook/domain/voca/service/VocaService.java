@@ -5,8 +5,9 @@ import com.example.vocabook.domain.member.entity.Member;
 import com.example.vocabook.domain.member.entity.mapping.MemberChoice;
 import com.example.vocabook.domain.member.entity.mapping.MemberCrossword;
 import com.example.vocabook.domain.member.entity.mapping.MemberVoca;
-import com.example.vocabook.domain.member.repository.*;
 import com.example.vocabook.domain.member.entity.mapping.MemberWord;
+import com.example.vocabook.domain.member.repository.*;
+import com.example.vocabook.domain.voca.code.VocaErrorCode;
 import com.example.vocabook.domain.voca.converter.VocaConverter;
 import com.example.vocabook.domain.voca.dto.VocaReqDTO;
 import com.example.vocabook.domain.voca.dto.VocaResDTO;
@@ -18,7 +19,6 @@ import com.example.vocabook.domain.voca.entity.mapping.ChoiceQuestion;
 import com.example.vocabook.domain.voca.entity.mapping.CrosswordHint;
 import com.example.vocabook.domain.voca.enums.ClueType;
 import com.example.vocabook.domain.voca.exception.VocaException;
-import com.example.vocabook.domain.voca.code.VocaErrorCode;
 import com.example.vocabook.domain.voca.repository.*;
 import com.example.vocabook.global.apiPayload.code.GeneralErrorCode;
 import com.example.vocabook.global.apiPayload.converter.PagingConverter;
@@ -26,7 +26,6 @@ import com.example.vocabook.global.apiPayload.dto.PagingResDTO;
 import com.example.vocabook.global.security.entity.AuthMember;
 import com.example.vocabook.global.util.RedisUtil;
 import lombok.RequiredArgsConstructor;
-import org.hibernate.dialect.BooleanDecoder;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
@@ -37,11 +36,7 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.Map;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -77,7 +72,7 @@ public class VocaService {
 	// 암기한 단어 저장
 	@Transactional
 	public VocaResDTO.MemorizeInfo memorizeWords(Long vocaId, AuthMember authMember, VocaReqDTO.Memorize dto) {
-		Voca voca = vocaRepository.findById(vocaId)
+		vocaRepository.findById(vocaId)
 				.orElseThrow(() -> new VocaException(VocaErrorCode.VOCA_NOT_FOUND));
 		Member member = memberRepository.findById(authMember.getMember().getId())
 				.orElseThrow(() -> new VocaException(VocaErrorCode.VOCA_NOT_FOUND));
@@ -512,14 +507,6 @@ public class VocaService {
 
         // 가로 세로 가장 긴 부분 결정
         Integer maxN = getInteger(crosswordHintList);
-
-        // 최대 N 기준 초기화
-        List<String[]> result = new ArrayList<>();
-
-        // 빈칸으로 일단 초기화
-        for (int i = 0; i < maxN; i++) {
-            result.add(new String[maxN]);
-        }
 
         // 시작 시간 Redis에 저장
         // 키 = 사용지 ID:사용자 십자말풀이 ID / 만료시간 X

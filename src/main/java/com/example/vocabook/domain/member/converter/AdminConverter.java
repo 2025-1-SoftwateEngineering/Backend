@@ -7,7 +7,6 @@ import com.example.vocabook.domain.voca.entity.Crossword;
 import com.example.vocabook.domain.voca.entity.Voca;
 import com.example.vocabook.domain.voca.entity.Word;
 import com.example.vocabook.domain.voca.entity.mapping.ChoiceQuestion;
-import com.example.vocabook.domain.voca.entity.mapping.CrosswordHint;
 
 import java.util.List;
 
