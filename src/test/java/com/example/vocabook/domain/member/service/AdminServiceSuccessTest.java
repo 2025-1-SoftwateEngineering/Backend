@@ -15,6 +15,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import com.example.vocabook.domain.voca.repository.ChoiceRepository;
 import com.example.vocabook.domain.voca.repository.ChoiceQuestionRepository;
 
+import com.example.vocabook.domain.voca.enums.ClueType;
+import com.example.vocabook.domain.voca.entity.Crossword;
+import com.example.vocabook.domain.voca.repository.CrosswordRepository;
+import com.example.vocabook.domain.voca.repository.CrosswordHintRepository;
+
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -135,5 +140,34 @@ public class AdminServiceSuccessTest {
         assertThat(result.get(0).isWord()).isTrue();
         assertThat(result.get(1).word()).isEqualTo("바나나");
         assertThat(result.get(1).isWord()).isFalse();
+    }
+
+    @Mock
+    private CrosswordRepository crosswordRepository;
+
+    @Mock
+    private CrosswordHintRepository crosswordHintRepository;
+
+    @Test
+    @DisplayName("십자말풀이 문제 생성 성공")
+    void createCrosswordsSuccess() {
+        // given
+        AdminReqDTO.Crossword cwDto = new AdminReqDTO.Crossword(ClueType.ACROSS, "달콤한 과일", "1 1", "apple");
+        AdminReqDTO.CreateCrossword dto = new AdminReqDTO.CreateCrossword(200L, java.util.List.of(cwDto));
+        
+        Word mockWord = Word.builder().englishWord("apple").meaning("사과").build();
+        Crossword savedCrossword = Crossword.builder().id(10L).solvedCoin(200L).build();
+
+        when(crosswordRepository.save(any(Crossword.class))).thenReturn(savedCrossword);
+        when(wordRepository.findFirstByEnglishWord("apple")).thenReturn(Optional.of(mockWord));
+        when(crosswordHintRepository.saveAll(anyList())).thenAnswer(i -> i.getArgument(0));
+
+        // when
+        AdminResDTO.CreateCrossword result = adminService.createCrosswords(dto);
+
+        // then
+        assertThat(result.id()).isEqualTo(10L);
+        assertThat(result.solvedCoin()).isEqualTo(200L);
+        verify(crosswordHintRepository, times(1)).saveAll(anyList());
     }
 }

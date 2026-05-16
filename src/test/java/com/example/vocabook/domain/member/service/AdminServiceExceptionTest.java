@@ -13,6 +13,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import com.example.vocabook.domain.voca.enums.ClueType;
+
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -115,5 +117,23 @@ public class AdminServiceExceptionTest {
         assertThatThrownBy(() -> adminService.createChoice(dto))
                 .isInstanceOf(AdminException.class)
                 .extracting("code").isEqualTo(AdminErrorCode.WORD_NOT_FOUND);
+    }
+
+    @Test
+    @DisplayName("십자말풀이 문제 생성 실패 - 시작점 좌표 정규식 위반")
+    void createCrosswordsException_InvadeStartRegex() {
+        // given
+        AdminReqDTO.Crossword cwDto = new AdminReqDTO.Crossword(ClueType.ACROSS, "달콤한 과일", "1-1", "apple"); // "1 1"이어야 하는데 "1-1"로 잘못 입력
+        AdminReqDTO.CreateCrossword dto = new AdminReqDTO.CreateCrossword(200L, java.util.List.of(cwDto));
+        
+        Word mockWord = Word.builder().englishWord("apple").meaning("사과").build();
+
+        // 십자말풀이 저장까진 넘어가고 힌트 생성 단계에서 예외 발생
+        when(wordRepository.findFirstByEnglishWord("apple")).thenReturn(Optional.of(mockWord));
+
+        // when & then
+        assertThatThrownBy(() -> adminService.createCrosswords(dto))
+                .isInstanceOf(AdminException.class)
+                .extracting("code").isEqualTo(AdminErrorCode.INVADE_START_REGEX);
     }
 }
