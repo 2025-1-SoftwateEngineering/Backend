@@ -10,6 +10,7 @@ import com.example.vocabook.global.apiPayload.code.BaseSuccessCode;
 import com.example.vocabook.global.apiPayload.dto.PagingResDTO;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -42,18 +43,18 @@ public class AdminController implements AdminControllerDocs {
 
     // 단어장 추가
     @PostMapping("/v1/voca-books")
-    public ApiResponse<List<AdminResDTO.AddVocabulary>> addVocabulary(
+    public ResponseEntity<ApiResponse<List<AdminResDTO.AddVocabulary>>> addVocabulary(
             @RequestBody @Valid List<AdminReqDTO.AddVocabulary> dto
     ) {
-        BaseSuccessCode code = AdminSuccessCode.ADD_VOCABULARY;
-
         List<AdminResDTO.AddVocabulary> result = adminService.addVocabulary(dto);
 
         // 저장할 단어장이 없는 경우
         if (result.isEmpty()) {
-            return ApiResponse.onSuccess(AdminSuccessCode.NOT_ADD_VOCABULARY, null);
+            BaseSuccessCode code = AdminSuccessCode.NOT_ADD_VOCABULARY;
+            return ResponseEntity.status(code.getStatus()).body(ApiResponse.onSuccess(code, null));
         } else {
-            return ApiResponse.onSuccess(code, result);
+            BaseSuccessCode code = AdminSuccessCode.ADD_VOCABULARY;
+            return ResponseEntity.ok().body(ApiResponse.onSuccess(code, result));
         }
     }
 
@@ -120,5 +121,14 @@ public class AdminController implements AdminControllerDocs {
     ) {
         BaseSuccessCode code = AdminSuccessCode.DELETE_WORD;
         return ApiResponse.onSuccess(code, adminService.deleteWord(wordId));
+    }
+
+    // 사지선다 문제 생성
+    @PostMapping("/v1/choices")
+    public ApiResponse<List<AdminResDTO.CreateChoice>> createChoice(
+            @RequestBody @Valid AdminReqDTO.CreateChoice dto
+    ) {
+        BaseSuccessCode code = AdminSuccessCode.CREATE_CHOICE;
+        return ApiResponse.onSuccess(code, adminService.createChoice(dto));
     }
 }

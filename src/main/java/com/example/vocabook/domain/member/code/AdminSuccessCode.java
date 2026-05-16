@@ -42,6 +42,9 @@ public enum AdminSuccessCode implements BaseSuccessCode {
     DELETE_WORD(HttpStatus.OK,
             "ADMIN200_10",
             "성공적으로 단어를 삭제했습니다."),
+    CREATE_CHOICE(HttpStatus.OK,
+            "ADMIN200_11",
+            "성공적으로 사지선다를 생성했습니다."),
     ;
 
     private final HttpStatus status;
