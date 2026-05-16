@@ -22,9 +22,6 @@ public class Choice {
     @Builder.Default
     private Long solvedCoin = 0L;
 
-    @Column(name = "description", nullable = false)
-    private String description;
-
     @Column(name = "created_at", nullable = false)
     @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();

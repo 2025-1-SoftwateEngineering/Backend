@@ -63,6 +63,14 @@ public class Member extends BaseEntity {
     @Builder.Default
     private boolean isSuspended = false;
 
+    @Column(name = "choice_higher", nullable = false)
+    @Builder.Default
+    private Long choiceHigher = 0L;
+
+    @Column(name = "crossword_higher", nullable = false)
+    @Builder.Default
+    private Long crosswordHigher = 0L;
+
     public void updateRefreshToken(String refreshToken) {
         this.refreshToken = refreshToken;
     }
@@ -87,5 +95,13 @@ public class Member extends BaseEntity {
 
     public void resetStreak() {
         this.streak = 0L;
+    }
+
+    public void updateChoiceHigher(Long higher) {
+        this.choiceHigher = higher;
+    }
+
+    public void updateCrosswordHigher(Long higher) {
+        this.crosswordHigher = higher;
     }
 }
