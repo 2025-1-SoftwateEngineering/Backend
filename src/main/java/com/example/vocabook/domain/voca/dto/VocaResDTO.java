@@ -1,5 +1,6 @@
 package com.example.vocabook.domain.voca.dto;
 
+import com.example.vocabook.domain.voca.entity.Choice;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -107,4 +108,36 @@ public class VocaResDTO {
 		private Long correctCnt;
 		private LocalDateTime solvedAt;
 	}
+
+    // 사지선다 문제 목록 조회
+    @Builder
+    public record GetChoiceList(
+            Long id,
+            Long solvedCoin,
+            Long cnt
+    ) {}
+
+    // 사지선다 선택지 목록 조회 (단어 뜻 구분 X)
+    @Builder
+    public record GetChoice(
+            Long id,
+            Long score,
+            String question,
+            List<ChoiceElement> choices
+    ) {}
+
+    @Builder
+    public record ChoiceElement(
+            Long id,
+            String text
+    ) {}
+
+    // 사지선다 정답 제출
+    @Builder
+    public record SubmitChoice(
+            Boolean isCorrect,
+            Boolean hasNext,
+            Long nextCurrent,
+            Long score
+    ) {}
 }

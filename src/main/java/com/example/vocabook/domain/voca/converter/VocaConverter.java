@@ -3,11 +3,13 @@ package com.example.vocabook.domain.voca.converter;
 import com.example.vocabook.domain.member.dto.req.AdminReqDTO;
 import com.example.vocabook.domain.member.entity.mapping.MemberVoca;
 import com.example.vocabook.domain.voca.dto.VocaResDTO;
+import com.example.vocabook.domain.voca.entity.Choice;
 import com.example.vocabook.domain.voca.entity.Voca;
 import com.example.vocabook.domain.voca.entity.Word;
 import org.springframework.data.domain.Page;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
 
@@ -81,4 +83,56 @@ public class VocaConverter {
 				.totalCount(vocas.size())
 				.build();
 	}
+
+    // 사지선다 문제 목록 조회
+    public static VocaResDTO.GetChoiceList toGetChoiceList(
+            Choice choice,
+            Long cnt
+    ) {
+        return VocaResDTO.GetChoiceList.builder()
+                .id(choice.getId())
+                .solvedCoin(choice.getSolvedCoin())
+                .cnt(cnt)
+                .build();
+    }
+
+    // 사지선다 선택지 조회
+    public static VocaResDTO.GetChoice toGetChoice(
+            Long id,
+            Long score,
+            String question,
+            List<VocaResDTO.ChoiceElement> choices
+    ){
+        return VocaResDTO.GetChoice.builder()
+                .id(id)
+                .score(score)
+                .question(question)
+                .choices(choices)
+                .build();
+    }
+
+    public static VocaResDTO.ChoiceElement toChoiceElement(
+            Long id,
+            String word
+    ){
+        return VocaResDTO.ChoiceElement.builder()
+                .id(id)
+                .text(word)
+                .build();
+    }
+
+    // 사지선다 정답 제출
+    public static VocaResDTO.SubmitChoice toSubmitChoice(
+            Boolean isCorrect,
+            Boolean hasNext,
+            Long nextCurrent,
+            Long score
+    ) {
+        return VocaResDTO.SubmitChoice.builder()
+                .isCorrect(isCorrect)
+                .hasNext(hasNext)
+                .nextCurrent(nextCurrent)
+                .score(score)
+                .build();
+    }
 }
