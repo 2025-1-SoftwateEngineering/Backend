@@ -138,9 +138,9 @@ public class VocaServiceCompleteTestTest {
     }
 
     @Test
-    @DisplayName("테스트 완료 성공 - 당일 재제출 (코인 3배)")
-    void completeTest_Success_ReSubmit() {
-        // given
+    @DisplayName("테스트 완료 성공 - 당일 재제출, 이전과 동일한 정답 (코인 지급 없음)")
+    void completeTest_Success_ReSubmit_SameCorrect() {
+        // given - 이전에 apple 1개 맞춤(correctCnt=1), 이번에도 apple만 맞춤
         MemberVoca existing = MemberVoca.builder()
                 .member(member).voca(voca)
                 .correctCnt(1L).learningWordCnt(2L)
@@ -164,7 +164,38 @@ public class VocaServiceCompleteTestTest {
         // then
         assertNotNull(result);
         assertEquals(1, result.getCorrectCount());
-        assertEquals(3L, result.getEarnedCoins()); // 1 * 3
+        assertEquals(0L, result.getEarnedCoins()); // 이전에 이미 맞춘 단어 → 코인 없음
+        assertEquals(1, result.getWrongCount());
+    }
+
+    @Test
+    @DisplayName("테스트 완료 성공 - 당일 재제출, 새로 맞춘 단어 있으면 5코인")
+    void completeTest_Success_ReSubmit_NewlyCorrect() {
+        // given - 이전에 0개 맞춤(correctCnt=0), 이번에 apple 맞춤
+        MemberVoca existing = MemberVoca.builder()
+                .member(member).voca(voca)
+                .correctCnt(0L).learningWordCnt(2L)
+                .solvedAt(LocalDateTime.now())
+                .build();
+
+        VocaReqDTO.CompleteTest dto = makeCompleteTestDto(List.of(
+                makeAnswer(1L, "apple"),
+                makeAnswer(2L, "wrong")
+        ));
+
+        given(vocaRepository.findById(1L)).willReturn(Optional.of(voca));
+        given(memberRepository.findById(1L)).willReturn(Optional.of(member));
+        given(memberVocaRepository.findByMemberAndVoca(member, voca)).willReturn(Optional.of(existing));
+        given(wordRepository.findAllById(any())).willReturn(List.of(word1, word2));
+        given(memberRepository.saveAndFlush(any())).willReturn(member);
+
+        // when
+        VocaResDTO.TestResult result = vocaService.completeTest(1L, authMember, dto);
+
+        // then
+        assertNotNull(result);
+        assertEquals(1, result.getCorrectCount());
+        assertEquals(5L, result.getEarnedCoins()); // 새로 맞춘 1개 * 5코인
         assertEquals(1, result.getWrongCount());
     }
 
