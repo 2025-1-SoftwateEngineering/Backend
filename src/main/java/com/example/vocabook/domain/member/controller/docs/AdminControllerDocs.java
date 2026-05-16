@@ -793,4 +793,74 @@ public interface AdminControllerDocs {
     ApiResponse<List<AdminResDTO.CreateChoice>> createChoice(
             @RequestBody @Valid AdminReqDTO.CreateChoice dto
     );
+
+    @Operation(
+            summary = "십자말풀이 문제 생성 API By 김주헌",
+            description = """
+                    # 십자말풀이 문제 생성
+                    새로운 십자말풀이 문제 세트와 포함될 힌트들(가로/세로 단어, 시작 좌표)을 추가합니다.
+                    
+                    ## 주의 사항
+                    - 관리자 전용 기능입니다.
+                    - crosswords 리스트에 포함된 단어(word)는 DB에 존재하는 유효한 영어 단어여야 합니다.
+                    - 시작 좌표(wordStartPoint)는 '세로 가로' 형식의 문자열(예: '1 1')이어야 합니다.
+                    """
+    )
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "성공 예시",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ApiResponse.class),
+                            examples = @ExampleObject(value = """
+                                    {
+                                      "isSuccess": true,
+                                      "code": "ADMIN200_12",
+                                      "message": "성공적으로 십자말풀이를 생성했습니다.",
+                                      "result": {
+                                        "id": 1,
+                                        "solvedCoin": 200,
+                                        "elementCount": 5
+                                      }
+                                    }
+                                    """)
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "404",
+                    description = "실패 - DB에 존재하지 않는 단어를 포함한 경우",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ApiResponse.class),
+                            examples = @ExampleObject(value = """
+                                    {
+                                      "isSuccess": false,
+                                      "code": "WORD404_1",
+                                      "message": "해당 단어를 찾을 수 없습니다.",
+                                      "result": null
+                                    }
+                                    """)
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "403",
+                    description = "실패 - 관리자 권한이 없는 경우",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ApiResponse.class),
+                            examples = @ExampleObject(value = """
+                                    {
+                                      "isSuccess": false,
+                                      "code": "COMMON403_1",
+                                      "message": "접근이 제한되었습니다.",
+                                      "result": null
+                                    }
+                                    """)
+                    )
+            )
+    })
+    ApiResponse<AdminResDTO.CreateCrossword> createCrosswords(
+            @RequestBody @Valid AdminReqDTO.CreateCrossword dto
+    );
 }
