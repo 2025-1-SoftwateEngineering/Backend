@@ -1,11 +1,9 @@
 package com.example.vocabook.domain.voca.repository;
 
-import com.example.vocabook.domain.voca.entity.Choice;
 import com.example.vocabook.domain.voca.entity.mapping.ChoiceQuestion;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
-import java.util.List;
 import java.util.Optional;
 
 public interface ChoiceQuestionRepository extends JpaRepository<ChoiceQuestion, Long> {

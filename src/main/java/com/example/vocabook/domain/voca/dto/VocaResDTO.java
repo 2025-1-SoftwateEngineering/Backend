@@ -1,6 +1,5 @@
 package com.example.vocabook.domain.voca.dto;
 
-import com.example.vocabook.domain.voca.entity.Choice;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

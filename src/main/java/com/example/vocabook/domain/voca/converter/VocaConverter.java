@@ -9,7 +9,6 @@ import com.example.vocabook.domain.voca.entity.Word;
 import org.springframework.data.domain.Page;
 
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
 
