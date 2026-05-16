@@ -13,20 +13,21 @@ import com.example.vocabook.domain.member.exception.MemberException;
 import com.example.vocabook.domain.member.repository.MemberRepository;
 import com.example.vocabook.domain.member.repository.ReportRepository;
 import com.example.vocabook.domain.voca.converter.ChoiceConverter;
+import com.example.vocabook.domain.voca.converter.CrosswordConverter;
 import com.example.vocabook.domain.voca.converter.VocaConverter;
 import com.example.vocabook.domain.voca.converter.WordConverter;
 import com.example.vocabook.domain.voca.entity.Choice;
+import com.example.vocabook.domain.voca.entity.Crossword;
 import com.example.vocabook.domain.voca.entity.Voca;
 import com.example.vocabook.domain.voca.entity.Word;
 import com.example.vocabook.domain.voca.entity.mapping.ChoiceQuestion;
-import com.example.vocabook.domain.voca.repository.ChoiceQuestionRepository;
-import com.example.vocabook.domain.voca.repository.ChoiceRepository;
-import com.example.vocabook.domain.voca.repository.VocaRepository;
-import com.example.vocabook.domain.voca.repository.WordRepository;
+import com.example.vocabook.domain.voca.entity.mapping.CrosswordHint;
+import com.example.vocabook.domain.voca.repository.*;
 import com.example.vocabook.global.apiPayload.code.GeneralErrorCode;
 import com.example.vocabook.global.apiPayload.converter.PagingConverter;
 import com.example.vocabook.global.apiPayload.dto.PagingResDTO;
 import jakarta.transaction.Transactional;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
@@ -45,6 +46,8 @@ public class AdminService {
     private final WordRepository wordRepository;
     private final ChoiceRepository choiceRepository;
     private final ChoiceQuestionRepository choiceQuestionRepository;
+    private final CrosswordRepository crosswordRepository;
+    private final CrosswordHintRepository crosswordHintRepository;
 
     // 신고 목록 조회
     public PagingResDTO.Cursor<AdminResDTO.ReportList> getReportList(
@@ -349,5 +352,40 @@ public class AdminService {
         return result.stream()
                 .map(AdminConverter::toCreateChoice)
                 .toList();
+    }
+
+    // 십자말풀이 문제 생성
+    @Transactional
+    public AdminResDTO.CreateCrossword createCrosswords(
+            AdminReqDTO.CreateCrossword dto
+    ) {
+
+        // 십자말풀이 생성
+        Crossword crossword = crosswordRepository.save(CrosswordConverter.toCrossword(dto.solvedCoin()));
+
+        // 십자말풀이 힌트 생성
+        List<CrosswordHint> crosswordHintList = dto.crosswords().stream()
+                .map(c -> {
+                    Optional<Word> word = wordRepository.findFirstByEnglishWord(c.word());
+
+                    // 만약 어느 하나라도 start_point 형식이 다르다면
+                    if (!c.wordStartPoint().matches("\\d+\\s\\d+")){
+                        throw new AdminException(AdminErrorCode.INVADE_START_REGEX);
+                    }
+
+                    return word.map(value -> CrosswordConverter.toCrosswordHint(
+                            crossword,
+                            c.clueDescription(),
+                            c.clueType(),
+                            c.wordStartPoint(),
+                            value
+                    )).orElse(null);
+                })
+                .filter(Objects::nonNull)
+                .toList();
+
+        crosswordHintRepository.saveAll(crosswordHintList);
+
+        return AdminConverter.toCreateCrossword(crossword);
     }
 }
