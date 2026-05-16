@@ -122,7 +122,7 @@ public class VocaService {
 				.orElseThrow(() -> new VocaException(VoceErrorCode.VOCA_NOT_FOUND));
 		Word word = wordRepository.findById(dto.getWordId())
 				.orElseThrow(() -> new VocaException(VoceErrorCode.WORD_NOT_FOUND));
-		boolean isCorrect = word.getEnglishWord().equalsIgnoreCase(dto.getAnswer());
+		boolean isCorrect = word.getEnglishWord().equalsIgnoreCase(dto.getAnswer().trim());
 		return VocaResDTO.AnswerResult.builder()
 				.wordId(word.getId())
 				.meaning(word.getMeaning())
@@ -157,7 +157,7 @@ public class VocaService {
 		for (VocaReqDTO.CompleteTest.Answer answer : dto.getAnswers()) {
 			Word word = Optional.ofNullable(wordMap.get(answer.getWordId()))
 					.orElseThrow(() -> new VocaException(VoceErrorCode.WORD_NOT_FOUND));
-			boolean isCorrect = word.getEnglishWord().equalsIgnoreCase(answer.getAnswer());
+			boolean isCorrect = word.getEnglishWord().equalsIgnoreCase(answer.getAnswer().trim());
 			if (isCorrect) correctCount++;
 
 			results.add(VocaResDTO.AnswerResult.builder()
