@@ -12,6 +12,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import com.example.vocabook.domain.voca.repository.ChoiceRepository;
+import com.example.vocabook.domain.voca.repository.ChoiceQuestionRepository;
 
 import java.util.Optional;
 
@@ -85,6 +87,12 @@ public class AdminServiceSuccessTest {
         assertThat(result.meaning()).isEqualTo("사과");
     }
 
+    @Mock
+    private ChoiceRepository choiceRepository;
+
+    @Mock
+    private ChoiceQuestionRepository choiceQuestionRepository;
+
     @Test
     @DisplayName("단어 삭제 성공")
     void deleteWordSuccess() {
@@ -100,5 +108,32 @@ public class AdminServiceSuccessTest {
         // then
         verify(wordRepository, times(1)).delete(mockWord);
         assertThat(result.id()).isEqualTo(wordId);
+    }
+
+    @Test
+    @DisplayName("사지선다 문제 생성 성공")
+    void createChoiceSuccess() {
+        // given
+        AdminReqDTO.ChoiceList choice1 = new AdminReqDTO.ChoiceList("apple", true);
+        AdminReqDTO.ChoiceList choice2 = new AdminReqDTO.ChoiceList("바나나", false);
+        AdminReqDTO.CreateChoice dto = new AdminReqDTO.CreateChoice(100L, java.util.List.of(choice1, choice2));
+        
+        Word mockWord1 = Word.builder().englishWord("apple").meaning("사과").build();
+        Word mockWord2 = Word.builder().englishWord("banana").meaning("바나나").build();
+
+        when(wordRepository.findAllByEnglishWordInOrMeaningIn(anyList(), anyList()))
+                .thenReturn(java.util.List.of(mockWord1, mockWord2));
+        when(choiceRepository.save(any())).thenReturn(null); // save returns Choice, mock if needed
+        when(choiceQuestionRepository.saveAll(anyList())).thenAnswer(i -> i.getArgument(0));
+
+        // when
+        java.util.List<AdminResDTO.CreateChoice> result = adminService.createChoice(dto);
+
+        // then
+        assertThat(result).hasSize(2);
+        assertThat(result.get(0).word()).isEqualTo("apple");
+        assertThat(result.get(0).isWord()).isTrue();
+        assertThat(result.get(1).word()).isEqualTo("바나나");
+        assertThat(result.get(1).isWord()).isFalse();
     }
 }

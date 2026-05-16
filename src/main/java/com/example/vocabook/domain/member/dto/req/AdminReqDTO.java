@@ -6,6 +6,8 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
 
+import java.util.List;
+
 public class AdminReqDTO {
 
     // 단어장 추가
@@ -45,5 +47,19 @@ public class AdminReqDTO {
             String meaning,
             @Nullable
             Long vocabularyId
+    ) {}
+
+    // 사지선다 추가
+    public record CreateChoice(
+            @NotNull(message = "성공 시 지급 재화는 필수입니다.")
+            Long solvedCoin,
+            @Size(max = 30, message = "사지선다 정답 문항은 0개부터 30개 사이로 설정해주십시오.")
+            List<ChoiceList> choices
+    ) {}
+
+    // 단어 or 뜻 / true = 단어, false = 뜻
+    public record ChoiceList(
+            String word,
+            Boolean isWord
     ) {}
 }

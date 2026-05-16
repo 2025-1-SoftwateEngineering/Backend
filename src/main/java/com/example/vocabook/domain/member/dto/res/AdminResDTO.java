@@ -90,4 +90,11 @@ public class AdminResDTO {
     public record DeleteWord(
             Long id
     ) {}
+
+    // 사지선다 문제 생성
+    @Builder
+    public record CreateChoice(
+            String word,
+            Boolean isWord
+    ) {}
 }

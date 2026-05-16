@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -232,7 +233,7 @@ public interface AdminControllerDocs {
                     )
             )
     })
-    ApiResponse<List<AdminResDTO.AddVocabulary>> addVocabulary(
+    ResponseEntity<ApiResponse<List<AdminResDTO.AddVocabulary>>> addVocabulary(
             @RequestBody @Valid List<AdminReqDTO.AddVocabulary> dto
     );
 
@@ -716,5 +717,80 @@ public interface AdminControllerDocs {
     })
     ApiResponse<AdminResDTO.DeleteWord> deleteWord(
             @PathVariable Long wordId
+    );
+
+    @Operation(
+            summary = "사지선다 문제 생성 API By 김주헌",
+            description = """
+                    # 사지선다 문제 생성
+                    새로운 사지선다 문제 세트와 포함될 정답 문항(단어 또는 뜻)을 추가합니다.
+                    
+                    ## 주의 사항
+                    - 관리자 전용 기능입니다.
+                    - choices 리스트에 포함된 단어나 뜻은 DB에 존재하는 유효한 문자열이어야 합니다.
+                    - 최대 30개까지 등록 가능합니다.
+                    """
+    )
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "성공 예시",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ApiResponse.class),
+                            examples = @ExampleObject(value = """
+                                    {
+                                      "isSuccess": true,
+                                      "code": "ADMIN200_11",
+                                      "message": "성공적으로 사지선다를 생성했습니다.",
+                                      "result": [
+                                        {
+                                          "word": "apple",
+                                          "isWord": true
+                                        },
+                                        {
+                                          "word": "바나나",
+                                          "isWord": false
+                                        }
+                                      ]
+                                    }
+                                    """)
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "400",
+                    description = "실패 - 유효성 검사 실패 (예: 30개 초과, 필수값 누락)",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ApiResponse.class),
+                            examples = @ExampleObject(value = """
+                                    {
+                                      "isSuccess": false,
+                                      "code": "COMMON400_1",
+                                      "message": "사지선다 정답 문항은 0개부터 30개 사이로 설정해주십시오.",
+                                      "result": null
+                                    }
+                                    """)
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "403",
+                    description = "실패 - 관리자 권한이 없는 경우",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ApiResponse.class),
+                            examples = @ExampleObject(value = """
+                                    {
+                                      "isSuccess": false,
+                                      "code": "COMMON403_1",
+                                      "message": "접근이 제한되었습니다.",
+                                      "result": null
+                                    }
+                                    """)
+                    )
+            )
+    })
+    ApiResponse<List<AdminResDTO.CreateChoice>> createChoice(
+            @RequestBody @Valid AdminReqDTO.CreateChoice dto
     );
 }
