@@ -100,4 +100,20 @@ public class AdminServiceExceptionTest {
                 .isInstanceOf(AdminException.class)
                 .extracting("code").isEqualTo(AdminErrorCode.WORD_NOT_FOUND);
     }
+
+    @Test
+    @DisplayName("사지선다 문제 생성 실패 - 포함할 단어/뜻이 DB에 하나도 없음")
+    void createChoiceException_WordsNotFound() {
+        // given
+        AdminReqDTO.ChoiceList choice1 = new AdminReqDTO.ChoiceList("unknownApple", true);
+        AdminReqDTO.CreateChoice dto = new AdminReqDTO.CreateChoice(100L, java.util.List.of(choice1));
+
+        when(wordRepository.findAllByEnglishWordInOrMeaningIn(org.mockito.ArgumentMatchers.anyList(), org.mockito.ArgumentMatchers.anyList()))
+                .thenReturn(java.util.Collections.emptyList());
+
+        // when & then
+        assertThatThrownBy(() -> adminService.createChoice(dto))
+                .isInstanceOf(AdminException.class)
+                .extracting("code").isEqualTo(AdminErrorCode.WORD_NOT_FOUND);
+    }
 }

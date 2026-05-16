@@ -1,7 +1,10 @@
 package com.example.vocabook.domain.voca.service;
 
+import com.example.vocabook.domain.member.converter.MemberConverter;
 import com.example.vocabook.domain.member.entity.Member;
+import com.example.vocabook.domain.member.entity.mapping.MemberChoice;
 import com.example.vocabook.domain.member.entity.mapping.MemberVoca;
+import com.example.vocabook.domain.member.repository.MemberChoiceRepository;
 import com.example.vocabook.domain.member.entity.mapping.MemberWord;
 import com.example.vocabook.domain.member.repository.MemberRepository;
 import com.example.vocabook.domain.member.repository.MemberVocaRepository;
@@ -9,27 +12,37 @@ import com.example.vocabook.domain.member.repository.MemberWordRepository;
 import com.example.vocabook.domain.voca.converter.VocaConverter;
 import com.example.vocabook.domain.voca.dto.VocaReqDTO;
 import com.example.vocabook.domain.voca.dto.VocaResDTO;
+import com.example.vocabook.domain.voca.entity.Choice;
 import com.example.vocabook.domain.voca.entity.Voca;
 import com.example.vocabook.domain.voca.entity.Word;
+import com.example.vocabook.domain.voca.entity.mapping.ChoiceQuestion;
 import com.example.vocabook.domain.voca.exception.VocaException;
-import com.example.vocabook.domain.voca.exception.code.VoceErrorCode;
+import com.example.vocabook.domain.voca.code.VocaErrorCode;
+import com.example.vocabook.domain.voca.repository.ChoiceQuestionRepository;
+import com.example.vocabook.domain.voca.repository.ChoiceRepository;
 import com.example.vocabook.domain.voca.repository.VocaRepository;
 import com.example.vocabook.domain.voca.repository.WordRepository;
+import com.example.vocabook.global.apiPayload.code.GeneralErrorCode;
+import com.example.vocabook.global.apiPayload.converter.PagingConverter;
+import com.example.vocabook.global.apiPayload.dto.PagingResDTO;
 import com.example.vocabook.global.security.entity.AuthMember;
+import com.example.vocabook.global.util.RedisUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -39,13 +52,17 @@ public class VocaService {
 	private final WordRepository wordRepository;
 	private final MemberVocaRepository memberVocaRepository;
 	private final MemberRepository memberRepository;
+    private final ChoiceRepository choiceRepository;
+    private final ChoiceQuestionRepository choiceQuestionRepository;
+    private final MemberChoiceRepository memberChoiceRepository;
 	private final MemberWordRepository memberWordRepository;
+    private final RedisUtil redisUtil;
 
 	// 단어장 전체 목록 조회
 	@Transactional(readOnly = true)
 	public VocaResDTO.VocaList getVocaList(AuthMember authMember) {
 		Member member = memberRepository.findById(authMember.getMember().getId())
-				.orElseThrow(() -> new VocaException(VoceErrorCode.VOCA_NOT_FOUND));
+				.orElseThrow(() -> new VocaException(VocaErrorCode.VOCA_NOT_FOUND));
 		List<Voca> vocas = vocaRepository.findAll();
 		List<Word> allWords = wordRepository.findByVocaIn(vocas);
 		Map<Long, Long> wordCountMap = allWords.stream()
@@ -59,9 +76,9 @@ public class VocaService {
 	@Transactional
 	public VocaResDTO.MemorizeInfo memorizeWords(Long vocaId, AuthMember authMember, VocaReqDTO.Memorize dto) {
 		Voca voca = vocaRepository.findById(vocaId)
-				.orElseThrow(() -> new VocaException(VoceErrorCode.VOCA_NOT_FOUND));
+				.orElseThrow(() -> new VocaException(VocaErrorCode.VOCA_NOT_FOUND));
 		Member member = memberRepository.findById(authMember.getMember().getId())
-				.orElseThrow(() -> new VocaException(VoceErrorCode.VOCA_NOT_FOUND));
+				.orElseThrow(() -> new VocaException(VocaErrorCode.VOCA_NOT_FOUND));
 		List<Word> words = wordRepository.findAllById(dto.getWordIds());
 
 		java.util.Set<Long> alreadyMemorized = memberWordRepository.findWordIdsByMemberAndWordIn(member, words);
@@ -80,9 +97,9 @@ public class VocaService {
 	@Transactional(readOnly = true)
 	public VocaResDTO.MemorizeInfo getMemorizedWords(Long vocaId, AuthMember authMember) {
 		vocaRepository.findById(vocaId)
-				.orElseThrow(() -> new VocaException(VoceErrorCode.VOCA_NOT_FOUND));
+				.orElseThrow(() -> new VocaException(VocaErrorCode.VOCA_NOT_FOUND));
 		Member member = memberRepository.findById(authMember.getMember().getId())
-				.orElseThrow(() -> new VocaException(VoceErrorCode.VOCA_NOT_FOUND));
+				.orElseThrow(() -> new VocaException(VocaErrorCode.VOCA_NOT_FOUND));
 		List<Long> memorizedWordIds = memberWordRepository.findWordIdsByMemberAndVocaId(member, vocaId);
 		return VocaResDTO.MemorizeInfo.builder()
 				.memorizedWordIds(memorizedWordIds)
@@ -98,16 +115,16 @@ public class VocaService {
 		return VocaConverter.toStudiedVocaList(memberVocas);
 	}
 
-	public VocaResDTO.WordList getWords(Long vocaId, int page, int pageSize) {
+    public VocaResDTO.WordList getWords(Long vocaId, int page, int pageSize) {
 		Voca voca = vocaRepository.findById(vocaId)
-				.orElseThrow(() -> new VocaException(VoceErrorCode.VOCA_NOT_FOUND));
+				.orElseThrow(() -> new VocaException(VocaErrorCode.VOCA_NOT_FOUND));
 		Page<Word> wordPage = wordRepository.findByVoca(voca, PageRequest.of(page, pageSize));
 		return VocaConverter.toWordList(voca, wordPage);
 	}
 
 	public List<VocaResDTO.TestQuestion> getTestQuestions(Long vocaId) {
 		Voca voca = vocaRepository.findById(vocaId)
-				.orElseThrow(() -> new VocaException(VoceErrorCode.VOCA_NOT_FOUND));
+				.orElseThrow(() -> new VocaException(VocaErrorCode.VOCA_NOT_FOUND));
 		List<Word> words = new ArrayList<>(wordRepository.findByVoca(voca));
 		Collections.shuffle(words);
 		return words.stream()
@@ -119,9 +136,9 @@ public class VocaService {
 	@Transactional(readOnly = true)
 	public VocaResDTO.AnswerResult submitAnswer(Long vocaId, VocaReqDTO.SubmitAnswer dto) {
 		vocaRepository.findById(vocaId)
-				.orElseThrow(() -> new VocaException(VoceErrorCode.VOCA_NOT_FOUND));
+				.orElseThrow(() -> new VocaException(VocaErrorCode.VOCA_NOT_FOUND));
 		Word word = wordRepository.findById(dto.getWordId())
-				.orElseThrow(() -> new VocaException(VoceErrorCode.WORD_NOT_FOUND));
+				.orElseThrow(() -> new VocaException(VocaErrorCode.WORD_NOT_FOUND));
 		boolean isCorrect = word.getEnglishWord().equalsIgnoreCase(dto.getAnswer());
 		return VocaResDTO.AnswerResult.builder()
 				.wordId(word.getId())
@@ -136,9 +153,9 @@ public class VocaService {
 	@Transactional
 	public VocaResDTO.TestResult completeTest(Long vocaId, AuthMember authMember, VocaReqDTO.CompleteTest dto) {
 		Voca voca = vocaRepository.findById(vocaId)
-				.orElseThrow(() -> new VocaException(VoceErrorCode.VOCA_NOT_FOUND));
+				.orElseThrow(() -> new VocaException(VocaErrorCode.VOCA_NOT_FOUND));
 		Member member = memberRepository.findById(authMember.getMember().getId())
-				.orElseThrow(() -> new VocaException(VoceErrorCode.VOCA_NOT_FOUND));
+				.orElseThrow(() -> new VocaException(VocaErrorCode.VOCA_NOT_FOUND));
 
 		LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
 		boolean alreadySubmittedToday = memberVocaRepository.findByMemberAndVoca(member, voca)
@@ -155,8 +172,12 @@ public class VocaService {
 		int correctCount = 0;
 
 		for (VocaReqDTO.CompleteTest.Answer answer : dto.getAnswers()) {
+            Word word = wordRepository.findById(answer.getWordId())
+                    .orElseThrow(() -> new VocaException(VocaErrorCode.WORD_NOT_FOUND));
+        }
+		for (VocaReqDTO.CompleteTest.Answer answer : dto.getAnswers()) {
 			Word word = Optional.ofNullable(wordMap.get(answer.getWordId()))
-					.orElseThrow(() -> new VocaException(VoceErrorCode.WORD_NOT_FOUND));
+					.orElseThrow(() -> new VocaException(VocaErrorCode.WORD_NOT_FOUND));
 			boolean isCorrect = word.getEnglishWord().equalsIgnoreCase(answer.getAnswer());
 			if (isCorrect) correctCount++;
 
@@ -207,4 +228,219 @@ public class VocaService {
 								.build())
 				);
 	}
+
+    // 사지선다 문제 목록 조회
+    public PagingResDTO.Cursor<VocaResDTO.GetChoiceList> getChoiceList(
+            AuthMember auth,
+            String cursor,
+            Integer pageSize
+    ) {
+        // Pageable
+        PageRequest pageRequest = PageRequest.ofSize(pageSize);
+
+        Slice<Choice> choiceList;
+        if (cursor.equals("-1")) {
+            choiceList = choiceRepository.findChoiceWithoutCursor(pageRequest);
+        } else {
+            Long idCursor;
+            try {
+                idCursor = Long.parseLong(cursor);
+            } catch (NumberFormatException e) {
+                throw new VocaException(GeneralErrorCode.INVADED_CURSOR);
+            }
+
+            choiceList = choiceRepository.findChoiceWithCursor(idCursor, pageRequest);
+        }
+
+        // 사지선다 문제가 없는 경우
+        if (!choiceList.hasContent()){
+            return PagingConverter.toCursor(null, null, false, 0);
+        }
+
+        // 다음 커서 제작
+        String nextCursor = choiceList.getContent().getLast().getId().toString();
+
+        // 사용자가 플레이한 횟수
+        return PagingConverter.toCursor(
+                choiceList.getContent().stream()
+                        .map(c -> VocaConverter.toGetChoiceList(
+                                c,
+                                memberChoiceRepository.countByMemberAndChoice(auth.getMember(), c)
+                        ))
+                        .toList(),
+                nextCursor,
+                choiceList.hasNext(),
+                choiceList.getNumberOfElements()
+        );
+    }
+
+    // 사지선다 선택지 조회
+    @Transactional
+    public VocaResDTO.GetChoice getChoice(
+            Long choiceId,
+            Long current,
+            AuthMember auth
+    ) {
+
+        // 사지선다 존재여부 확인
+        Choice choice = choiceRepository.findById(choiceId)
+                .orElseThrow(() -> new VocaException(VocaErrorCode.CHOICE_NOT_FOUND));
+
+        // 처음이라면 current = 0
+        current = current == null ? 0L : current;
+
+        // 사지선다에 포함되고 현재 진행중인 단어 이후 단어 조회
+        Optional<ChoiceQuestion> choiceQuestion = choiceQuestionRepository.findByChoiceWithCurrent(choice.getId(), current);
+
+        if (choiceQuestion.isEmpty()) {
+            return null;
+        }
+
+        MemberChoice memberChoice = memberChoiceRepository.findByMemberAndChoiceAndSolvedAtIsNull(auth.getMember(), choice)
+                .orElseGet(() -> memberChoiceRepository.save(MemberConverter.toMemberChoice(auth.getMember(), choice)));
+
+        // 사지선다 구성 (ID와 텍스트 쌍으로 구성)
+        String question;
+        List<VocaResDTO.ChoiceElement> choiceElements = new ArrayList<>();
+        if (choiceQuestion.get().getIsWord()){
+            question = choiceQuestion.get().getWord().getEnglishWord();
+
+            // 정답 삽입
+            choiceElements.add(VocaConverter.toChoiceElement(
+                    choiceQuestion.get().getWord().getId(),
+                    choiceQuestion.get().getWord().getMeaning())
+            );
+
+            // 나머지 3개 삽입
+            List<Word> randomWords = wordRepository.findRandomExcluding(choiceQuestion.get().getWord().getId(), 3);
+            randomWords.forEach(w -> choiceElements.add(VocaConverter.toChoiceElement(
+                    w.getId(),
+                    w.getMeaning()))
+            );
+        } else {
+            question = choiceQuestion.get().getWord().getMeaning();
+
+            // 정답 삽입
+            choiceElements.add(VocaConverter.toChoiceElement(
+                    choiceQuestion.get().getWord().getId(),
+                    choiceQuestion.get().getWord().getEnglishWord())
+            );
+
+            // 나머지 3개 삽입
+            List<Word> randomWords = wordRepository.findRandomExcluding(choiceQuestion.get().getWord().getId(), 3);
+            randomWords.forEach(w -> choiceElements.add(VocaConverter.toChoiceElement(
+                    w.getId(),
+                    w.getEnglishWord()))
+            );
+        }
+        Collections.shuffle(choiceElements);
+
+        // Redis에 시간 삽입 (폴링 시간 계산 +1초 허용)
+        // Redis Key 구조: 사용자 ID:사지선다 ID:사지선다 항목 ID
+        redisUtil.save(
+                auth.getMember().getId()+":"+choice.getId().toString()+":"+choiceQuestion.get().getId(),
+                LocalDateTime.now(ZoneId.of("Asia/Seoul")),
+                Duration.ofSeconds(6)
+        );
+
+        return VocaConverter
+                .toGetChoice(
+                        memberChoice.getId(),
+                        memberChoice.getScore(),
+                        question,
+                        choiceElements
+                        );
+    }
+
+    // 사지선다 정답 제출 / current = 현재 푼 ChoiceQuestion ID
+    @Transactional
+    public VocaResDTO.SubmitChoice submitChoice(
+            AuthMember auth,
+            Long choiceId,
+            Long answer,
+            Long current
+    ) {
+
+        Choice choice = choiceRepository.findById(choiceId)
+                .orElseThrow(() -> new VocaException(VocaErrorCode.CHOICE_NOT_FOUND));
+
+        // 사용자가 이 사지선다를 플레이하고 있는지 확인
+        MemberChoice memberChoice = memberChoiceRepository.findByMemberAndChoiceAndSolvedAtIsNull(auth.getMember(), choice)
+                .orElseThrow(() -> new VocaException(VocaErrorCode.NOT_PLAY_CHOICE));
+
+        ChoiceQuestion choiceQuestion = choiceQuestionRepository
+                .findByChoiceWithCurrent(memberChoice.getChoice().getId(), current)
+                .orElseThrow(() -> new VocaException(VocaErrorCode.NOT_PLAY_CHOICE));
+
+        // 가장 먼저 Redis에서 시간 꺼내오기
+        String redisKey = auth.getMember().getId()+":"+memberChoice.getChoice().getId().toString()+":"+choiceQuestion.getId();
+        LocalDateTime submitTime = null;
+        if (redisUtil.hasKey(redisKey)){
+            submitTime = (LocalDateTime) redisUtil.get(redisKey);
+        }
+
+        // 사용자랑 맞는지 검증
+        if (!memberChoice.getMember().getId().equals(auth.getMember().getId())) {
+            throw new VocaException(VocaErrorCode.MISMATCH_MEMBER);
+        }
+
+        // 요청한 사지선다가 이미 완료한 사지선다인 경우
+        if (memberChoice.getSolvedAt() != null) {
+            throw new VocaException(VocaErrorCode.ALREADY_CLEAR);
+        }
+
+        // 사지선다 채점 로직
+        Boolean isCorrect = Boolean.FALSE;
+        Long userScore = memberChoice.getScore();
+
+        // 답변이 존재하고 Redis에 시작 시간이 기록된 경우에만 정답 체크
+        if (answer != null && answer > 0 && submitTime != null) {
+            Word answerWord = wordRepository.findById(answer).orElse(null);
+
+            if (answerWord != null && choiceQuestion.getWord().getId().equals(answerWord.getId())) {
+                // 스코어 계산 (5초 기준)
+                long remain = Duration.between(submitTime, LocalDateTime.now(ZoneId.of("Asia/Seoul"))).getSeconds();
+
+                Long score = switch ((int) (5 - remain)) {
+                    case 5, 4 -> 1000L;
+                    case 3 -> 800L;
+                    case 2 -> 600L;
+                    case 1 -> 400L;
+                    case 0 -> 200L;
+                    default -> 0L;
+                };
+                memberChoice.correct(score);
+                userScore += score;
+                isCorrect = Boolean.TRUE;
+            }
+        }
+
+        if (!isCorrect) {
+            memberChoice.wrong();
+        }
+
+        // 지금 푼 사지선다가 마지막인 경우 (다음 문제가 없는지 확인)
+        Optional<ChoiceQuestion> nextQuestion = choiceQuestionRepository.findNextQuestion(choiceQuestion.getId());
+        if (nextQuestion.isEmpty()){
+
+            // 지금까지 푼 스코어가 최다 득점인지
+            if (memberChoice.getMember().getChoiceHigher().compareTo(userScore) < 0){
+                memberChoice.getMember().updateChoiceHigher(userScore);
+            }
+
+            // 초회인 경우 재화 지급
+            if (memberChoiceRepository.countByMemberAndChoice(auth.getMember(), choice).equals(1L)) {
+                memberChoice.getMember().addCoin(choiceQuestion.getChoice().getSolvedCoin());
+            }
+
+            // 사지선다 완료 처리
+            memberChoice.end();
+        }
+
+        if (nextQuestion.isPresent()) {
+            return VocaConverter.toSubmitChoice(isCorrect, true, choiceQuestion.getId(), userScore);
+        } else {
+            return VocaConverter.toSubmitChoice(isCorrect, false, null, userScore);
+        }
+    }
 }

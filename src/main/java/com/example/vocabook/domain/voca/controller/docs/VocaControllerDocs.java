@@ -17,7 +17,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
-
+import com.example.vocabook.global.apiPayload.dto.PagingResDTO;
+import org.springframework.http.ResponseEntity;
 @Tag(name = "단어 관련 API")
 public interface VocaControllerDocs {
 
@@ -361,5 +362,163 @@ public interface VocaControllerDocs {
 			@PathVariable Long vocaId,
 			@AuthenticationPrincipal AuthMember authMember,
 			@RequestBody @Valid VocaReqDTO.CompleteTest dto
+	);
+
+	@Operation(
+			summary = "사지선다 문제 목록 조회 API By 김주헌",
+			description = """
+					# 사지선다 문제 목록 조회
+
+					## 요청 형식
+					- cursor: 커서 값 (초기 요청 시 -1, 기본값 -1)
+					- pageSize: 페이지당 조회 수 (기본값 10)
+					- 인증 토큰 필요 (JWT)
+
+					## 응답
+					- 커서 기반 사지선다 문제 세트 목록 (사용자 플레이 횟수 포함) 반환
+					"""
+	)
+	@ApiResponses(value = {
+			@io.swagger.v3.oas.annotations.responses.ApiResponse(
+					responseCode = "200",
+					description = "성공 예시",
+					content = @Content(
+							mediaType = "application/json",
+							schema = @Schema(implementation = ApiResponse.class),
+							examples = @ExampleObject(value = """
+									{
+									  "isSuccess": true,
+									  "code": "VOCA200_4",
+									  "message": "성공적으로 사지선다 문제 목록을 조회했습니다.",
+									  "result": {
+									    "data": [
+									      {
+									        "id": 1,
+									        "solvedCoin": 100,
+									        "cnt": 3
+									      }
+									    ],
+									    "nextCursor": "1",
+									    "hasNext": false,
+									    "totalElements": 1
+									  }
+									}
+									""")
+					)
+			)
+	})
+	ApiResponse<PagingResDTO.Cursor<VocaResDTO.GetChoiceList>> getChoiceList(
+			@AuthenticationPrincipal AuthMember auth,
+			@RequestParam(defaultValue = "-1") String cursor,
+			@RequestParam(defaultValue = "10") Integer pageSize
+	);
+
+	@Operation(
+			summary = "사지선다 문제 선택지 조회 API By 김주헌",
+			description = """
+					# 사지선다 문제 선택지 조회
+
+					## 요청 형식
+					- choiceId: 사지선다 문제 세트 ID
+					- current: 현재 문제 ID (초기 요청 시 0)
+					- 인증 토큰 필요 (JWT)
+
+					## 응답
+					- 특정 문제에 대한 선택지 정보 반환. 마지막 문제 이후 조회 시 204 No Content 응답
+					"""
+	)
+	@ApiResponses(value = {
+			@io.swagger.v3.oas.annotations.responses.ApiResponse(
+					responseCode = "200",
+					description = "성공 예시",
+					content = @Content(
+							mediaType = "application/json",
+							schema = @Schema(implementation = ApiResponse.class),
+							examples = @ExampleObject(value = """
+									{
+									  "isSuccess": true,
+									  "code": "VOCA200_5",
+									  "message": "성공적으로 사지선다 선택지를 조회했습니다.",
+									  "result": {
+									    "id": 10,
+									    "score": 0,
+									    "question": "사과",
+									    "choices": [
+									      { "id": 1, "text": "apple" },
+									      { "id": 2, "text": "banana" },
+									      { "id": 3, "text": "grape" },
+									      { "id": 4, "text": "orange" }
+									    ]
+									  }
+									}
+									""")
+					)
+			),
+			@io.swagger.v3.oas.annotations.responses.ApiResponse(
+					responseCode = "204",
+					description = "마지막 문제 조회 시 예시 (No Content)",
+					content = @Content(
+							mediaType = "application/json",
+							schema = @Schema(implementation = ApiResponse.class),
+							examples = @ExampleObject(value = """
+									{
+									  "isSuccess": true,
+									  "code": "VOCA204_1",
+									  "message": "마지막 문제였습니다. 결과를 조회해주세요.",
+									  "result": null
+									}
+									""")
+					)
+			)
+	})
+	ResponseEntity<ApiResponse<VocaResDTO.GetChoice>> getChoice(
+			@PathVariable Long choiceId,
+			@RequestParam Long current,
+			@AuthenticationPrincipal AuthMember auth
+	);
+
+	@Operation(
+			summary = "사지선다 정답 제출 API By 김주헌",
+			description = """
+					# 사지선다 정답 제출
+
+					## 요청 형식
+					- choiceId: 사지선다 문제 세트 ID
+					- answer: 제출한 단어 ID (타임아웃 시 0)
+					- current: 현재 문제 ID
+					- 인증 토큰 필요 (JWT)
+
+					## 응답
+					- 정답 여부, 다음 문제 존재 여부, 다음 문제 ID 및 누적 스코어 반환
+					"""
+	)
+	@ApiResponses(value = {
+			@io.swagger.v3.oas.annotations.responses.ApiResponse(
+					responseCode = "200",
+					description = "성공 예시",
+					content = @Content(
+							mediaType = "application/json",
+							schema = @Schema(implementation = ApiResponse.class),
+							examples = @ExampleObject(value = """
+									{
+									  "isSuccess": true,
+									  "code": "VOCA200_6",
+									  "message": "성공적으로 사지선다 정답을 제출했습니다.",
+									  "result": {
+									    "isCorrect": true,
+									    "hasNext": true,
+									    "nextCurrent": 2,
+									    "score": 1000
+									  }
+									}
+									""")
+					)
+			)
+	})
+	ApiResponse<VocaResDTO.SubmitChoice> submitChoice(
+			@AuthenticationPrincipal AuthMember auth,
+			@PathVariable Long choiceId,
+			@RequestParam Long answer,
+			@RequestParam Long current
 	);
 }

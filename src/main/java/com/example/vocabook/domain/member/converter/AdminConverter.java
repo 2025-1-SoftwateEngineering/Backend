@@ -5,6 +5,7 @@ import com.example.vocabook.domain.member.entity.Member;
 import com.example.vocabook.domain.member.entity.Report;
 import com.example.vocabook.domain.voca.entity.Voca;
 import com.example.vocabook.domain.voca.entity.Word;
+import com.example.vocabook.domain.voca.entity.mapping.ChoiceQuestion;
 
 import java.util.List;
 
@@ -126,6 +127,16 @@ public class AdminConverter {
     ) {
         return AdminResDTO.DeleteWord.builder()
                 .id(wordId)
+                .build();
+    }
+
+    // 사지선다 생성
+    public static AdminResDTO.CreateChoice toCreateChoice(
+            ChoiceQuestion result
+    ) {
+        return AdminResDTO.CreateChoice.builder()
+                .isWord(result.getIsWord())
+                .word((result.getIsWord()) ? result.getWord().getEnglishWord():result.getWord().getMeaning())
                 .build();
     }
 }
