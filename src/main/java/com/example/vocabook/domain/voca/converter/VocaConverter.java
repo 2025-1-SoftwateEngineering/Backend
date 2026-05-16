@@ -4,10 +4,13 @@ import com.example.vocabook.domain.member.dto.req.AdminReqDTO;
 import com.example.vocabook.domain.member.entity.mapping.MemberVoca;
 import com.example.vocabook.domain.voca.dto.VocaResDTO;
 import com.example.vocabook.domain.voca.entity.Choice;
+import com.example.vocabook.domain.voca.entity.Crossword;
 import com.example.vocabook.domain.voca.entity.Voca;
 import com.example.vocabook.domain.voca.entity.Word;
+import com.example.vocabook.domain.voca.enums.ClueType;
 import org.springframework.data.domain.Page;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -131,6 +134,60 @@ public class VocaConverter {
                 .isCorrect(isCorrect)
                 .hasNext(hasNext)
                 .nextCurrent(nextCurrent)
+                .score(score)
+                .build();
+    }
+
+    // 십자말풀이 문제 목록 조회
+    public static VocaResDTO.GetCrosswordList toGetCrosswordList(
+            Crossword crossword,
+            Long cnt
+    ) {
+        return VocaResDTO.GetCrosswordList.builder()
+                .id(crossword.getId())
+                .cnt(cnt)
+                .solvedCoin(crossword.getSolvedCoin())
+                .build();
+    }
+
+    // 십자말풀이 전체 문제 조회
+    public static VocaResDTO.GetCrossword toGetCrossword(
+            Integer n,
+            List<VocaResDTO.CrosswordElement> elements
+    ){
+        return VocaResDTO.GetCrossword.builder()
+                .N(n)
+                .elements(elements)
+                .build();
+    }
+
+    public static VocaResDTO.CrosswordElement toCrosswordElement(
+            Long crosswordHintId,
+            ClueType clueType,
+            Integer wordLength,
+            String clueDescription,
+            Integer verticalStartPoint,
+            Integer horizontalStartPoint
+    ){
+        return VocaResDTO.CrosswordElement.builder()
+                .id(crosswordHintId)
+                .clueType(clueType)
+                .wordLength(wordLength)
+                .clueDescription(clueDescription)
+                .verticalStartPoint(verticalStartPoint)
+                .horizontalStartPoint(horizontalStartPoint)
+                .build();
+    }
+
+    // 십자말풀이 정답 제출
+    public static VocaResDTO.SubmitCrossword toSubmitCrossword(
+            Boolean isCorrect,
+            Boolean hasNext,
+            Duration score
+    ) {
+        return VocaResDTO.SubmitCrossword.builder()
+                .isCorrect(isCorrect)
+                .hasNext(hasNext)
                 .score(score)
                 .build();
     }

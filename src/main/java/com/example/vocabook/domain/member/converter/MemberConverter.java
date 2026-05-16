@@ -6,8 +6,10 @@ import com.example.vocabook.domain.member.entity.Friend;
 import com.example.vocabook.domain.member.entity.Member;
 import com.example.vocabook.domain.member.entity.Report;
 import com.example.vocabook.domain.member.entity.mapping.MemberChoice;
+import com.example.vocabook.domain.member.entity.mapping.MemberCrossword;
 import com.example.vocabook.domain.member.enums.FriendState;
 import com.example.vocabook.domain.voca.entity.Choice;
+import com.example.vocabook.domain.voca.entity.Crossword;
 
 import java.time.LocalDateTime;
 
@@ -125,6 +127,17 @@ public class MemberConverter {
         return MemberChoice.builder()
                 .choice(choice)
                 .member(member)
+                .build();
+    }
+
+    // 사용자 십자말풀이
+    public static MemberCrossword toMemberCross(
+            Member member,
+            Crossword crossword
+    ) {
+        return MemberCrossword.builder()
+                .member(member)
+                .crossword(crossword)
                 .build();
     }
 }

@@ -1,10 +1,12 @@
 package com.example.vocabook.domain.voca.dto;
 
+import com.example.vocabook.domain.voca.enums.ClueType;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -138,5 +140,38 @@ public class VocaResDTO {
             Boolean hasNext,
             Long nextCurrent,
             Long score
+    ) {}
+
+    // 십자말풀이 문제 목록 조회
+    @Builder
+    public record GetCrosswordList(
+            Long id,
+            Long solvedCoin,
+            Long cnt
+    ) {}
+
+    // 십자말풀이
+    @Builder
+    public record GetCrossword(
+            Integer N,
+            List<CrosswordElement> elements
+    ) {}
+
+    @Builder
+    public record CrosswordElement(
+            Long id,
+            ClueType clueType,
+            Integer wordLength,
+            Integer verticalStartPoint,
+            Integer horizontalStartPoint,
+            String clueDescription
+    ) {}
+
+    // 십자말풀이 정답 제출
+    @Builder
+    public record SubmitCrossword(
+            Boolean isCorrect,
+            Boolean hasNext,
+            Duration score
     ) {}
 }

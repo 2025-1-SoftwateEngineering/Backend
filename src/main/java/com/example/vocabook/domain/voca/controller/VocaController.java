@@ -130,4 +130,36 @@ public class VocaController implements VocaControllerDocs {
         return ApiResponse.onSuccess(code, vocaService.submitChoice(auth, choiceId, answer, current));
     }
 
+    // 십자말풀이 목록 조회
+    @GetMapping("/v1/crosswords")
+    public ApiResponse<PagingResDTO.Cursor<VocaResDTO.GetCrosswordList>> getCrosswordList(
+            @AuthenticationPrincipal AuthMember auth,
+            @RequestParam(defaultValue = "-1") String cursor,
+            @RequestParam(defaultValue = "10") Integer pageSize
+    ){
+        BaseSuccessCode code = VocaSuccessCode.GET_CROSSWORD_LIST;
+        return ApiResponse.onSuccess(code, vocaService.getCrosswordList(auth, cursor, pageSize));
+    }
+
+    // 십자말풀이 문제 조회
+    @GetMapping("/v1/crosswords/{crosswordId}")
+    public ApiResponse<VocaResDTO.GetCrossword> getCrossword(
+            @PathVariable Long crosswordId,
+            @AuthenticationPrincipal AuthMember auth
+    ){
+        BaseSuccessCode code = VocaSuccessCode.GET_CROSSWORD;
+        return ApiResponse.onSuccess(code, vocaService.getCrossword(crosswordId, auth));
+    }
+
+    // 십자말풀이 한 문제 정답 제출
+    @PostMapping("/v1/crosswords/{crosswordId}/submit")
+    public ApiResponse<VocaResDTO.SubmitCrossword> submitCrossword(
+            @PathVariable Long crosswordId,
+            @AuthenticationPrincipal AuthMember auth,
+            @RequestParam Long crosswordHintId,
+            @RequestParam String answer
+    ){
+        BaseSuccessCode code = VocaSuccessCode.SUBMIT_CROSSWORD;
+        return ApiResponse.onSuccess(code, vocaService.submitCrossword(crosswordId, auth, crosswordHintId, answer));
+    }
 }

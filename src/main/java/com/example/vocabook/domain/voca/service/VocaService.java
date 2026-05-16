@@ -3,31 +3,30 @@ package com.example.vocabook.domain.voca.service;
 import com.example.vocabook.domain.member.converter.MemberConverter;
 import com.example.vocabook.domain.member.entity.Member;
 import com.example.vocabook.domain.member.entity.mapping.MemberChoice;
+import com.example.vocabook.domain.member.entity.mapping.MemberCrossword;
 import com.example.vocabook.domain.member.entity.mapping.MemberVoca;
-import com.example.vocabook.domain.member.repository.MemberChoiceRepository;
+import com.example.vocabook.domain.member.repository.*;
 import com.example.vocabook.domain.member.entity.mapping.MemberWord;
-import com.example.vocabook.domain.member.repository.MemberRepository;
-import com.example.vocabook.domain.member.repository.MemberVocaRepository;
-import com.example.vocabook.domain.member.repository.MemberWordRepository;
 import com.example.vocabook.domain.voca.converter.VocaConverter;
 import com.example.vocabook.domain.voca.dto.VocaReqDTO;
 import com.example.vocabook.domain.voca.dto.VocaResDTO;
 import com.example.vocabook.domain.voca.entity.Choice;
+import com.example.vocabook.domain.voca.entity.Crossword;
 import com.example.vocabook.domain.voca.entity.Voca;
 import com.example.vocabook.domain.voca.entity.Word;
 import com.example.vocabook.domain.voca.entity.mapping.ChoiceQuestion;
+import com.example.vocabook.domain.voca.entity.mapping.CrosswordHint;
+import com.example.vocabook.domain.voca.enums.ClueType;
 import com.example.vocabook.domain.voca.exception.VocaException;
 import com.example.vocabook.domain.voca.code.VocaErrorCode;
-import com.example.vocabook.domain.voca.repository.ChoiceQuestionRepository;
-import com.example.vocabook.domain.voca.repository.ChoiceRepository;
-import com.example.vocabook.domain.voca.repository.VocaRepository;
-import com.example.vocabook.domain.voca.repository.WordRepository;
+import com.example.vocabook.domain.voca.repository.*;
 import com.example.vocabook.global.apiPayload.code.GeneralErrorCode;
 import com.example.vocabook.global.apiPayload.converter.PagingConverter;
 import com.example.vocabook.global.apiPayload.dto.PagingResDTO;
 import com.example.vocabook.global.security.entity.AuthMember;
 import com.example.vocabook.global.util.RedisUtil;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.dialect.BooleanDecoder;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
@@ -57,8 +56,11 @@ public class VocaService {
     private final MemberChoiceRepository memberChoiceRepository;
 	private final MemberWordRepository memberWordRepository;
     private final RedisUtil redisUtil;
+    private final CrosswordRepository crosswordRepository;
+    private final MemberCrosswordRepository memberCrosswordRepository;
+    private final CrosswordHintRepository crosswordHintRepository;
 
-	// 단어장 전체 목록 조회
+    // 단어장 전체 목록 조회
 	@Transactional(readOnly = true)
 	public VocaResDTO.VocaList getVocaList(AuthMember authMember) {
 		Member member = memberRepository.findById(authMember.getMember().getId())
@@ -381,12 +383,12 @@ public class VocaService {
 
         // 사용자랑 맞는지 검증
         if (!memberChoice.getMember().getId().equals(auth.getMember().getId())) {
-            throw new VocaException(VocaErrorCode.MISMATCH_MEMBER);
+            throw new VocaException(VocaErrorCode.CHOICE_MISMATCH_MEMBER);
         }
 
         // 요청한 사지선다가 이미 완료한 사지선다인 경우
         if (memberChoice.getSolvedAt() != null) {
-            throw new VocaException(VocaErrorCode.ALREADY_CLEAR);
+            throw new VocaException(VocaErrorCode.CHOICE_ALREADY_CLEAR);
         }
 
         // 사지선다 채점 로직
@@ -442,5 +444,198 @@ public class VocaService {
         } else {
             return VocaConverter.toSubmitChoice(isCorrect, false, null, userScore);
         }
+    }
+
+    // 십자말풀이 목록 조회
+    public PagingResDTO.Cursor<VocaResDTO.GetCrosswordList> getCrosswordList(
+            AuthMember auth,
+            String cursor,
+            Integer pageSize
+    ) {
+        // Pageable
+        PageRequest pageRequest = PageRequest.ofSize(pageSize);
+
+        Slice<Crossword> crosswordList;
+        if (cursor.equals("-1")) {
+            crosswordList = crosswordRepository.findCrosswordWithoutCursor(pageRequest);
+        } else {
+            Long idCursor;
+            try {
+                idCursor = Long.parseLong(cursor);
+            } catch (NumberFormatException e) {
+                throw new VocaException(GeneralErrorCode.INVADED_CURSOR);
+            }
+
+            crosswordList = crosswordRepository.findCrosswordWithCursor(idCursor, pageRequest);
+        }
+
+        // 사지선다 문제가 없는 경우
+        if (!crosswordList.hasContent()){
+            return PagingConverter.toCursor(null, null, false, 0);
+        }
+
+        // 다음 커서 제작
+        String nextCursor = crosswordList.getContent().getLast().getId().toString();
+
+        // 사용자가 플레이한 횟수
+        return PagingConverter.toCursor(
+                crosswordList.getContent().stream()
+                        .map(c -> VocaConverter.toGetCrosswordList(
+                                c,
+                                memberCrosswordRepository.countByMemberAndCrossword(auth.getMember(), c)
+                        ))
+                        .toList(),
+                nextCursor,
+                crosswordList.hasNext(),
+                crosswordList.getNumberOfElements()
+        );
+    }
+
+    // 십자말풀이 문제 조회
+    @Transactional
+    public VocaResDTO.GetCrossword getCrossword(
+            Long crosswordId,
+            AuthMember auth
+    ) {
+        // 사용자 십자말풀이 생성
+        Crossword crossword = crosswordRepository.findById(crosswordId)
+                .orElseThrow(() -> new VocaException(VocaErrorCode.CROSSWORD_NOT_FOUND));
+
+        MemberCrossword memberCrossword = memberCrosswordRepository
+                .findByMemberAndCrosswordAndSolvedAtIsNull(auth.getMember(), crossword)
+                .orElseGet(() -> memberCrosswordRepository
+                        .save(MemberConverter.toMemberCross(auth.getMember(), crossword)));
+
+        // 응답으로 NXN 형태의 데이터로 전달
+        // 초기화
+        List<CrosswordHint> crosswordHintList = crosswordHintRepository.findAllByCrossword(crossword);
+
+        // 가로 세로 가장 긴 부분 결정
+        Integer maxN = getInteger(crosswordHintList);
+
+        // 최대 N 기준 초기화
+        List<String[]> result = new ArrayList<>();
+
+        // 빈칸으로 일단 초기화
+        for (int i = 0; i < maxN; i++) {
+            result.add(new String[maxN]);
+        }
+
+        // 시작 시간 Redis에 저장
+        // 키 = 사용지 ID:사용자 십자말풀이 ID / 만료시간 X
+        String redisKey = auth.getMember().getId()+":"+memberCrossword.getId().toString();
+        redisUtil.save(redisKey, LocalDateTime.now(ZoneId.of("Asia/Seoul")));
+
+        return VocaConverter.toGetCrossword(
+                maxN,
+                crosswordHintList.stream()
+                        .map(ch -> VocaConverter.toCrosswordElement(
+                                ch.getId(),
+                                ch.getClueType(),
+                                ch.getWord().getEnglishWord().length(),
+                                ch.getClueContent(),
+                                Integer.parseInt(ch.getWordStartPoint().split(" ")[0])-1,
+                                Integer.parseInt(ch.getWordStartPoint().split(" ")[1])-1
+                        ))
+                        .toList()
+        );
+    }
+
+    private static Integer getInteger(List<CrosswordHint> crosswordHintList) {
+        Integer maxN = 0;
+        for (CrosswordHint ch : crosswordHintList) {
+            String[] splitStartPoint = ch.getWordStartPoint().split(" ");
+            Integer verticalPoint = Integer.parseInt(splitStartPoint[0])-1;
+            Integer horizontalPoint = Integer.parseInt(splitStartPoint[1])-1;
+
+            if (ch.getClueType().equals(ClueType.ACROSS)) {
+                // 가로 최대
+                maxN = Math.max(maxN, horizontalPoint+ch.getWord().getEnglishWord().length());
+            } else {
+                // 세로 최대
+                maxN = Math.max(maxN, verticalPoint+ch.getWord().getEnglishWord().length());
+            }
+        }
+        return maxN;
+    }
+
+    // 십자말풀이 정답 제출
+    @Transactional
+    public VocaResDTO.SubmitCrossword submitCrossword(
+            Long crosswordId,
+            AuthMember auth,
+            Long crosswordHintId,
+            String answer
+    ) {
+        // 지금 시각 빠르게 확정
+        LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
+
+        // 사용자 십자말풀이 조회
+        Crossword crossword = crosswordRepository.findById(crosswordId)
+                .orElseThrow(() -> new VocaException(VocaErrorCode.CROSSWORD_NOT_FOUND));
+
+        MemberCrossword memberCrossword = memberCrosswordRepository
+                .findByMemberAndCrosswordAndSolvedAtIsNull(auth.getMember(), crossword)
+                .orElseThrow(() -> new VocaException(VocaErrorCode.NOT_PLAY_CROSS));
+
+        // 이미 완료한 십자말풀이인지 확인
+        if (memberCrossword.getSolvedAt() != null) {
+            throw new VocaException(VocaErrorCode.CROSSWORD_ALREADY_CLEAR);
+        }
+
+        // Redis 저장된 시간 꺼내기
+        String redisKey = auth.getMember().getId()+":"+memberCrossword.getId().toString();
+        LocalDateTime submitTime = (LocalDateTime) redisUtil.get(redisKey);
+
+        // 십자말풀이 정답 채점
+        CrosswordHint crosswordHint = crosswordHintRepository.findById(crosswordHintId)
+                .orElseThrow(() -> new VocaException(VocaErrorCode.CROSSWORD_NOT_FOUND));
+
+        Word answerWord = wordRepository.findByEnglishWord(answer)
+                .orElseThrow(() -> new VocaException(VocaErrorCode.WORD_NOT_FOUND));
+
+        Boolean isCorrect = Boolean.FALSE;
+        Long correctCnt = memberCrossword.getCorrectCnt();
+        Duration solvingTime = memberCrossword.getSolvingTime();
+        if (crosswordHint.getWord().getId().equals(answerWord.getId())){
+            isCorrect = Boolean.TRUE;
+            memberCrossword.correct(Duration.between(submitTime, now));
+
+            // 정답이였다면 바로 보정
+            solvingTime = solvingTime.plus(Duration.between(submitTime, now));
+
+            // Redis에 저장되어 있는 정보 삭제 -> 다시 저장
+            redisUtil.delete(redisKey);
+            redisUtil.save(redisKey, now);
+            correctCnt++;
+        }
+
+        // 십자말풀이 완료 검증
+        // 지금까지 십자말풀이 정답 맞춘 개수와 비교
+        Long crosswordHintCnt = crosswordHintRepository.countByCrossword(crossword);
+        Long memberCrosswordCnt = memberCrosswordRepository.countByMemberAndCrossword(auth.getMember(), crossword);
+        Boolean hasNext = Boolean.TRUE;
+        if (correctCnt.equals(crosswordHintCnt)){
+
+            hasNext = Boolean.FALSE;
+
+            // 최단기간인지 확인
+            if (memberCrossword.getMember().getCrosswordHigher().equals(Duration.ZERO) ||
+                    memberCrossword.getMember().getCrosswordHigher().compareTo(solvingTime) > 0
+            ){
+                memberCrossword.getMember().updateCrosswordHigher(solvingTime);
+            }
+
+            // 초회 클리어인지 확인
+            if (memberCrosswordCnt.equals(1L)){
+                memberCrossword.getMember().addCoin(crossword.getSolvedCoin());
+            }
+
+            // 완료 처리
+            memberCrossword.end();
+        }
+
+        // 응답
+        return VocaConverter.toSubmitCrossword(isCorrect, hasNext, solvingTime);
     }
 }

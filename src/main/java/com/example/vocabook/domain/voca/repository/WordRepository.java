@@ -29,4 +29,6 @@ public interface WordRepository extends JpaRepository<Word, Long> {
                     "LIMIT :limit ",
             nativeQuery = true)
     List<Word> findRandomExcluding(Long excludeId, int limit);
+
+    Optional<Word> findByEnglishWord(String englishWord);
 }
