@@ -18,6 +18,9 @@ public class ChoiceQuestion {
     @Column(name = "choice_question_id")
     private Long id;
 
+    @Column(name = "is_word", nullable = false)
+    private Boolean isWord;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "choice_id", nullable = false)
     private Choice choice;

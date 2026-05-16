@@ -12,10 +12,15 @@ import com.example.vocabook.domain.member.exception.AdminException;
 import com.example.vocabook.domain.member.exception.MemberException;
 import com.example.vocabook.domain.member.repository.MemberRepository;
 import com.example.vocabook.domain.member.repository.ReportRepository;
+import com.example.vocabook.domain.voca.converter.ChoiceConverter;
 import com.example.vocabook.domain.voca.converter.VocaConverter;
 import com.example.vocabook.domain.voca.converter.WordConverter;
+import com.example.vocabook.domain.voca.entity.Choice;
 import com.example.vocabook.domain.voca.entity.Voca;
 import com.example.vocabook.domain.voca.entity.Word;
+import com.example.vocabook.domain.voca.entity.mapping.ChoiceQuestion;
+import com.example.vocabook.domain.voca.repository.ChoiceQuestionRepository;
+import com.example.vocabook.domain.voca.repository.ChoiceRepository;
 import com.example.vocabook.domain.voca.repository.VocaRepository;
 import com.example.vocabook.domain.voca.repository.WordRepository;
 import com.example.vocabook.global.apiPayload.code.GeneralErrorCode;
@@ -38,6 +43,8 @@ public class AdminService {
     private final MemberRepository memberRepository;
     private final VocaRepository vocaRepository;
     private final WordRepository wordRepository;
+    private final ChoiceRepository choiceRepository;
+    private final ChoiceQuestionRepository choiceQuestionRepository;
 
     // 신고 목록 조회
     public PagingResDTO.Cursor<AdminResDTO.ReportList> getReportList(
@@ -302,5 +309,45 @@ public class AdminService {
 
         wordRepository.delete(word);
         return AdminConverter.toDeleteWord(wordId);
+    }
+
+    // 사지선다 문제 생성
+    @Transactional
+    public List<AdminResDTO.CreateChoice> createChoice(
+            AdminReqDTO.CreateChoice dto
+    ) {
+        // 단어들 리스트화 (단어랑 뜻 함께 있음)
+        List<String> answerList = dto.choices().stream()
+                .map(AdminReqDTO.ChoiceList::word)
+                .toList();
+
+        // 단어 조회 (단어 or 뜻 둘 중 하나중에 있다면)
+        List<Word> wordList = wordRepository.findAllByEnglishWordInOrMeaningIn(answerList, answerList);
+
+        // 조회된 단어가 없는 경우
+        if (wordList.isEmpty()) {
+            throw new AdminException(AdminErrorCode.WORD_NOT_FOUND);
+        }
+
+        // 사지선다 생성 & 저장
+        Choice choice = ChoiceConverter.toChoice(dto.solvedCoin());
+        choiceRepository.save(choice);
+
+        // 사지선다 질문 생성 & 저장
+        List<ChoiceQuestion> choiceQuestionList = new ArrayList<>();
+        wordList.forEach(w -> {
+            // DTO에 담겨있는 단어인지 확인
+            dto.choices().forEach(c -> {
+                if (c.word().equals(w.getEnglishWord()) || c.word().equals(w.getMeaning())) {
+                    choiceQuestionList.add(ChoiceConverter.toChoiceQuestion(choice, w, c.isWord()));
+                }
+            });
+        });
+
+        List<ChoiceQuestion> result = choiceQuestionRepository.saveAll(choiceQuestionList);
+
+        return result.stream()
+                .map(AdminConverter::toCreateChoice)
+                .toList();
     }
 }

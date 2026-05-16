@@ -31,6 +31,10 @@ public class MemberChoice {
     @Builder.Default
     private Long score = 0L;
 
+    @Column(name = "solving_cnt", nullable = false)
+    @Builder.Default
+    private Integer solvingCnt = 0;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", nullable = false)
     private Member member;
@@ -38,4 +42,18 @@ public class MemberChoice {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "choice_id", nullable = false)
     private Choice choice;
+
+    public void correct(Long score){
+        this.correctCnt++;
+        this.score += score;
+        this.solvingCnt++;
+    }
+
+    public void wrong(){
+        this.solvingCnt++;
+    }
+
+    public void end(){
+        this.solvedAt = LocalDateTime.now();
+    }
 }

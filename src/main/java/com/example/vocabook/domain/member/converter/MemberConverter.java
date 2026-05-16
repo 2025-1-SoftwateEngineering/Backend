@@ -5,7 +5,9 @@ import com.example.vocabook.domain.member.dto.res.MemberResDTO;
 import com.example.vocabook.domain.member.entity.Friend;
 import com.example.vocabook.domain.member.entity.Member;
 import com.example.vocabook.domain.member.entity.Report;
+import com.example.vocabook.domain.member.entity.mapping.MemberChoice;
 import com.example.vocabook.domain.member.enums.FriendState;
+import com.example.vocabook.domain.voca.entity.Choice;
 
 import java.time.LocalDateTime;
 
@@ -112,6 +114,17 @@ public class MemberConverter {
                 .id(report.getTargetMember().getId())
                 .email(report.getTargetMember().getEmail())
                 .reportedAt(LocalDateTime.now())
+                .build();
+    }
+
+    // 사용자 사지선다
+    public static MemberChoice toMemberChoice(
+            Member member,
+            Choice choice
+    ){
+        return MemberChoice.builder()
+                .choice(choice)
+                .member(member)
                 .build();
     }
 }

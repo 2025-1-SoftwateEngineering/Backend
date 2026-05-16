@@ -5,6 +5,12 @@ spring:
   application:
     name: "VocaBook"
 
+  # Redis
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver # MySQL JDBC ???? ??? ??
     url: ${DB_URL} #?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
