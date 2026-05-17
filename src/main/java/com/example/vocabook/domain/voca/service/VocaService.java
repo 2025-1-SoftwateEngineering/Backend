@@ -333,9 +333,9 @@ public class VocaService {
         Collections.shuffle(choiceElements);
 
         // Redis에 시간 삽입 (폴링 시간 계산 +1초 허용)
-        // Redis Key 구조: 사용자 ID:사지선다 ID:사지선다 항목 ID
+        // Redis Key 구조: choice:사용자 ID:사지선다 ID:사지선다 항목 ID
         redisUtil.save(
-                auth.getMember().getId()+":"+choice.getId().toString()+":"+choiceQuestion.get().getId(),
+                "choice:"+auth.getMember().getId()+":"+choice.getId().toString()+":"+choiceQuestion.get().getId(),
                 LocalDateTime.now(ZoneId.of("Asia/Seoul")),
                 Duration.ofSeconds(6)
         );
@@ -370,7 +370,7 @@ public class VocaService {
                 .orElseThrow(() -> new VocaException(VocaErrorCode.NOT_PLAY_CHOICE));
 
         // 가장 먼저 Redis에서 시간 꺼내오기
-        String redisKey = auth.getMember().getId()+":"+memberChoice.getChoice().getId().toString()+":"+choiceQuestion.getId();
+        String redisKey = "choice:"+auth.getMember().getId()+":"+memberChoice.getChoice().getId().toString()+":"+choiceQuestion.getId();
         LocalDateTime submitTime = null;
         if (redisUtil.hasKey(redisKey)){
             submitTime = (LocalDateTime) redisUtil.get(redisKey);
@@ -509,9 +509,9 @@ public class VocaService {
         Integer maxN = getInteger(crosswordHintList);
 
         // 시작 시간 Redis에 저장
-        // 키 = 사용지 ID:사용자 십자말풀이 ID / 만료시간 X
-        String redisKey = auth.getMember().getId()+":"+memberCrossword.getId().toString();
-        redisUtil.save(redisKey, LocalDateTime.now(ZoneId.of("Asia/Seoul")));
+        // 키 = crossword:사용지 ID:사용자 십자말풀이 ID / 만료시간 2일
+        String redisKey = "crossword:"+auth.getMember().getId()+":"+memberCrossword.getId().toString();
+        redisUtil.save(redisKey, LocalDateTime.now(ZoneId.of("Asia/Seoul")), Duration.ofDays(2L));
 
         return VocaConverter.toGetCrossword(
                 maxN,
@@ -571,7 +571,7 @@ public class VocaService {
         }
 
         // Redis 저장된 시간 꺼내기
-        String redisKey = auth.getMember().getId()+":"+memberCrossword.getId().toString();
+        String redisKey = "crossword:"+auth.getMember().getId()+":"+memberCrossword.getId().toString();
         LocalDateTime submitTime = (LocalDateTime) redisUtil.get(redisKey);
 
         // 십자말풀이 정답 채점
