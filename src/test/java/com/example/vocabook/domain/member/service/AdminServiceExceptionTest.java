@@ -32,6 +32,12 @@ public class AdminServiceExceptionTest {
     @Mock
     private WordRepository wordRepository;
 
+    @Mock
+    private com.example.vocabook.domain.voca.repository.CrosswordRepository crosswordRepository;
+
+    @Mock
+    private com.example.vocabook.domain.voca.repository.CrosswordHintRepository crosswordHintRepository;
+
     @Test
     @DisplayName("단어장 수정 실패 - 존재하지 않는 단어장")
     void updateVocabularyException_NotFound() {
@@ -127,7 +133,11 @@ public class AdminServiceExceptionTest {
         AdminReqDTO.CreateCrossword dto = new AdminReqDTO.CreateCrossword(200L, java.util.List.of(cwDto));
         
         Word mockWord = Word.builder().englishWord("apple").meaning("사과").build();
+        com.example.vocabook.domain.voca.entity.Crossword savedCrossword = com.example.vocabook.domain.voca.entity.Crossword.builder().id(10L).solvedCoin(200L).build();
 
+        // AdminService.java의 첫 번째 줄에서 crosswordRepository.save()가 호출되므로 Mocking 필요
+        when(crosswordRepository.save(org.mockito.ArgumentMatchers.any())).thenReturn(savedCrossword);
+        
         // 십자말풀이 저장까진 넘어가고 힌트 생성 단계에서 예외 발생
         when(wordRepository.findFirstByEnglishWord("apple")).thenReturn(Optional.of(mockWord));
 
