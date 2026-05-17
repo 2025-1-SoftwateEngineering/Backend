@@ -627,7 +627,7 @@ public interface VocaControllerDocs {
 					## 요청 형식
 					- crosswordId: 십자말풀이 문제 세트 ID
 					- crosswordHintId: 십자말풀이 힌트(요소) ID
-					- answer: 사용자가 입력한 정답 문자열
+					- answer: 사용자가 입력한 정답 문자열 (대/소문자 구분 없음)
 					- 인증 토큰 필요 (JWT)
 
 					## 응답

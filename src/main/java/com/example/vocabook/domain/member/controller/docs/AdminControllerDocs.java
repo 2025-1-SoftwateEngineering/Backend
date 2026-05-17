@@ -463,7 +463,7 @@ public interface AdminControllerDocs {
                     ## 주의 사항
                     - 관리자 전용 기능입니다.
                     - vocabularyId를 빈 값으로 두면 단어장에 속하지 않은 단어로 생성됩니다.
-                    - 동일한 뜻과 스펠링을 가진 단어가 이미 있다면 중복 저장되지 않습니다.
+                    - 동일한 뜻과 스펠링(대/소문자 무시)을 가진 단어가 이미 있다면 중복 저장되지 않습니다.
                     """
     )
     @ApiResponses(value = {
@@ -515,7 +515,7 @@ public interface AdminControllerDocs {
             summary = "단어 검색 API By 김주헌",
             description = """
                     # 단어 검색
-                    영단어(english)를 쿼리 파라미터로 받아 DB에 해당 단어가 존재하는지 검색합니다.
+                    영단어(english)를 쿼리 파라미터로 받아 DB에 해당 단어가 존재하는지 검색합니다. (대/소문자 무시)
                     
                     ## 주의 사항
                     - 관리자 전용 기능입니다.
@@ -727,7 +727,7 @@ public interface AdminControllerDocs {
                     
                     ## 주의 사항
                     - 관리자 전용 기능입니다.
-                    - choices 리스트에 포함된 단어나 뜻은 DB에 존재하는 유효한 문자열이어야 합니다.
+                    - choices 리스트에 포함된 단어나 뜻은 DB에 존재하는 유효한 문자열이어야 합니다. (영어 단어는 대/소문자 무시)
                     - 최대 30개까지 등록 가능합니다.
                     """
     )
@@ -802,7 +802,7 @@ public interface AdminControllerDocs {
                     
                     ## 주의 사항
                     - 관리자 전용 기능입니다.
-                    - crosswords 리스트에 포함된 단어(word)는 DB에 존재하는 유효한 영어 단어여야 합니다.
+                    - crosswords 리스트에 포함된 단어(word)는 DB에 존재하는 유효한 영어 단어여야 합니다. (대/소문자 무시)
                     - 시작 좌표(wordStartPoint)는 '세로 가로' 형식의 문자열(예: '1 1')이어야 합니다.
                     """
     )
