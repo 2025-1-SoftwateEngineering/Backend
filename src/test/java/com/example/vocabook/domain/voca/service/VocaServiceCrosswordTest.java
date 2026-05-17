@@ -257,4 +257,48 @@ public class VocaServiceCrosswordTest {
                 .isInstanceOf(VocaException.class)
                 .extracting("code").isEqualTo(VocaErrorCode.WORD_NOT_FOUND);
     }
+
+    @Test
+    @DisplayName("십자말풀이 Redis 저장/삭제 동작 정상 확인")
+    void submitCrossword_RedisVerifySuccess() {
+        // given
+        Word mockWord = Word.builder().id(100L).englishWord("apple").meaning("사과").build();
+        CrosswordHint hint = CrosswordHint.builder()
+                .id(10L).crossword(crossword).word(mockWord).build();
+        MemberCrossword activeSession = MemberCrossword.builder()
+                .id(100L).member(member).crossword(crossword).correctCnt(0L).solvingTime(Duration.ZERO).build();
+
+        when(crosswordRepository.findById(crossword.getId())).thenReturn(Optional.of(crossword));
+        when(memberCrosswordRepository.findByMemberAndCrosswordAndSolvedAtIsNull(member, crossword))
+                .thenReturn(Optional.of(activeSession));
+
+        String expectedRedisKey = "1:100"; // authMember.getMember().getId() + ":" + memberCrossword.getId()
+        LocalDateTime submitTime = LocalDateTime.now().minusSeconds(15);
+        
+        // 1. Redis에서 시작 시간 꺼내오기 검증 준비
+        when(redisUtil.get(expectedRedisKey)).thenReturn(submitTime);
+
+        when(crosswordHintRepository.findById(10L)).thenReturn(Optional.of(hint));
+        when(wordRepository.findByEnglishWord("apple")).thenReturn(Optional.of(mockWord));
+        when(crosswordHintRepository.countByCrossword(crossword)).thenReturn(5L);
+
+        // when
+        vocaService.submitCrossword(crossword.getId(), authMember, 10L, "apple");
+
+        // then
+        // 2. Redis 동작이 순서대로 발생했는지 철저히 검증
+        org.mockito.InOrder inOrder = inOrder(redisUtil);
+        
+        // a. 시작 시간을 가져왔는지 확인
+        inOrder.verify(redisUtil).get(expectedRedisKey);
+        
+        // b. 기존 기록된 시작 시간을 삭제했는지 확인
+        inOrder.verify(redisUtil).delete(expectedRedisKey);
+        
+        // c. 현재 시각으로 새로운 시작 시간을 저장했는지 확인 (만료시간 없이)
+        inOrder.verify(redisUtil).save(eq(expectedRedisKey), any(LocalDateTime.class));
+        
+        // 추가적으로 소요 시간이 정확하게 더해졌는지 확인
+        assertThat(activeSession.getSolvingTime().getSeconds()).isGreaterThanOrEqualTo(15);
+    }
 }
