@@ -116,7 +116,7 @@ public class AdminServiceExceptionTest {
         AdminReqDTO.ChoiceList choice1 = new AdminReqDTO.ChoiceList("unknownApple", true);
         AdminReqDTO.CreateChoice dto = new AdminReqDTO.CreateChoice(100L, java.util.List.of(choice1));
 
-        when(wordRepository.findAllByEnglishWordInOrMeaningIn(org.mockito.ArgumentMatchers.anyList(), org.mockito.ArgumentMatchers.anyList()))
+        when(wordRepository.findAllByEnglishWordInIgnoreCaseOrMeaningIn(org.mockito.ArgumentMatchers.anyList(), org.mockito.ArgumentMatchers.anyList()))
                 .thenReturn(java.util.Collections.emptyList());
 
         // when & then
@@ -139,7 +139,7 @@ public class AdminServiceExceptionTest {
         when(crosswordRepository.save(org.mockito.ArgumentMatchers.any())).thenReturn(savedCrossword);
         
         // 십자말풀이 저장까진 넘어가고 힌트 생성 단계에서 예외 발생
-        when(wordRepository.findFirstByEnglishWord("apple")).thenReturn(Optional.of(mockWord));
+        when(wordRepository.findFirstByEnglishWordIgnoreCase("apple")).thenReturn(Optional.of(mockWord));
 
         // when & then
         assertThatThrownBy(() -> adminService.createCrosswords(dto))

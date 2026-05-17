@@ -130,7 +130,7 @@ public class VocaServiceCrosswordTest {
         assertThat(result.elements().get(0).id()).isEqualTo(10L);
         assertThat(result.elements().get(0).clueType()).isEqualTo(ClueType.ACROSS);
         assertThat(result.elements().get(0).wordLength()).isEqualTo(5);
-        verify(redisUtil).save(eq("1:100"), any(LocalDateTime.class)); // Member ID: MemberCrossword ID
+        verify(redisUtil).save(eq("crossword:1:100"), any(LocalDateTime.class), any(Duration.class)); // Member ID: MemberCrossword ID
     }
 
     @Test
@@ -149,10 +149,10 @@ public class VocaServiceCrosswordTest {
         
         // Redis recorded time = 10 seconds ago
         LocalDateTime submitTime = LocalDateTime.now().minusSeconds(10);
-        when(redisUtil.get("1:100")).thenReturn(submitTime);
+        when(redisUtil.get("crossword:1:100")).thenReturn(submitTime);
         
         when(crosswordHintRepository.findById(10L)).thenReturn(Optional.of(hint));
-        when(wordRepository.findByEnglishWord("apple")).thenReturn(Optional.of(mockWord));
+        when(wordRepository.findByEnglishWordIgnoreCase("apple")).thenReturn(Optional.of(mockWord));
 
         when(crosswordHintRepository.countByCrossword(crossword)).thenReturn(5L); // 5 hints total
         // Note: memberCrossword.correctCnt becomes 1 after this submit.
@@ -165,8 +165,8 @@ public class VocaServiceCrosswordTest {
         assertThat(result.hasNext()).isTrue(); // Not all solved yet
         assertThat(result.score().getSeconds()).isGreaterThanOrEqualTo(10); // Passed 10 seconds
         assertThat(activeSession.getCorrectCnt()).isEqualTo(1L);
-        verify(redisUtil).delete("1:100");
-        verify(redisUtil).save(eq("1:100"), any(LocalDateTime.class));
+        verify(redisUtil).delete("crossword:1:100");
+        verify(redisUtil).save(eq("crossword:1:100"), any(LocalDateTime.class));
     }
 
     @Test
@@ -185,10 +185,10 @@ public class VocaServiceCrosswordTest {
         
         // Redis recorded time = 5 seconds ago
         LocalDateTime submitTime = LocalDateTime.now().minusSeconds(5);
-        when(redisUtil.get("1:100")).thenReturn(submitTime);
+        when(redisUtil.get("crossword:1:100")).thenReturn(submitTime);
         
         when(crosswordHintRepository.findById(10L)).thenReturn(Optional.of(hint));
-        when(wordRepository.findByEnglishWord("apple")).thenReturn(Optional.of(mockWord));
+        when(wordRepository.findByEnglishWordIgnoreCase("apple")).thenReturn(Optional.of(mockWord));
 
         when(crosswordHintRepository.countByCrossword(crossword)).thenReturn(5L); // 5 hints total (this submit makes it 5)
         when(memberCrosswordRepository.countByMemberAndCrossword(member, crossword)).thenReturn(1L); // First clear
@@ -220,10 +220,10 @@ public class VocaServiceCrosswordTest {
                 .thenReturn(Optional.of(activeSession));
         
         LocalDateTime submitTime = LocalDateTime.now().minusSeconds(5);
-        when(redisUtil.get("1:100")).thenReturn(submitTime);
+        when(redisUtil.get("crossword:1:100")).thenReturn(submitTime);
         
         when(crosswordHintRepository.findById(10L)).thenReturn(Optional.of(hint));
-        when(wordRepository.findByEnglishWord("banana")).thenReturn(Optional.of(incorrectWord)); // User typed 'banana'
+        when(wordRepository.findByEnglishWordIgnoreCase("banana")).thenReturn(Optional.of(incorrectWord)); // User typed 'banana'
         when(crosswordHintRepository.countByCrossword(crossword)).thenReturn(5L);
         when(memberCrosswordRepository.countByMemberAndCrossword(member, crossword)).thenReturn(1L);
 
@@ -234,7 +234,7 @@ public class VocaServiceCrosswordTest {
         assertThat(result.isCorrect()).isFalse();
         assertThat(result.hasNext()).isTrue();
         assertThat(activeSession.getCorrectCnt()).isEqualTo(0L); // Not increased
-        verify(redisUtil, never()).delete("1:100"); // Time not reset
+        verify(redisUtil, never()).delete("crossword:1:100"); // Time not reset
     }
 
     @Test
@@ -248,9 +248,9 @@ public class VocaServiceCrosswordTest {
         when(crosswordRepository.findById(crossword.getId())).thenReturn(Optional.of(crossword));
         when(memberCrosswordRepository.findByMemberAndCrosswordAndSolvedAtIsNull(member, crossword))
                 .thenReturn(Optional.of(activeSession));
-        when(redisUtil.get("1:100")).thenReturn(LocalDateTime.now());
+        when(redisUtil.get(anyString())).thenReturn(LocalDateTime.now());
         when(crosswordHintRepository.findById(10L)).thenReturn(Optional.of(hint));
-        when(wordRepository.findByEnglishWord("unknown")).thenReturn(Optional.empty());
+        when(wordRepository.findByEnglishWordIgnoreCase("unknown")).thenReturn(Optional.empty());
 
         // when & then
         assertThatThrownBy(() -> vocaService.submitCrossword(crossword.getId(), authMember, 10L, "unknown"))
@@ -272,14 +272,14 @@ public class VocaServiceCrosswordTest {
         when(memberCrosswordRepository.findByMemberAndCrosswordAndSolvedAtIsNull(member, crossword))
                 .thenReturn(Optional.of(activeSession));
 
-        String expectedRedisKey = "1:100"; // authMember.getMember().getId() + ":" + memberCrossword.getId()
+        String expectedRedisKey = "crossword:1:100"; // authMember.getMember().getId() + ":" + memberCrossword.getId()
         LocalDateTime submitTime = LocalDateTime.now().minusSeconds(15);
         
         // 1. Redis에서 시작 시간 꺼내오기 검증 준비
         when(redisUtil.get(expectedRedisKey)).thenReturn(submitTime);
 
         when(crosswordHintRepository.findById(10L)).thenReturn(Optional.of(hint));
-        when(wordRepository.findByEnglishWord("apple")).thenReturn(Optional.of(mockWord));
+        when(wordRepository.findByEnglishWordIgnoreCase("apple")).thenReturn(Optional.of(mockWord));
         when(crosswordHintRepository.countByCrossword(crossword)).thenReturn(5L);
 
         // when

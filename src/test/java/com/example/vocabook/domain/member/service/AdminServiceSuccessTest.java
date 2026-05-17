@@ -126,7 +126,7 @@ public class AdminServiceSuccessTest {
         Word mockWord1 = Word.builder().englishWord("apple").meaning("사과").build();
         Word mockWord2 = Word.builder().englishWord("banana").meaning("바나나").build();
 
-        when(wordRepository.findAllByEnglishWordInOrMeaningIn(anyList(), anyList()))
+        when(wordRepository.findAllByEnglishWordInIgnoreCaseOrMeaningIn(anyList(), anyList()))
                 .thenReturn(java.util.List.of(mockWord1, mockWord2));
         when(choiceRepository.save(any())).thenReturn(null); // save returns Choice, mock if needed
         when(choiceQuestionRepository.saveAll(anyList())).thenAnswer(i -> i.getArgument(0));
@@ -159,7 +159,7 @@ public class AdminServiceSuccessTest {
         Crossword savedCrossword = Crossword.builder().id(10L).solvedCoin(200L).build();
 
         when(crosswordRepository.save(any(Crossword.class))).thenReturn(savedCrossword);
-        when(wordRepository.findFirstByEnglishWord("apple")).thenReturn(Optional.of(mockWord));
+        when(wordRepository.findFirstByEnglishWordIgnoreCase("apple")).thenReturn(Optional.of(mockWord));
         when(crosswordHintRepository.saveAll(anyList())).thenAnswer(i -> i.getArgument(0));
 
         // when
