@@ -521,4 +521,145 @@ public interface VocaControllerDocs {
 			@RequestParam Long answer,
 			@RequestParam Long current
 	);
+
+	@Operation(
+			summary = "십자말풀이 목록 조회 API By 김주헌",
+			description = """
+					# 십자말풀이 목록 조회
+
+					## 요청 형식
+					- cursor: 커서 값 (초기 요청 시 -1, 기본값 -1)
+					- pageSize: 페이지당 조회 수 (기본값 10)
+					- 인증 토큰 필요 (JWT)
+
+					## 응답
+					- 커서 기반 십자말풀이 문제 세트 목록 (사용자 플레이 횟수 포함) 반환
+					"""
+	)
+	@ApiResponses(value = {
+			@io.swagger.v3.oas.annotations.responses.ApiResponse(
+					responseCode = "200",
+					description = "성공 예시",
+					content = @Content(
+							mediaType = "application/json",
+							schema = @Schema(implementation = ApiResponse.class),
+							examples = @ExampleObject(value = """
+									{
+									  "isSuccess": true,
+									  "code": "VOCA200_10",
+									  "message": "성공적으로 십자말풀이 목록을 조회했습니다.",
+									  "result": {
+									    "data": [
+									      {
+									        "id": 1,
+									        "solvedCoin": 200,
+									        "cnt": 5
+									      }
+									    ],
+									    "nextCursor": "1",
+									    "hasNext": false,
+									    "totalElements": 1
+									  }
+									}
+									""")
+					)
+			)
+	})
+	ApiResponse<PagingResDTO.Cursor<VocaResDTO.GetCrosswordList>> getCrosswordList(
+			@AuthenticationPrincipal AuthMember auth,
+			@RequestParam(defaultValue = "-1") String cursor,
+			@RequestParam(defaultValue = "10") Integer pageSize
+	);
+
+	@Operation(
+			summary = "십자말풀이 문제 조회 API By 김주헌",
+			description = """
+					# 십자말풀이 문제 조회
+
+					## 요청 형식
+					- crosswordId: 십자말풀이 문제 세트 ID
+					- 인증 토큰 필요 (JWT)
+
+					## 응답
+					- N x N 크기의 그리드 정보와 단어 요소(elements) 목록 반환
+					"""
+	)
+	@ApiResponses(value = {
+			@io.swagger.v3.oas.annotations.responses.ApiResponse(
+					responseCode = "200",
+					description = "성공 예시",
+					content = @Content(
+							mediaType = "application/json",
+							schema = @Schema(implementation = ApiResponse.class),
+							examples = @ExampleObject(value = """
+									{
+									  "isSuccess": true,
+									  "code": "VOCA200_11",
+									  "message": "성공적으로 십자말풀이를 조회했습니다.",
+									  "result": {
+									    "n": 5,
+									    "elements": [
+									      {
+									        "id": 1,
+									        "clueType": "ACROSS",
+									        "wordLength": 5,
+									        "verticalStartPoint": 0,
+									        "horizontalStartPoint": 0,
+									        "clueDescription": "달콤하고 둥근 과일"
+									      }
+									    ]
+									  }
+									}
+									""")
+					)
+			)
+	})
+	ApiResponse<VocaResDTO.GetCrossword> getCrossword(
+			@PathVariable Long crosswordId,
+			@AuthenticationPrincipal AuthMember auth
+	);
+
+	@Operation(
+			summary = "십자말풀이 한 문제 정답 제출 API By 김주헌",
+			description = """
+					# 십자말풀이 한 문제 정답 제출
+
+					## 요청 형식
+					- crosswordId: 십자말풀이 문제 세트 ID
+					- crosswordHintId: 십자말풀이 힌트(요소) ID
+					- answer: 사용자가 입력한 정답 문자열 (대/소문자 구분 없음)
+					- 인증 토큰 필요 (JWT)
+
+					## 응답
+					- 해당 문제의 정답 여부(isCorrect), 전체 완료 여부 판단(hasNext), 클리어 시간(score, Duration) 반환
+					"""
+	)
+	@ApiResponses(value = {
+			@io.swagger.v3.oas.annotations.responses.ApiResponse(
+					responseCode = "200",
+					description = "성공 예시",
+					content = @Content(
+							mediaType = "application/json",
+							schema = @Schema(implementation = ApiResponse.class),
+							examples = @ExampleObject(value = """
+									{
+									  "isSuccess": true,
+									  "code": "VOCA200_12",
+									  "message": "성공적으로 십자말풀이 정답을 제출했습니다.",
+									  "result": {
+									    "isCorrect": true,
+									    "hasNext": false,
+									    "score": "PT1M30.5S"
+									  }
+									}
+									""")
+					)
+			)
+	})
+	ApiResponse<VocaResDTO.SubmitCrossword> submitCrossword(
+			@PathVariable Long crosswordId,
+			@AuthenticationPrincipal AuthMember auth,
+			@RequestParam Long crosswordHintId,
+			@RequestParam String answer
+	);
 }

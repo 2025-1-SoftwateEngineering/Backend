@@ -26,6 +26,9 @@ public class CrosswordHint {
     @Column(name = "clue_content", nullable = false)
     private String clueContent;
 
+    @Column(name = "word_start_point", nullable = false)
+    private String wordStartPoint;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "crossword_id", nullable = false)
     private Crossword crossword;

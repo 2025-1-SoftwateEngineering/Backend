@@ -42,10 +42,18 @@ public enum VocaSuccessCode implements BaseSuccessCode {
     SUBMIT_CHOICE(HttpStatus.OK,
             "VOCA200_6",
             "성공적으로 사지선다 정답을 제출했습니다."),
+    GET_CROSSWORD_LIST(HttpStatus.OK,
+            "VOCA200_7",
+            "성공적으로 십자말풀이 문제 목록을 조회했습니다."),
     GET_CHOICE_NO_CONTENT(HttpStatus.NO_CONTENT,
             "VOCA204_1",
             "마지막 문제였습니다. 결과를 조회해주세요."),
-
+    GET_CROSSWORD(HttpStatus.OK,
+            "VOCA200_8",
+            "성공적으로 십자말풀이 문제를 조회했습니다."),
+    SUBMIT_CROSSWORD(HttpStatus.OK,
+            "VOCA200_9",
+            "성공적으로 십자말풀이 정답을 제출했습니다."),
     ;
 
 	private final HttpStatus status;

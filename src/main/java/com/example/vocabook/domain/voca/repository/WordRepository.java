@@ -16,10 +16,10 @@ public interface WordRepository extends JpaRepository<Word, Long> {
 	List<Word> findByVoca(Voca voca);
 	List<Word> findByVocaIn(List<Voca> vocas);
 
-	List<Word> findByEnglishWordIn(List<String> englishWords);
-	Optional<Word> findFirstByEnglishWord(String englishWord);
+	List<Word> findByEnglishWordInIgnoreCase(List<String> englishWords);
+	Optional<Word> findFirstByEnglishWordIgnoreCase(String englishWord);
 
-    List<Word> findAllByEnglishWordInOrMeaningIn(Collection<String> englishWords, Collection<String> meanings);
+    List<Word> findAllByEnglishWordInIgnoreCaseOrMeaningIn(Collection<String> englishWords, Collection<String> meanings);
 
     @Query(
             value = "SELECT * " +
@@ -29,4 +29,6 @@ public interface WordRepository extends JpaRepository<Word, Long> {
                     "LIMIT :limit ",
             nativeQuery = true)
     List<Word> findRandomExcluding(Long excludeId, int limit);
+
+    Optional<Word> findByEnglishWordIgnoreCase(String englishWord);
 }
