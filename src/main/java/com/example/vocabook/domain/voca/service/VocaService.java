@@ -578,7 +578,7 @@ public class VocaService {
         CrosswordHint crosswordHint = crosswordHintRepository.findById(crosswordHintId)
                 .orElseThrow(() -> new VocaException(VocaErrorCode.CROSSWORD_NOT_FOUND));
 
-        Word answerWord = wordRepository.findByEnglishWord(answer)
+        Word answerWord = wordRepository.findByEnglishWordIgnoreCase(answer)
                 .orElseThrow(() -> new VocaException(VocaErrorCode.WORD_NOT_FOUND));
 
         Boolean isCorrect = Boolean.FALSE;
