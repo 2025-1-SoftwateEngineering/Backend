@@ -1,5 +1,6 @@
 package com.example.vocabook.domain.member.dto.req;
 
+import com.example.vocabook.domain.voca.enums.ClueType;
 import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -61,5 +62,18 @@ public class AdminReqDTO {
     public record ChoiceList(
             String word,
             Boolean isWord
+    ) {}
+
+    // 십자말풀이 문제 생성
+    public record CreateCrossword(
+            Long solvedCoin,
+            List<Crossword> crosswords
+    ) {}
+
+    public record Crossword(
+            ClueType clueType,
+            String clueDescription,
+            String wordStartPoint,
+            String word
     ) {}
 }

@@ -17,6 +17,10 @@ public class RedisUtil {
         redisTemplate.opsForValue().set(key, value, seconds);
     }
 
+    public void save(String key, Object value) {
+        redisTemplate.opsForValue().set(key, value);
+    }
+
     // 조회
     public Object get(String key) {
         return redisTemplate.opsForValue().get(key);

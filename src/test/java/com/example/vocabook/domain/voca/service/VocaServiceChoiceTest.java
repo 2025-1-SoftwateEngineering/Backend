@@ -129,7 +129,7 @@ public class VocaServiceChoiceTest {
         assertThat(result.id()).isEqualTo(100L); // memberChoiceId
         assertThat(result.question()).isEqualTo("apple");
         assertThat(result.choices()).hasSize(4); // 1 correct + 3 random
-        verify(redisUtil).save(eq("1:1:10"), any(LocalDateTime.class), any());
+        verify(redisUtil).save(eq("choice:1:1:10"), any(LocalDateTime.class), any());
     }
 
     @Test
@@ -164,8 +164,8 @@ public class VocaServiceChoiceTest {
                 .thenReturn(Optional.of(currentQ));
         
         // Redis recorded time = 1 second ago (valid)
-        when(redisUtil.hasKey("1:1:10")).thenReturn(true);
-        when(redisUtil.get("1:1:10")).thenReturn(LocalDateTime.now().minusSeconds(1));
+        when(redisUtil.hasKey("choice:1:1:10")).thenReturn(true);
+        when(redisUtil.get("choice:1:1:10")).thenReturn(LocalDateTime.now().minusSeconds(1));
         
         when(wordRepository.findById(100L)).thenReturn(Optional.of(mockWord));
 

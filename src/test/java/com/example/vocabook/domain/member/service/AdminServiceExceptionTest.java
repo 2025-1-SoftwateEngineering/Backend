@@ -13,6 +13,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import com.example.vocabook.domain.voca.enums.ClueType;
+
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -29,6 +31,12 @@ public class AdminServiceExceptionTest {
 
     @Mock
     private WordRepository wordRepository;
+
+    @Mock
+    private com.example.vocabook.domain.voca.repository.CrosswordRepository crosswordRepository;
+
+    @Mock
+    private com.example.vocabook.domain.voca.repository.CrosswordHintRepository crosswordHintRepository;
 
     @Test
     @DisplayName("단어장 수정 실패 - 존재하지 않는 단어장")
@@ -108,12 +116,34 @@ public class AdminServiceExceptionTest {
         AdminReqDTO.ChoiceList choice1 = new AdminReqDTO.ChoiceList("unknownApple", true);
         AdminReqDTO.CreateChoice dto = new AdminReqDTO.CreateChoice(100L, java.util.List.of(choice1));
 
-        when(wordRepository.findAllByEnglishWordInOrMeaningIn(org.mockito.ArgumentMatchers.anyList(), org.mockito.ArgumentMatchers.anyList()))
+        when(wordRepository.findAllByEnglishWordInIgnoreCaseOrMeaningIn(org.mockito.ArgumentMatchers.anyList(), org.mockito.ArgumentMatchers.anyList()))
                 .thenReturn(java.util.Collections.emptyList());
 
         // when & then
         assertThatThrownBy(() -> adminService.createChoice(dto))
                 .isInstanceOf(AdminException.class)
                 .extracting("code").isEqualTo(AdminErrorCode.WORD_NOT_FOUND);
+    }
+
+    @Test
+    @DisplayName("십자말풀이 문제 생성 실패 - 시작점 좌표 정규식 위반")
+    void createCrosswordsException_InvadeStartRegex() {
+        // given
+        AdminReqDTO.Crossword cwDto = new AdminReqDTO.Crossword(ClueType.ACROSS, "달콤한 과일", "1-1", "apple"); // "1 1"이어야 하는데 "1-1"로 잘못 입력
+        AdminReqDTO.CreateCrossword dto = new AdminReqDTO.CreateCrossword(200L, java.util.List.of(cwDto));
+        
+        Word mockWord = Word.builder().englishWord("apple").meaning("사과").build();
+        com.example.vocabook.domain.voca.entity.Crossword savedCrossword = com.example.vocabook.domain.voca.entity.Crossword.builder().id(10L).solvedCoin(200L).build();
+
+        // AdminService.java의 첫 번째 줄에서 crosswordRepository.save()가 호출되므로 Mocking 필요
+        when(crosswordRepository.save(org.mockito.ArgumentMatchers.any())).thenReturn(savedCrossword);
+        
+        // 십자말풀이 저장까진 넘어가고 힌트 생성 단계에서 예외 발생
+        when(wordRepository.findFirstByEnglishWordIgnoreCase("apple")).thenReturn(Optional.of(mockWord));
+
+        // when & then
+        assertThatThrownBy(() -> adminService.createCrosswords(dto))
+                .isInstanceOf(AdminException.class)
+                .extracting("code").isEqualTo(AdminErrorCode.INVADE_START_REGEX);
     }
 }

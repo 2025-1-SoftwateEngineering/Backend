@@ -10,7 +10,7 @@ public class WordConverter {
             AdminReqDTO.AddWord dto
     ){
         return Word.builder()
-                .englishWord(dto.english())
+                .englishWord(dto.english().toLowerCase())
                 .meaning(dto.meaning())
                 .voca(null)
                 .build();
@@ -21,7 +21,7 @@ public class WordConverter {
             Voca voca
     ){
         return Word.builder()
-                .englishWord(dto.english())
+                .englishWord(dto.english().toLowerCase())
                 .meaning(dto.meaning())
                 .voca(voca)
                 .build();

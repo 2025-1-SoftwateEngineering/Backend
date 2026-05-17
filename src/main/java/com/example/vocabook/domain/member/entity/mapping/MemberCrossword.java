@@ -5,7 +5,9 @@ import com.example.vocabook.domain.voca.entity.Crossword;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 @Entity
 @Getter
@@ -24,9 +26,9 @@ public class MemberCrossword {
     @Builder.Default
     private Long correctCnt = 0L;
 
-    @Column(name = "score", nullable = false)
+    @Column(name = "solving_time", nullable = false)
     @Builder.Default
-    private Long score = 0L;
+    private Duration solvingTime = Duration.ZERO;
 
     @Column(name = "solved_at")
     private LocalDateTime solvedAt;
@@ -38,4 +40,13 @@ public class MemberCrossword {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "crossword_id", nullable = false)
     private Crossword crossword;
+
+    public void correct(Duration solvingTime){
+        this.correctCnt++;
+        this.solvingTime = this.solvingTime.plus(solvingTime);
+    }
+
+    public void end(){
+        this.solvedAt = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
+    }
 }

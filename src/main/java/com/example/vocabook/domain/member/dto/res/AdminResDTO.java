@@ -97,4 +97,11 @@ public class AdminResDTO {
             String word,
             Boolean isWord
     ) {}
+
+    // 십자말풀이 문제 생성
+    @Builder
+    public record CreateCrossword(
+            Long id,
+            Long solvedCoin
+    ) {}
 }
