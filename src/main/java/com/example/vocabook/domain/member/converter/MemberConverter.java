@@ -36,6 +36,7 @@ public class MemberConverter {
                 .email(member.getEmail())
                 .streak(member.getStreak())
                 .nickname(member.getNickname())
+                .authorize(member.getAuthorize())
                 .build();
     }
 
