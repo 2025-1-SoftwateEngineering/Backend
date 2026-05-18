@@ -49,7 +49,8 @@ public interface MemberControllerDocs {
                                         "nickname": "User",
                                         "email": "user@example.com",
                                         "streak": 0,
-                                        "coin": 0
+                                        "coin": 0,
+                                        "authorize": "ROLE_USER"
                                       }
                                     }
                                     """)
