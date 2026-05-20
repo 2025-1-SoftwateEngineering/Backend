@@ -151,6 +151,24 @@ public class VocaControllerTest {
     }
 
     @Test
+    @DisplayName("암기한 단어 목록 조회 API 성공")
+    void getMemorizedWords_Success() throws Exception {
+        // given
+        VocaResDTO.MemorizeInfo response = VocaResDTO.MemorizeInfo.builder()
+                .memorizedWordIds(List.of(1L, 2L)).totalCount(2).build();
+
+        given(vocaService.getMemorizedWords(eq(1L), any(AuthMember.class))).willReturn(response);
+
+        // when & then
+        mockMvc.perform(get("/api/1/memorize"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.isSuccess").value(true))
+                .andExpect(jsonPath("$.result.totalCount").value(2))
+                .andExpect(jsonPath("$.result.memorizedWordIds[0]").value(1))
+                .andExpect(jsonPath("$.result.memorizedWordIds[1]").value(2));
+    }
+
+    @Test
     @DisplayName("암기 저장 API 성공")
     void memorizeWords_Success() throws Exception {
         // given

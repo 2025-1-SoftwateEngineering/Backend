@@ -204,4 +204,42 @@ public class VocaServiceMemorizeTest {
         assertNotNull(result);
         verify(memberWordRepository, times(0)).save(any(MemberWord.class));
     }
+
+    @Test
+    @DisplayName("암기 저장 - wordIds가 빈 리스트면 save 호출 안 하고 totalCount=0")
+    void memorizeWords_EmptyWordIds() {
+        // given
+        VocaReqDTO.Memorize dto = new VocaReqDTO.Memorize();
+        given(vocaRepository.findById(1L)).willReturn(Optional.of(voca));
+        given(memberRepository.findById(1L)).willReturn(Optional.of(member));
+        given(wordRepository.findAllById(any())).willReturn(List.of());
+        given(memberWordRepository.findWordIdsByMemberAndWordIn(any(), any())).willReturn(Set.of());
+        given(memberWordRepository.findWordIdsByMemberAndVocaId(member, 1L)).willReturn(List.of());
+
+        // when
+        VocaResDTO.MemorizeInfo result = vocaService.memorizeWords(1L, authMember, dto);
+
+        // then
+        assertNotNull(result);
+        assertEquals(0, result.getTotalCount());
+        assertTrue(result.getMemorizedWordIds().isEmpty());
+        verify(memberWordRepository, times(0)).save(any(MemberWord.class));
+    }
+
+    @Test
+    @DisplayName("암기한 단어 목록 조회 - 암기한 단어가 없으면 빈 리스트 반환")
+    void getMemorizedWords_Empty() {
+        // given
+        given(vocaRepository.findById(1L)).willReturn(Optional.of(voca));
+        given(memberRepository.findById(1L)).willReturn(Optional.of(member));
+        given(memberWordRepository.findWordIdsByMemberAndVocaId(member, 1L)).willReturn(List.of());
+
+        // when
+        VocaResDTO.MemorizeInfo result = vocaService.getMemorizedWords(1L, authMember);
+
+        // then
+        assertNotNull(result);
+        assertEquals(0, result.getTotalCount());
+        assertTrue(result.getMemorizedWordIds().isEmpty());
+    }
 }

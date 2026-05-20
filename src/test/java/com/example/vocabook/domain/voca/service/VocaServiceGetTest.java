@@ -216,4 +216,36 @@ public class VocaServiceGetTest {
         assertEquals(0, result.getTotalCount());
         assertTrue(result.getVocas().isEmpty());
     }
+
+    @Test
+    @DisplayName("단어 테스트 문제 조회 - 단어가 없으면 빈 리스트 반환")
+    void getTestQuestions_EmptyWords() {
+        // given
+        given(vocaRepository.findById(1L)).willReturn(Optional.of(voca));
+        given(wordRepository.findByVoca(voca)).willReturn(List.of());
+
+        // when
+        List<VocaResDTO.TestQuestion> result = vocaService.getTestQuestions(1L);
+
+        // then
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    @DisplayName("단어 목록 조회 - 단어가 없으면 빈 페이지 반환")
+    void getWords_EmptyPage() {
+        // given
+        Page<Word> emptyPage = new PageImpl<>(List.of(), PageRequest.of(0, 10), 0);
+        given(vocaRepository.findById(1L)).willReturn(Optional.of(voca));
+        given(wordRepository.findByVoca(any(), any())).willReturn(emptyPage);
+
+        // when
+        VocaResDTO.WordList result = vocaService.getWords(1L, 0, 10);
+
+        // then
+        assertNotNull(result);
+        assertTrue(result.getWords().isEmpty());
+        assertEquals(0, result.getTotalElements());
+    }
 }

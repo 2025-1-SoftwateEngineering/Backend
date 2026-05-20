@@ -411,6 +411,30 @@ public class VocaServiceCompleteTestTest {
         assertEquals(5L, result.getEarnedCoins()); // 첫 제출 5코인
     }
 
+    @Test
+    @DisplayName("테스트 완료 - 답안이 빈 리스트면 correctCount=0, earnedCoins=0")
+    void completeTest_EmptyAnswers() {
+        // given
+        VocaReqDTO.CompleteTest dto = makeCompleteTestDto(List.of());
+
+        given(vocaRepository.findById(1L)).willReturn(Optional.of(voca));
+        given(memberRepository.findById(1L)).willReturn(Optional.of(member));
+        given(memberVocaRepository.findByMemberAndVoca(member, voca)).willReturn(Optional.empty());
+        given(wordRepository.findAllById(any())).willReturn(List.of());
+        given(memberRepository.saveAndFlush(any())).willReturn(member);
+        given(memberVocaRepository.save(any(MemberVoca.class))).willReturn(null);
+
+        // when
+        VocaResDTO.TestResult result = vocaService.completeTest(1L, authMember, dto);
+
+        // then
+        assertNotNull(result);
+        assertEquals(0, result.getCorrectCount());
+        assertEquals(0, result.getWrongCount());
+        assertEquals(0L, result.getEarnedCoins());
+        assertTrue(result.getResults().isEmpty());
+    }
+
     private VocaReqDTO.CompleteTest makeCompleteTestDto(List<VocaReqDTO.CompleteTest.Answer> answers) {
         VocaReqDTO.CompleteTest dto = new VocaReqDTO.CompleteTest();
         setField(dto, "answers", answers);
