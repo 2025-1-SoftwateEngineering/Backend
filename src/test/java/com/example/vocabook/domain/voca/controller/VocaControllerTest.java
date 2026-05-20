@@ -10,7 +10,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.core.MethodParameter;
@@ -41,9 +40,6 @@ public class VocaControllerTest {
     @Mock
     private VocaService vocaService;
 
-    @InjectMocks
-    private VocaController vocaController;
-
     private AuthMember authMember;
 
     @BeforeEach
@@ -60,6 +56,7 @@ public class VocaControllerTest {
                 .build();
         authMember = new AuthMember(member);
 
+        VocaController vocaController = new VocaController(vocaService);
         mockMvc = MockMvcBuilders.standaloneSetup(vocaController)
                 .setCustomArgumentResolvers(new HandlerMethodArgumentResolver() {
                     @Override
