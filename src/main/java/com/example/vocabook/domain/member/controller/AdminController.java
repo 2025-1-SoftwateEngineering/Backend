@@ -131,4 +131,13 @@ public class AdminController implements AdminControllerDocs {
         BaseSuccessCode code = AdminSuccessCode.CREATE_CHOICE;
         return ApiResponse.onSuccess(code, adminService.createChoice(dto));
     }
+
+    // 십자말풀이 문제 생성
+    @PostMapping("/v1/crosswords")
+    public ApiResponse<AdminResDTO.CreateCrossword> createCrosswords(
+            @RequestBody @Valid AdminReqDTO.CreateCrossword dto
+    ){
+        BaseSuccessCode code = AdminSuccessCode.CREATE_CROSSWORD;
+        return ApiResponse.onSuccess(code, adminService.createCrosswords(dto));
+    }
 }

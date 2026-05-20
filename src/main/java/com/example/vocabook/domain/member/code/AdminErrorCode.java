@@ -15,6 +15,9 @@ public enum AdminErrorCode implements BaseErrorCode {
     WORD_NOT_FOUND(HttpStatus.NOT_FOUND,
             "ADMIN404_2",
             "해당 단어를 찾을 수 없습니다."),
+    INVADE_START_REGEX(HttpStatus.BAD_REQUEST,
+            "ADMIN400_1",
+            "시작 위치 패턴이 올바르지 않습니다. (숫자+공백+숫자, e.g.1 2)")
     ;
 
     private final HttpStatus status;

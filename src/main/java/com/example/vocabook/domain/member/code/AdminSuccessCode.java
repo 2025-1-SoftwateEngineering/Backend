@@ -45,6 +45,9 @@ public enum AdminSuccessCode implements BaseSuccessCode {
     CREATE_CHOICE(HttpStatus.OK,
             "ADMIN200_11",
             "성공적으로 사지선다를 생성했습니다."),
+    CREATE_CROSSWORD(HttpStatus.OK,
+            "ADMIN200_12",
+            "성공적으로 십자말풀이를 생성했습니다."),
     ;
 
     private final HttpStatus status;

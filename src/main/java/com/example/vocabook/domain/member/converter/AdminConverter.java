@@ -3,6 +3,7 @@ package com.example.vocabook.domain.member.converter;
 import com.example.vocabook.domain.member.dto.res.AdminResDTO;
 import com.example.vocabook.domain.member.entity.Member;
 import com.example.vocabook.domain.member.entity.Report;
+import com.example.vocabook.domain.voca.entity.Crossword;
 import com.example.vocabook.domain.voca.entity.Voca;
 import com.example.vocabook.domain.voca.entity.Word;
 import com.example.vocabook.domain.voca.entity.mapping.ChoiceQuestion;
@@ -137,6 +138,16 @@ public class AdminConverter {
         return AdminResDTO.CreateChoice.builder()
                 .isWord(result.getIsWord())
                 .word((result.getIsWord()) ? result.getWord().getEnglishWord():result.getWord().getMeaning())
+                .build();
+    }
+
+    // 십자말풀이 문제 생성
+    public static AdminResDTO.CreateCrossword toCreateCrossword(
+            Crossword crossword
+    ){
+        return AdminResDTO.CreateCrossword.builder()
+                .id(crossword.getId())
+                .solvedCoin(crossword.getSolvedCoin())
                 .build();
     }
 }

@@ -129,7 +129,7 @@ public class VocaControllerTest {
         given(vocaService.getVocaList(any(AuthMember.class))).willReturn(response);
 
         // when & then
-        mockMvc.perform(get("/api"))
+        mockMvc.perform(get("/api/v1/vocabularies"))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.isSuccess").value(true))
@@ -150,7 +150,7 @@ public class VocaControllerTest {
         given(vocaService.getWords(eq(1L), eq(0), eq(10))).willReturn(response);
 
         // when & then
-        mockMvc.perform(get("/api/v1/voca/1/words"))
+        mockMvc.perform(get("/api/v1/vocabularies/1/words"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.isSuccess").value(true))
                 .andExpect(jsonPath("$.result.description").value("TOEIC 핵심 단어"))
@@ -167,7 +167,7 @@ public class VocaControllerTest {
         given(vocaService.getTestQuestions(1L)).willReturn(List.of(question));
 
         // when & then
-        mockMvc.perform(get("/api/v1/voca/1/test"))
+        mockMvc.perform(get("/api/v1/vocabularies1/test"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.isSuccess").value(true))
                 .andExpect(jsonPath("$.result[0].meaning").value("사과"));
@@ -183,7 +183,7 @@ public class VocaControllerTest {
         given(vocaService.submitAnswer(eq(1L), any())).willReturn(response);
 
         // when & then
-        mockMvc.perform(post("/api/v1/voca/1/test/submit")
+        mockMvc.perform(post("/api/v1/vocabularies1/test/submit")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"wordId\":1,\"answer\":\"apple\"}"))
                 .andExpect(status().isOk())
@@ -201,7 +201,7 @@ public class VocaControllerTest {
         given(vocaService.getMemorizedWords(eq(1L), any(AuthMember.class))).willReturn(response);
 
         // when & then
-        mockMvc.perform(get("/api/1/memorize"))
+        mockMvc.perform(get("/api/v1/vocabularies/1/memorize"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.isSuccess").value(true))
                 .andExpect(jsonPath("$.result.totalCount").value(2))
@@ -219,7 +219,7 @@ public class VocaControllerTest {
         given(vocaService.memorizeWords(eq(1L), any(AuthMember.class), any())).willReturn(response);
 
         // when & then
-        mockMvc.perform(post("/api/1/memorize")
+        mockMvc.perform(post("/api/v1/vocabularies/1/memorize")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"wordIds\":[1,2]}"))
                 .andExpect(status().isOk())
@@ -240,7 +240,7 @@ public class VocaControllerTest {
         given(vocaService.getStudiedVocas(any(AuthMember.class))).willReturn(response);
 
         // when & then
-        mockMvc.perform(get("/api/my"))
+        mockMvc.perform(get("/api/v1/vocabularies/my"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.isSuccess").value(true))
                 .andExpect(jsonPath("$.result.totalCount").value(1));
@@ -257,7 +257,7 @@ public class VocaControllerTest {
         given(vocaService.completeTest(eq(1L), any(AuthMember.class), any())).willReturn(response);
 
         // when & then
-        mockMvc.perform(post("/api/1/test/complete")
+        mockMvc.perform(post("/api/v1/vocabularies/1/test/complete")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"answers\":[{\"wordId\":1,\"answer\":\"apple\"},{\"wordId\":2,\"answer\":\"banana\"}]}"))
                 .andExpect(status().isOk())
@@ -271,7 +271,7 @@ public class VocaControllerTest {
     @Test
     @DisplayName("즉시 채점 API - body 없이 요청하면 400")
     void submitAnswer_NoBody_BadRequest() throws Exception {
-        mockMvc.perform(post("/api/v1/voca/1/test/submit")
+        mockMvc.perform(post("/api/v1/vocabularies1/test/submit")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest());
     }
@@ -279,7 +279,7 @@ public class VocaControllerTest {
     @Test
     @DisplayName("테스트 완료 API - body 없이 요청하면 400")
     void completeTest_NoBody_BadRequest() throws Exception {
-        mockMvc.perform(post("/api/1/test/complete")
+        mockMvc.perform(post("/api/v1/vocabularies/1/test/complete")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest());
     }
@@ -287,7 +287,7 @@ public class VocaControllerTest {
     @Test
     @DisplayName("암기 저장 API - body 없이 요청하면 400")
     void memorize_NoBody_BadRequest() throws Exception {
-        mockMvc.perform(post("/api/1/memorize")
+        mockMvc.perform(post("/api/v1/vocabularies/1/memorize")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest());
     }
@@ -295,7 +295,7 @@ public class VocaControllerTest {
     @Test
     @DisplayName("단어 목록 조회 API - vocaId에 문자열이 오면 400")
     void getWords_InvalidVocaId_BadRequest() throws Exception {
-        mockMvc.perform(get("/api/v1/voca/abc/words"))
+        mockMvc.perform(get("/api/v1/vocabularies/abc/words"))
                 .andExpect(status().isBadRequest());
     }
 }

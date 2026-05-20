@@ -13,16 +13,16 @@ import com.example.vocabook.domain.member.exception.MemberException;
 import com.example.vocabook.domain.member.repository.MemberRepository;
 import com.example.vocabook.domain.member.repository.ReportRepository;
 import com.example.vocabook.domain.voca.converter.ChoiceConverter;
+import com.example.vocabook.domain.voca.converter.CrosswordConverter;
 import com.example.vocabook.domain.voca.converter.VocaConverter;
 import com.example.vocabook.domain.voca.converter.WordConverter;
 import com.example.vocabook.domain.voca.entity.Choice;
+import com.example.vocabook.domain.voca.entity.Crossword;
 import com.example.vocabook.domain.voca.entity.Voca;
 import com.example.vocabook.domain.voca.entity.Word;
 import com.example.vocabook.domain.voca.entity.mapping.ChoiceQuestion;
-import com.example.vocabook.domain.voca.repository.ChoiceQuestionRepository;
-import com.example.vocabook.domain.voca.repository.ChoiceRepository;
-import com.example.vocabook.domain.voca.repository.VocaRepository;
-import com.example.vocabook.domain.voca.repository.WordRepository;
+import com.example.vocabook.domain.voca.entity.mapping.CrosswordHint;
+import com.example.vocabook.domain.voca.repository.*;
 import com.example.vocabook.global.apiPayload.code.GeneralErrorCode;
 import com.example.vocabook.global.apiPayload.converter.PagingConverter;
 import com.example.vocabook.global.apiPayload.dto.PagingResDTO;
@@ -45,6 +45,8 @@ public class AdminService {
     private final WordRepository wordRepository;
     private final ChoiceRepository choiceRepository;
     private final ChoiceQuestionRepository choiceQuestionRepository;
+    private final CrosswordRepository crosswordRepository;
+    private final CrosswordHintRepository crosswordHintRepository;
 
     // 신고 목록 조회
     public PagingResDTO.Cursor<AdminResDTO.ReportList> getReportList(
@@ -209,18 +211,19 @@ public class AdminService {
         // 2. 이미 존재하는 단어들을 한 번에 조회하기 위해 영어 단어 목록 추출
         List<String> englishWords = dto.stream()
                 .map(AdminReqDTO.AddWord::english)
+                .map(String::toLowerCase)
                 .distinct()
                 .toList();
 
         // 3. 추출한 영어 단어로 DB에 존재하는 단어 목록 조회 후 Set으로 변환 (빠른 조회를 위함)
-        Set<String> existingWordPairs = wordRepository.findByEnglishWordIn(englishWords).stream()
-                .map(w -> w.getEnglishWord() + ":" + w.getMeaning())
+        Set<String> existingWordPairs = wordRepository.findByEnglishWordInIgnoreCase(englishWords).stream()
+                .map(w -> w.getEnglishWord().toLowerCase() + ":" + w.getMeaning())
                 .collect(Collectors.toSet());
 
         // 4. 단어 추가 목록 생성 (기존에 없는 단어만 필터링)
         List<Word> wordList = new ArrayList<>();
         dto.forEach(i -> {
-            String wordKey = i.english() + ":" + i.meaning();
+            String wordKey = i.english().toLowerCase() + ":" + i.meaning();
             
             if (!existingWordPairs.contains(wordKey)) {
                 Voca voca = null;
@@ -251,7 +254,7 @@ public class AdminService {
     public AdminResDTO.SearchWord searchWord(
             String word
     ) {
-        Word foundWord = wordRepository.findFirstByEnglishWord(word).orElse(null);
+        Word foundWord = wordRepository.findFirstByEnglishWordIgnoreCase(word).orElse(null);
         return AdminConverter.toSearchWord(foundWord);
     }
 
@@ -319,10 +322,11 @@ public class AdminService {
         // 단어들 리스트화 (단어랑 뜻 함께 있음)
         List<String> answerList = dto.choices().stream()
                 .map(AdminReqDTO.ChoiceList::word)
+                .map(String::toLowerCase)
                 .toList();
 
         // 단어 조회 (단어 or 뜻 둘 중 하나중에 있다면)
-        List<Word> wordList = wordRepository.findAllByEnglishWordInOrMeaningIn(answerList, answerList);
+        List<Word> wordList = wordRepository.findAllByEnglishWordInIgnoreCaseOrMeaningIn(answerList, answerList);
 
         // 조회된 단어가 없는 경우
         if (wordList.isEmpty()) {
@@ -338,7 +342,7 @@ public class AdminService {
         wordList.forEach(w -> {
             // DTO에 담겨있는 단어인지 확인
             dto.choices().forEach(c -> {
-                if (c.word().equals(w.getEnglishWord()) || c.word().equals(w.getMeaning())) {
+                if (c.word().equalsIgnoreCase(w.getEnglishWord()) || c.word().equals(w.getMeaning())) {
                     choiceQuestionList.add(ChoiceConverter.toChoiceQuestion(choice, w, c.isWord()));
                 }
             });
@@ -349,5 +353,40 @@ public class AdminService {
         return result.stream()
                 .map(AdminConverter::toCreateChoice)
                 .toList();
+    }
+
+    // 십자말풀이 문제 생성
+    @Transactional
+    public AdminResDTO.CreateCrossword createCrosswords(
+            AdminReqDTO.CreateCrossword dto
+    ) {
+
+        // 십자말풀이 생성
+        Crossword crossword = crosswordRepository.save(CrosswordConverter.toCrossword(dto.solvedCoin()));
+
+        // 십자말풀이 힌트 생성
+        List<CrosswordHint> crosswordHintList = dto.crosswords().stream()
+                .map(c -> {
+                    Optional<Word> word = wordRepository.findFirstByEnglishWordIgnoreCase(c.word());
+
+                    // 만약 어느 하나라도 start_point 형식이 다르다면
+                    if (!c.wordStartPoint().matches("\\d+\\s\\d+")){
+                        throw new AdminException(AdminErrorCode.INVADE_START_REGEX);
+                    }
+
+                    return word.map(value -> CrosswordConverter.toCrosswordHint(
+                            crossword,
+                            c.clueDescription(),
+                            c.clueType(),
+                            c.wordStartPoint(),
+                            value
+                    )).orElse(null);
+                })
+                .filter(Objects::nonNull)
+                .toList();
+
+        crosswordHintRepository.saveAll(crosswordHintList);
+
+        return AdminConverter.toCreateCrossword(crossword);
     }
 }

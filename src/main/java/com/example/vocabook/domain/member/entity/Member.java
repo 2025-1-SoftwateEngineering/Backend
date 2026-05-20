@@ -7,6 +7,7 @@ import lombok.*;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -67,9 +68,8 @@ public class Member extends BaseEntity {
     @Builder.Default
     private Long choiceHigher = 0L;
 
-    @Column(name = "crossword_higher", nullable = false)
-    @Builder.Default
-    private Long crosswordHigher = 0L;
+    @Column(name = "crossword_higher")
+    private Duration crosswordHigher;
 
     public void updateRefreshToken(String refreshToken) {
         this.refreshToken = refreshToken;
@@ -101,7 +101,7 @@ public class Member extends BaseEntity {
         this.choiceHigher = higher;
     }
 
-    public void updateCrosswordHigher(Long higher) {
+    public void updateCrosswordHigher(Duration higher) {
         this.crosswordHigher = higher;
     }
 }
