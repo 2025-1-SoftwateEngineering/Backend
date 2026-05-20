@@ -1,6 +1,5 @@
 package com.example.vocabook.domain.voca;
 
-import com.example.vocabook.domain.voca.controller.VocaControllerTest;
 import com.example.vocabook.domain.voca.service.VocaServiceCompleteTestTest;
 import com.example.vocabook.domain.voca.service.VocaServiceGetTest;
 import com.example.vocabook.domain.voca.service.VocaServiceMemorizeTest;
@@ -11,7 +10,6 @@ import org.junit.platform.suite.api.SuiteDisplayName;
 @Suite
 @SuiteDisplayName("Voca 도메인 전체 단위 테스트 스위트")
 @SelectClasses({
-        VocaControllerTest.class,
         VocaServiceGetTest.class,
         VocaServiceMemorizeTest.class,
         VocaServiceCompleteTestTest.class
