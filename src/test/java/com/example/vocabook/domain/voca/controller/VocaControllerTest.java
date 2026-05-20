@@ -10,16 +10,24 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.bind.support.WebDataBinderFactory;
+import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
+import org.springframework.web.servlet.config.annotation.EnableWebMvc;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -27,20 +35,56 @@ import java.util.List;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@ExtendWith(MockitoExtension.class)
+@ExtendWith(SpringExtension.class)
+@ContextConfiguration(classes = {VocaControllerTest.TestMvcConfig.class})
+@WebAppConfiguration
 @DisplayName("VocaController API 단위 테스트")
 public class VocaControllerTest {
 
-    private MockMvc mockMvc;
-    private ObjectMapper objectMapper;
+    private static AuthMember authMember;
 
-    @Mock
+    @Configuration
+    @EnableWebMvc
+    static class TestMvcConfig implements WebMvcConfigurer {
+
+        @Bean
+        public VocaService vocaService() {
+            return Mockito.mock(VocaService.class);
+        }
+
+        @Bean
+        public VocaController vocaController(VocaService vocaService) {
+            return new VocaController(vocaService);
+        }
+
+        @Override
+        public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
+            resolvers.add(new HandlerMethodArgumentResolver() {
+                @Override
+                public boolean supportsParameter(MethodParameter parameter) {
+                    return parameter.getParameterType().isAssignableFrom(AuthMember.class);
+                }
+
+                @Override
+                public Object resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer,
+                                              NativeWebRequest webRequest, WebDataBinderFactory binderFactory) {
+                    return authMember;
+                }
+            });
+        }
+    }
+
+    @Autowired
+    private WebApplicationContext wac;
+
+    @Autowired
     private VocaService vocaService;
 
-    private AuthMember authMember;
+    private MockMvc mockMvc;
+    private ObjectMapper objectMapper;
 
     @BeforeEach
     void setUp() {
@@ -56,21 +100,8 @@ public class VocaControllerTest {
                 .build();
         authMember = new AuthMember(member);
 
-        VocaController vocaController = new VocaController(vocaService);
-        mockMvc = MockMvcBuilders.standaloneSetup(vocaController)
-                .setCustomArgumentResolvers(new HandlerMethodArgumentResolver() {
-                    @Override
-                    public boolean supportsParameter(MethodParameter parameter) {
-                        return parameter.getParameterType().isAssignableFrom(AuthMember.class);
-                    }
-
-                    @Override
-                    public Object resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer,
-                                                  NativeWebRequest webRequest, WebDataBinderFactory binderFactory) {
-                        return authMember;
-                    }
-                })
-                .build();
+        mockMvc = MockMvcBuilders.webAppContextSetup(wac).build();
+        Mockito.reset(vocaService);
     }
 
     @Test
@@ -87,6 +118,7 @@ public class VocaControllerTest {
 
         // when & then
         mockMvc.perform(get("/api"))
+                .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.isSuccess").value(true))
                 .andExpect(jsonPath("$.result.totalCount").value(1))
