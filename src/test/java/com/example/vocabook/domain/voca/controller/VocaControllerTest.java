@@ -28,6 +28,7 @@ import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -83,11 +84,22 @@ public class VocaControllerTest {
     @Autowired
     private VocaService vocaService;
 
+    @Autowired(required = false)
+    private RequestMappingHandlerMapping handlerMapping;
+
     private MockMvc mockMvc;
     private ObjectMapper objectMapper;
 
     @BeforeEach
     void setUp() {
+        // CI 디버그: 등록된 핸들러 매핑 출력
+        if (handlerMapping != null) {
+            System.out.println("[DEBUG] Registered handler mappings: " + handlerMapping.getHandlerMethods().keySet());
+        } else {
+            System.out.println("[DEBUG] handlerMapping is NULL");
+        }
+        System.out.println("[DEBUG] wac class: " + wac.getClass().getName());
+        System.out.println("[DEBUG] wac beans: " + java.util.Arrays.toString(wac.getBeanDefinitionNames()));
         objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
 
