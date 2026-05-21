@@ -80,6 +80,13 @@ public class Member extends BaseEntity {
     public void addCoin(long amount) {
         this.coin += amount;
     }
+
+    public void spendCoin(long amount) {
+        if (this.coin < amount) {
+            throw new IllegalStateException("코인 잔액이 부족합니다.");
+        }
+        this.coin -= amount;
+    }
     public void suspend() {
         this.isSuspended = true;
         this.nickname = "정지 당한 사용자 " + UUID.randomUUID();
