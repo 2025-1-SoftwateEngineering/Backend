@@ -137,6 +137,7 @@ class MemberServiceImageTest {
     @DisplayName("사진 업로드 완료 성공 - PROFILE (기존 파일 삭제 포함)")
     void uploadImage_Success_Profile() {
         // given
+        myMember.updateProfileUrl("https://storage.googleapis.com/vocabuddy-storage/profile/old-profile.png");
         String fileName = "uuid.png";
         PhotoType photoType = PhotoType.PROFILE;
         Long targetId = null;
@@ -152,7 +153,7 @@ class MemberServiceImageTest {
         given(memberRepository.findById(myMember.getId())).willReturn(Optional.of(myMember));
 
         Blob oldObject = mock(Blob.class);
-        given(gcsUtil.findObject("default-profile.png", "profile/")).willReturn(oldObject);
+        given(gcsUtil.findObject("old-profile.png", "profile/")).willReturn(oldObject);
 
         // when
         MemberResDTO.UploadImage res = memberService.uploadImage(authMember, fileName, photoType, targetId);
@@ -161,5 +162,34 @@ class MemberServiceImageTest {
         assertNotNull(res);
         assertEquals("https://storage.googleapis.com/my-bucket/profile/uuid.png", res.publicUrl());
         verify(oldObject).delete();
+    }
+
+    @Test
+    @DisplayName("사진 업로드 완료 성공 - PROFILE (기본 이미지는 삭제하지 않음)")
+    void uploadImage_Success_Profile_DefaultImageNotDeleted() {
+        // given
+        // setUp()에서 생성된 myMember의 profileUrl은 기본 이미지("default-profile.png")를 포함하고 있음
+        String fileName = "uuid.png";
+        PhotoType photoType = PhotoType.PROFILE;
+        Long targetId = null;
+
+        Blob object = mock(Blob.class);
+        BlobId blobId = mock(BlobId.class);
+        given(gcsUtil.findObject(fileName, "profile/")).willReturn(object);
+        given(object.getBlobId()).willReturn(blobId);
+        given(blobId.getBucket()).willReturn("my-bucket");
+        given(blobId.getName()).willReturn("profile/uuid.png");
+        given(object.getUpdateTimeOffsetDateTime()).willReturn(OffsetDateTime.now());
+
+        given(memberRepository.findById(myMember.getId())).willReturn(Optional.of(myMember));
+
+        // when
+        MemberResDTO.UploadImage res = memberService.uploadImage(authMember, fileName, photoType, targetId);
+
+        // then
+        assertNotNull(res);
+        assertEquals("https://storage.googleapis.com/my-bucket/profile/uuid.png", res.publicUrl());
+        // gcsUtil.findObject가 "default-profile.png" 삭제를 위해 호출되지 않았는지 검증
+        org.mockito.Mockito.verify(gcsUtil, org.mockito.Mockito.never()).findObject("default-profile.png", "profile/");
     }
 }
