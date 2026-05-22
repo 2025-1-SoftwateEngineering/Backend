@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import com.google.cloud.storage.Storage;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
@@ -40,6 +41,7 @@ class StreakSchedulerTest {
     @MockitoBean private AlertScheduleService alertScheduleService;
     // Firebase는 실제 초기화가 안 되므로 Mock 처리
     @MockitoBean private FirebaseMessaging firebaseMessaging;
+    @MockitoBean private Storage storage;
 
     private static final ZoneId ZONE = ZoneId.of("Asia/Seoul");
 

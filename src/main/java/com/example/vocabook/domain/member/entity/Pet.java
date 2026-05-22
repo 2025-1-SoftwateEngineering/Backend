@@ -23,4 +23,11 @@ public class Pet {
     @Column(name = "required_exp", nullable = false)
     @Builder.Default
     private Long requiredExp = 100L;
+
+    @Column(name = "pet_image_url", nullable = false)
+    private String petImageUrl;
+
+    public void updateImageUrl(String petImageUrl) {
+        this.petImageUrl = petImageUrl;
+    }
 }
