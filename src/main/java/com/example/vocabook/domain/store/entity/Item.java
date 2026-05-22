@@ -24,7 +24,15 @@ public class Item {
 	@Builder.Default
 	private Long price = 0L;
 
-	@Enumerated(EnumType.STRING)
-	@Column(name = "item_type", nullable = false)
-	private ItemType itemType;
+    @Column(name = "image_url", nullable = false)
+    @Builder.Default
+    private String imageUrl = "";
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "item_type", nullable = false)
+    private ItemType itemType;
+
+    public void updateImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
 }

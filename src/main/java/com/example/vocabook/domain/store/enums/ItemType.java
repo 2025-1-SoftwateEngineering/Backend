@@ -14,7 +14,9 @@ public enum ItemType {
 	CROSSWORD_HINT_START(true),  // 십자말풀이 시작 스펠링 힌트
 	CROSSWORD_HINT_MIDDLE(true), // 십자말풀이 중간 스펠링 힌트
 	PET_BG_1(false),             // 펫 배경 1
-	PET_BG_2(false);             // 펫 배경 2
+	PET_BG_2(false),             // 펫 배경 2
+    BACKGROUND(false),
+    ;
 
 	private final boolean allowDuplicate;
 }
