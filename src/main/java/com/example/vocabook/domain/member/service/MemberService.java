@@ -494,7 +494,7 @@ public class MemberService {
                         .orElseThrow(() -> new MemberException(MemberErrorCode.NOT_FOUND));
 
                 // 기존 사진 객체 삭제
-                if (!member.getProfileUrl().isBlank()) {
+                if (!member.getProfileUrl().isBlank() && !member.getProfileUrl().contains("default-profile")) {
                     String oldObjectName = member.getProfileUrl().substring(member.getProfileUrl().lastIndexOf("/")+1);
                     Blob oldObject = gcsUtil.findObject(oldObjectName, prefix);
                     if (oldObject != null) {
