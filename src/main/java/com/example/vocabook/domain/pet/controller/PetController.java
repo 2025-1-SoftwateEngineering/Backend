@@ -1,4 +1,4 @@
-﻿package com.example.vocabook.domain.pet.controller;
+package com.example.vocabook.domain.pet.controller;
 
 import com.example.vocabook.domain.pet.code.PetSuccessCode;
 import com.example.vocabook.domain.pet.controller.docs.PetControllerDocs;

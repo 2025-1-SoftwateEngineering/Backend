@@ -1,4 +1,4 @@
-﻿package com.example.vocabook.domain.member.entity.mapping;
+package com.example.vocabook.domain.member.entity.mapping;
 
 import com.example.vocabook.domain.member.entity.Member;
 import com.example.vocabook.domain.pet.enums.PetStage;
