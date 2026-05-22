@@ -59,13 +59,14 @@ jobs:
         env:
           ENV: ${{ secrets.ENV }}
           FCM: ${{ secrets.FCM }}
+          GCS: ${{ secrets.GCS }}
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
           port: 22
           timeout: 60s
-          envs: ENV,FCM
+          envs: ENV,FCM,GCS
           script: |
             sudo docker pull ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_IMAGENAME }}
 
@@ -74,10 +75,14 @@ jobs:
             
             echo "$ENV" > $(pwd)/.env
             echo "$FCM" > $(pwd)/vocabook-firebase.json
+            echo "$GCS" > $(pwd)/vocabuddy-cloud-storage.json
             
             sudo docker stop ${{ secrets.DOCKER_IMAGENAME }} || true
             sudo docker rm ${{ secrets.DOCKER_IMAGENAME }} || true
 
-            sudo docker run -d --network host --name ${{ secrets.DOCKER_IMAGENAME }} --env-file $(pwd)/.env -v $(pwd)/vocabook-firebase.json:/vocabook-firebase.json ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_IMAGENAME }}
+            sudo docker run -d --network host --name ${{ secrets.DOCKER_IMAGENAME }} --env-file $(pwd)/.env \
+            -v $(pwd)/vocabook-firebase.json:/vocabook-firebase.json \
+            -v $(pwd)/vocabuddy-cloud-storage.json:/vocabuddy-cloud-storage.json \
+            ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_IMAGENAME }}
             rm .env
             rm vocabook-firebase.json

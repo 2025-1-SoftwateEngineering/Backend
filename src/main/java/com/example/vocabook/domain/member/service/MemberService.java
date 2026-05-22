@@ -15,16 +15,26 @@ import com.example.vocabook.domain.member.dto.req.MemberReqDTO;
 import com.example.vocabook.domain.member.dto.res.MemberResDTO;
 import com.example.vocabook.domain.member.entity.Friend;
 import com.example.vocabook.domain.member.entity.Member;
+import com.example.vocabook.domain.member.entity.Pet;
 import com.example.vocabook.domain.member.entity.Report;
 import com.example.vocabook.domain.member.enums.FriendState;
+import com.example.vocabook.domain.member.enums.PhotoType;
 import com.example.vocabook.domain.member.exception.MemberException;
 import com.example.vocabook.domain.member.repository.FriendRepository;
 import com.example.vocabook.domain.member.repository.MemberRepository;
+import com.example.vocabook.domain.member.repository.PetRepository;
 import com.example.vocabook.domain.member.repository.ReportRepository;
+import com.example.vocabook.domain.store.code.StoreErrorCode;
+import com.example.vocabook.domain.store.entity.Item;
+import com.example.vocabook.domain.store.enums.ItemType;
+import com.example.vocabook.domain.store.exception.StoreException;
+import com.example.vocabook.domain.store.repository.ItemRepository;
 import com.example.vocabook.global.apiPayload.code.GeneralErrorCode;
 import com.example.vocabook.global.apiPayload.converter.PagingConverter;
 import com.example.vocabook.global.apiPayload.dto.PagingResDTO;
 import com.example.vocabook.global.security.entity.AuthMember;
+import com.example.vocabook.global.util.GcsUtil;
+import com.google.cloud.storage.Blob;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.quartz.SchedulerException;
@@ -44,6 +54,9 @@ public class MemberService {
     private final ReportRepository reportRepository;
     private final AlertScheduleService alertScheduleService;
     private final AlertRepository alertRepository;
+    private final GcsUtil gcsUtil;
+    private final ItemRepository itemRepository;
+    private final PetRepository petRepository;
 
     // 내 프로필 조회
     public MemberResDTO.MyProfile getMyProfile(
@@ -380,4 +393,186 @@ public class MemberService {
 
         return MemberConverter.toReportMember(report);
     }
+
+    // 사진 업로드용 URL 발급
+    public MemberResDTO.CreateSignedUri createSignedUri(
+            AuthMember auth,
+            String fileName,
+            PhotoType photoType
+    ) {
+        // 확장자가 있는지 검증
+        if (fileName.lastIndexOf(".") == -1) {
+            throw new MemberException(MemberErrorCode.INVADE_PHOTO_TYPE);
+        }
+
+        // 확장자 추출
+        String extension = fileName.substring(fileName.lastIndexOf(".") + 1);
+
+        // UUID로 파일명 다시 조립
+        String uuid = java.util.UUID.randomUUID().toString();
+
+        // 권한 & 사진 타입에 따라 프리픽스 변경
+        String prefix;
+        if (auth.getAuthorities().stream()
+                .anyMatch(a -> a
+                        .getAuthority().equals("ROLE_ADMIN"))
+        ){
+             prefix = switch (photoType) {
+                case PROFILE -> "profile/";
+                case ITEM -> "item/";
+                case BACKGROUND -> "background/";
+                case PET -> "pet/";
+            };
+
+        } else {
+            if (!photoType.equals(PhotoType.PROFILE)) {
+                throw new MemberException(MemberErrorCode.INVADE_PHOTO_TYPE);
+            }
+
+            prefix = "profile/";
+        }
+
+        String url = gcsUtil.createSignedUrl(uuid+'.'+extension, prefix);
+
+        return MemberConverter.toCreateSignedUri(uuid+"."+extension, url, photoType);
+    }
+
+    // 사진 업로드 완료
+    @Transactional
+    public MemberResDTO.UploadImage uploadImage(
+            AuthMember auth,
+            String fileName,
+            PhotoType photoType,
+            Long targetId
+    ) {
+        // 프로필 변경만 targetId NULL
+        if (!photoType.equals(PhotoType.PROFILE) && targetId == null) {
+            throw new MemberException(MemberErrorCode.NOT_NULL_TARGET_ID);
+        }
+
+        // 권한 & 사진 타입에 따라 프리픽스 변경
+        String prefix;
+        if (auth.getAuthorities().stream()
+                .anyMatch(a -> a.
+                        getAuthority().equals("ROLE_ADMIN"))
+        ){
+             prefix = switch (photoType) {
+                case PROFILE -> "profile/";
+                case ITEM -> "item/";
+                case BACKGROUND -> "background/";
+                case PET -> "pet/";
+            };
+        } else {
+            if (!photoType.equals(PhotoType.PROFILE)) {
+                throw new MemberException(MemberErrorCode.INVADE_PHOTO_TYPE);
+            }
+
+            prefix = "profile/";
+        }
+
+        // GCS에서 객체 찾기
+        Blob object = gcsUtil.findObject(fileName, prefix);
+
+        if (object == null) {
+            throw new MemberException(MemberErrorCode.NOT_UPLOAD_PROFILE);
+        }
+
+        // 공개 URL 제작
+        String publicUrl = "https://storage.googleapis.com/" +
+                object.getBlobId().getBucket() +
+                "/"+object.getBlobId().getName();
+
+        // 사진 타입에 따라 행동
+        switch (photoType) {
+            case PROFILE -> {
+                // 프리픽스로 검증
+                if (!object.getBlobId().getName().startsWith(prefix)) {
+                    throw new MemberException(MemberErrorCode.INVADE_PHOTO_TYPE);
+                }
+
+                Member member = memberRepository.findById(auth.getMember().getId())
+                        .orElseThrow(() -> new MemberException(MemberErrorCode.NOT_FOUND));
+
+                // 기존 사진 객체 삭제
+                if (!member.getProfileUrl().isBlank() && !member.getProfileUrl().contains("default-profile")) {
+                    String oldObjectName = member.getProfileUrl().substring(member.getProfileUrl().lastIndexOf("/")+1);
+                    Blob oldObject = gcsUtil.findObject(oldObjectName, prefix);
+                    if (oldObject != null) {
+                        oldObject.delete();
+                    }
+                }
+
+                member.updateProfileUrl(publicUrl);
+            }
+
+            case ITEM -> {
+                // 프리픽스로 검증
+                if (!object.getBlobId().getName().startsWith(prefix)) {
+                    throw new MemberException(MemberErrorCode.INVADE_PHOTO_TYPE);
+                }
+
+                Item item = itemRepository.findById(targetId)
+                        .orElseThrow(() -> new StoreException(StoreErrorCode.ITEM_NOT_FOUND));
+
+                // 기존 사진 객체 삭제
+                if (!item.getImageUrl().isBlank()) {
+                    String oldObjectName = item.getImageUrl().substring(item.getImageUrl().lastIndexOf("/")+1);
+                    Blob oldObject = gcsUtil.findObject(oldObjectName, prefix);
+                    if (oldObject != null) {
+                        oldObject.delete();
+                    }
+                }
+
+                item.updateImageUrl(publicUrl);
+            }
+            case PET -> {
+                // 프리픽스로 검증
+                if (!object.getBlobId().getName().startsWith(prefix)) {
+                    throw new MemberException(MemberErrorCode.INVADE_PHOTO_TYPE);
+                }
+
+                Pet pet = petRepository.findById(targetId)
+                        .orElseThrow(() -> new MemberException(MemberErrorCode.PET_NOT_FOUND));
+
+                // 기존 사진 객체 삭제
+                if (!pet.getPetImageUrl().isBlank()) {
+                    String oldObjectName = pet.getPetImageUrl().substring(pet.getPetImageUrl().lastIndexOf("/")+1);
+                    Blob oldObject = gcsUtil.findObject(oldObjectName, prefix);
+                    if (oldObject != null) {
+                        oldObject.delete();
+                    }
+                }
+
+                pet.updateImageUrl(publicUrl);
+            }
+            case BACKGROUND -> {
+                // 프리픽스로 검증
+                if (!object.getBlobId().getName().startsWith(prefix)) {
+                    throw new MemberException(MemberErrorCode.INVADE_PHOTO_TYPE);
+                }
+
+                Item item = itemRepository.findById(targetId)
+                        .orElseThrow(() -> new StoreException(StoreErrorCode.ITEM_NOT_FOUND));
+
+                // 해당 아이템 종류가 배경화면인지
+                if (!item.getItemType().equals(ItemType.BACKGROUND)) {
+                    throw new MemberException(MemberErrorCode.INVADE_PHOTO_TYPE);
+                }
+
+                // 기존 사진 객체 삭제
+                if (!item.getImageUrl().isBlank()) {
+                    String oldObjectName = item.getImageUrl().substring(item.getImageUrl().lastIndexOf("/")+1);
+                    Blob oldObject = gcsUtil.findObject(oldObjectName, prefix);
+                    if (oldObject != null) {
+                        oldObject.delete();
+                    }
+                }
+
+                item.updateImageUrl(publicUrl);
+            }
+        }
+
+        return MemberConverter.toUploadImage(object, publicUrl);
+    }
+
 }
