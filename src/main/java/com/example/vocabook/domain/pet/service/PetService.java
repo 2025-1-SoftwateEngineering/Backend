@@ -1,4 +1,4 @@
-﻿package com.example.vocabook.domain.pet.service;
+package com.example.vocabook.domain.pet.service;
 
 import com.example.vocabook.domain.member.entity.Member;
 import com.example.vocabook.domain.member.entity.mapping.MemberPet;

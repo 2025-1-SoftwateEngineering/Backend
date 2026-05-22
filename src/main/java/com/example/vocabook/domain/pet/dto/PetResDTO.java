@@ -1,4 +1,4 @@
-﻿package com.example.vocabook.domain.pet.dto;
+package com.example.vocabook.domain.pet.dto;
 
 import com.example.vocabook.domain.pet.enums.PetStage;
 import com.example.vocabook.domain.store.enums.ItemType;

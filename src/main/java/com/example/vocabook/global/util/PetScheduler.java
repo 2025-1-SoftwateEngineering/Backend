@@ -1,4 +1,4 @@
-﻿package com.example.vocabook.global.util;
+package com.example.vocabook.global.util;
 
 import com.example.vocabook.domain.pet.repository.MemberPetRepository;
 import lombok.RequiredArgsConstructor;
