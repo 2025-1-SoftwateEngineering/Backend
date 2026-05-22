@@ -1,4 +1,4 @@
-﻿package com.example.vocabook.domain.pet.exception;
+package com.example.vocabook.domain.pet.exception;
 
 import com.example.vocabook.global.apiPayload.code.BaseErrorCode;
 import com.example.vocabook.global.apiPayload.exception.VocaBookException;

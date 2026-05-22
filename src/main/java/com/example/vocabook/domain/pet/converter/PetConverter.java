@@ -1,4 +1,4 @@
-﻿package com.example.vocabook.domain.pet.converter;
+package com.example.vocabook.domain.pet.converter;
 
 import com.example.vocabook.domain.member.entity.mapping.MemberPet;
 import com.example.vocabook.domain.pet.dto.PetResDTO;
