@@ -582,6 +582,7 @@ public interface VocaControllerDocs {
 
 					## 응답
 					- N x N 크기의 그리드 정보와 단어 요소(elements) 목록 반환
+					- verticalStartPoint, horizontalStartPoint는 **0-based index** (0이 첫 번째 칸)
 					"""
 	)
 	@ApiResponses(value = {

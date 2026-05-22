@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -66,7 +67,7 @@ public class StoreService {
 	}
 
 	@Transactional
-	public StoreResDTO.UseResult useItem(Long memberItemId, AuthMember authMember) {
+	public StoreResDTO.UseResult useItem(Long memberItemId, AuthMember authMember, Long contextId) {
 		MemberItem memberItem = memberItemRepository.findWithItemById(memberItemId)
 										.orElseThrow(() -> new StoreException(StoreErrorCode.ITEM_NOT_OWNED));
 
@@ -82,12 +83,11 @@ public class StoreService {
 										   .findFirst()
 										   .orElseThrow(() -> new StoreException(StoreErrorCode.ITEM_NOT_FOUND));
 
-		strategy.apply(member, memberItem);
-
 		Item item = memberItem.getItem();
 		memberItemRepository.delete(memberItem);
 
 		long remaining = memberItemRepository.countByMemberAndItem(member, item);
-		return StoreConverter.toUseResult(memberItemId, memberItem, remaining);
+		Optional<StoreResDTO.HintResult> hint = strategy.apply(member, memberItem, contextId);
+		return StoreConverter.toUseResult(memberItemId, memberItem, remaining, hint.orElse(null));
 	}
 }

@@ -164,12 +164,13 @@ public class StoreServiceTest {
 		given(memberRepository.findById(1L)).willReturn(Optional.of(member));
 		given(memberItemRepository.countByMemberAndItem(member, item)).willReturn(0L);
 
-		StoreResDTO.UseResult result = storeService.useItem(10L, authMember);
+		StoreResDTO.UseResult result = storeService.useItem(10L, authMember, null);
 
 		assertNotNull(result);
 		assertEquals(10L, result.memberItemId());
 		assertEquals("연속학습 파괴 방어권", result.itemName());
 		assertEquals(0L, result.remainingCount());
+		assertNull(result.hintResult());
 		verify(memberItemRepository).delete(memberItem);
 	}
 
@@ -179,7 +180,7 @@ public class StoreServiceTest {
 		given(memberItemRepository.findWithItemById(99L)).willReturn(Optional.empty());
 
 		StoreException ex = assertThrows(StoreException.class,
-				() -> storeService.useItem(99L, authMember));
+				() -> storeService.useItem(99L, authMember, null));
 
 		assertEquals(StoreErrorCode.ITEM_NOT_OWNED, ex.getCode());
 	}
@@ -197,7 +198,7 @@ public class StoreServiceTest {
 		given(memberRepository.findById(1L)).willReturn(Optional.of(member));
 
 		StoreException ex = assertThrows(StoreException.class,
-				() -> storeService.useItem(20L, authMember));
+				() -> storeService.useItem(20L, authMember, null));
 
 		assertEquals(StoreErrorCode.ITEM_NOT_OWNED, ex.getCode());
 	}

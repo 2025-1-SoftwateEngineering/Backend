@@ -48,7 +48,16 @@ public class StoreResDTO {
 	public record UseResult(
 			Long memberItemId,
 			String itemName,
-			Long remainingCount
+			Long remainingCount,
+			HintResult hintResult
+	) {
+	}
+
+	@Builder
+	public record HintResult(
+			String letter,
+			int verticalStartPoint,
+			int horizontalStartPoint
 	) {
 	}
 }

@@ -45,11 +45,12 @@ public class StoreConverter {
 					   .build();
 	}
 
-	public static StoreResDTO.UseResult toUseResult(Long memberItemId, MemberItem memberItem, long remainingCount) {
+	public static StoreResDTO.UseResult toUseResult(Long memberItemId, MemberItem memberItem, long remainingCount, StoreResDTO.HintResult hintResult) {
 		return StoreResDTO.UseResult.builder()
 					   .memberItemId(memberItemId)
 					   .itemName(memberItem.getItem().getName())
 					   .remainingCount(remainingCount)
+					   .hintResult(hintResult)
 					   .build();
 	}
 }

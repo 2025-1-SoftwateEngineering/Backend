@@ -2,6 +2,7 @@ package com.example.vocabook.domain.store.controller;
 
 import com.example.vocabook.domain.store.code.StoreSuccessCode;
 import com.example.vocabook.domain.store.controller.docs.StoreControllerDocs;
+import com.example.vocabook.domain.store.dto.StoreReqDTO;
 import com.example.vocabook.domain.store.dto.StoreResDTO;
 import com.example.vocabook.domain.store.service.StoreService;
 import com.example.vocabook.global.apiPayload.ApiResponse;
@@ -40,8 +41,10 @@ public class StoreController implements StoreControllerDocs {
 	@PostMapping("/my-items/{memberItemId}/use")
 	public ApiResponse<StoreResDTO.UseResult> useItem(
 			@PathVariable Long memberItemId,
-			@AuthenticationPrincipal AuthMember authMember
+			@AuthenticationPrincipal AuthMember authMember,
+			@RequestBody(required = false) StoreReqDTO.UseItemRequest request
 	) {
-		return ApiResponse.onSuccess(StoreSuccessCode.USE_ITEM, storeService.useItem(memberItemId, authMember));
+		Long contextId = (request != null) ? request.contextId() : null;
+		return ApiResponse.onSuccess(StoreSuccessCode.USE_ITEM, storeService.useItem(memberItemId, authMember, contextId));
 	}
 }
