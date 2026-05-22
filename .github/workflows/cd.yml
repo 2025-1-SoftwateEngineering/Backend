@@ -86,3 +86,4 @@ jobs:
             ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_IMAGENAME }}
             rm .env
             rm vocabook-firebase.json
+            rm vocabuddy-cloud-storage.json
