@@ -139,7 +139,7 @@ public class StoreServiceTest {
 									 .id(2L)
 									 .name("고급 아이템")
 									 .price(999L)
-									 .itemType(ItemType.PET_FOOD_BASIC)
+									 .itemType(ItemType.PET_FOOD)
 									 .build();
 
 		given(itemRepository.findById(2L)).willReturn(Optional.of(expensiveItem));

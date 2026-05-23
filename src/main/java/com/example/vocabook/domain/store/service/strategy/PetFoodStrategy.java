@@ -17,13 +17,13 @@ import java.util.Optional;
 @Component
 @Order(1)
 @RequiredArgsConstructor
-public class PetFoodBasicStrategy implements ItemUseStrategy {
+public class PetFoodStrategy implements ItemUseStrategy {
 
 	private final MemberPetRepository memberPetRepository;
 
 	@Override
 	public boolean supports(ItemType itemType) {
-		return itemType == ItemType.PET_FOOD_BASIC;
+		return itemType == ItemType.PET_FOOD;
 	}
 
 	@Override

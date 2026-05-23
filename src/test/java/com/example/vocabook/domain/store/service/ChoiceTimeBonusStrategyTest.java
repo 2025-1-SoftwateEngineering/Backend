@@ -68,7 +68,7 @@ public class ChoiceTimeBonusStrategyTest {
 		assertTrue(strategy.supports(ItemType.CHOICE_TIME_10));
 		assertTrue(strategy.supports(ItemType.CHOICE_TIME_30));
 		assertFalse(strategy.supports(ItemType.STREAK_FREEZE));
-		assertFalse(strategy.supports(ItemType.PET_FOOD_BASIC));
+		assertFalse(strategy.supports(ItemType.PET_FOOD));
 	}
 
 	@Test

@@ -11,6 +11,6 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
     boolean existsByItemType(ItemType itemType);
 
     @Modifying
-    @Query(value = "DELETE FROM item WHERE item_type = 'PET_FOOD_PREMIUM'", nativeQuery = true)
+    @Query(value = "DELETE FROM item WHERE item_type IN ('PET_FOOD_PREMIUM', 'PET_FOOD_BASIC')", nativeQuery = true)
     void deleteObsoleteItems();
 }

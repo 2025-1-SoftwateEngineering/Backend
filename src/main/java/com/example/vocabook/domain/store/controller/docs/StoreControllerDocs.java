@@ -54,7 +54,7 @@ public interface StoreControllerDocs {
 									        "itemId": 2,
 									        "name": "사료 (기본)",
 									        "price": 50,
-									        "itemType": "PET_FOOD_BASIC"
+									        "itemType": "PET_FOOD"
 									      }
 									    ],
 									    "totalCount": 2
@@ -234,7 +234,7 @@ public interface StoreControllerDocs {
 									          "itemId": 2,
 									          "name": "사료",
 									          "price": 100,
-									          "itemType": "PET_FOOD_BASIC"
+									          "itemType": "PET_FOOD"
 									        },
 									        "count": 1
 									      }

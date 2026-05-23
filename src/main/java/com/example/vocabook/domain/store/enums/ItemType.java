@@ -7,7 +7,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum ItemType {
 	STREAK_FREEZE(true),         // 연속학습 파괴 방어권
-	PET_FOOD_BASIC(true),        // 사료 (기본)
+	PET_FOOD(true),              // 사료
 	PET_WATER(true),             // 물
 	CHOICE_TIME_10(true),        // 사지선다 시간 +10초
 	CHOICE_TIME_30(true),        // 사지선다 시간 +30초
