@@ -136,7 +136,7 @@ public class VocaService {
 				.orElseThrow(() -> new VocaException(VocaErrorCode.VOCA_NOT_FOUND));
 		Word word = wordRepository.findById(dto.getWordId())
 				.orElseThrow(() -> new VocaException(VocaErrorCode.WORD_NOT_FOUND));
-		boolean isCorrect = word.getEnglishWord().equalsIgnoreCase(dto.getAnswer());
+		boolean isCorrect = word.getEnglishWord().equalsIgnoreCase(dto.getAnswer().trim());
 		return VocaResDTO.AnswerResult.builder()
 				.wordId(word.getId())
 				.meaning(word.getMeaning())
@@ -155,9 +155,13 @@ public class VocaService {
 				.orElseThrow(() -> new VocaException(VocaErrorCode.VOCA_NOT_FOUND));
 
 		LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
-		boolean alreadySubmittedToday = memberVocaRepository.findByMemberAndVoca(member, voca)
+		Optional<MemberVoca> existingMemberVoca = memberVocaRepository.findByMemberAndVoca(member, voca);
+		boolean alreadySubmittedToday = existingMemberVoca
 				.map(mv -> mv.getSolvedAt() != null && mv.getSolvedAt().toLocalDate().isEqual(today))
 				.orElse(false);
+		long previousCorrectCount = alreadySubmittedToday
+				? existingMemberVoca.map(MemberVoca::getCorrectCnt).orElse(0L)
+				: 0L;
 
 		List<Long> wordIds = dto.getAnswers().stream()
 				.map(VocaReqDTO.CompleteTest.Answer::getWordId)
@@ -169,13 +173,9 @@ public class VocaService {
 		int correctCount = 0;
 
 		for (VocaReqDTO.CompleteTest.Answer answer : dto.getAnswers()) {
-            Word word = wordRepository.findById(answer.getWordId())
-                    .orElseThrow(() -> new VocaException(VocaErrorCode.WORD_NOT_FOUND));
-        }
-		for (VocaReqDTO.CompleteTest.Answer answer : dto.getAnswers()) {
 			Word word = Optional.ofNullable(wordMap.get(answer.getWordId()))
 					.orElseThrow(() -> new VocaException(VocaErrorCode.WORD_NOT_FOUND));
-			boolean isCorrect = word.getEnglishWord().equalsIgnoreCase(answer.getAnswer());
+			boolean isCorrect = word.getEnglishWord().equalsIgnoreCase(answer.getAnswer().trim());
 			if (isCorrect) correctCount++;
 
 			results.add(VocaResDTO.AnswerResult.builder()
@@ -187,18 +187,15 @@ public class VocaService {
 					.build());
 		}
 
-		long earnedCoins = 0;
+		long newlyCorrectCount = Math.max(0L, correctCount - previousCorrectCount);
+		long earnedCoins = newlyCorrectCount * 5;
+		member.addCoin(earnedCoins);
 		if (!alreadySubmittedToday) {
-			earnedCoins = (long) correctCount * 5;
-			member.addCoin(earnedCoins);
 			member.updateStreak();
 			if (member.getStreak() % 7 == 0) {
 				member.addCoin(500);
 				earnedCoins += 500;
 			}
-		} else {
-			earnedCoins = (long) correctCount * 3;
-			member.addCoin(earnedCoins);
 		}
 		memberRepository.saveAndFlush(member);
 		saveMemberVoca(member, voca, (long) correctCount, (long) dto.getAnswers().size());

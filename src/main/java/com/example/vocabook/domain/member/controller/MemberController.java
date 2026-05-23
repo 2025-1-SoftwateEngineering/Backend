@@ -4,6 +4,7 @@ import com.example.vocabook.domain.member.code.MemberSuccessCode;
 import com.example.vocabook.domain.member.controller.docs.MemberControllerDocs;
 import com.example.vocabook.domain.member.dto.req.MemberReqDTO;
 import com.example.vocabook.domain.member.dto.res.MemberResDTO;
+import com.example.vocabook.domain.member.enums.PhotoType;
 import com.example.vocabook.domain.member.service.MemberService;
 import com.example.vocabook.global.apiPayload.ApiResponse;
 import com.example.vocabook.global.apiPayload.code.BaseSuccessCode;
@@ -125,4 +126,36 @@ public class MemberController implements MemberControllerDocs {
         BaseSuccessCode code = MemberSuccessCode.REPORTING;
         return ApiResponse.onSuccess(code, memberService.reportMember(auth, memberId, dto));
     }
+
+    // 사진 업로드용 URL 생성
+    @PostMapping("/v1/images")
+    public ApiResponse<MemberResDTO.CreateSignedUri> createSignedUri(
+            @AuthenticationPrincipal AuthMember auth,
+            @RequestParam String fileName,
+            @RequestParam PhotoType photoType
+    ) {
+        BaseSuccessCode code = MemberSuccessCode.CREATE_SIGNED_URI;
+        return ApiResponse.onSuccess(code, memberService.createSignedUri(auth, fileName, photoType));
+    }
+
+    // 사진 업로드 완료
+    @PostMapping("/v1/images/done")
+    public ApiResponse<MemberResDTO.UploadImage> uploadImage(
+            @AuthenticationPrincipal AuthMember auth,
+            @RequestParam String fileName,
+            @RequestParam PhotoType photoType,
+            @RequestParam(required = false) Long targetId
+    ) {
+        BaseSuccessCode code = MemberSuccessCode.UPLOAD_URI;
+        return ApiResponse.onSuccess(code, memberService.uploadImage(auth, fileName, photoType, targetId));
+    }
+
+    // 프로필 사진 수정
+//    @PutMapping("/v1/members/me/profile-image")
+//    public ApiResponse<MemberResDTO.UpdateProfile> updateProfile(
+//            @AuthenticationPrincipal AuthMember auth,
+//            @RequestParam String fileName
+//    ){
+//
+//    }
 }

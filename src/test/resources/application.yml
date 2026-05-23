@@ -5,6 +5,16 @@ spring:
   application:
     name: "VocaBook"
 
+  cloud:
+    gcp:
+      core:
+        enabled: false
+      storage:
+        enabled: false
+        bucket-name: test-bucket-name
+      firestore:
+        enabled: false
+
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: ${DB_URL_TEST}
