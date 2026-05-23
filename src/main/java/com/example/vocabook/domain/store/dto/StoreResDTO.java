@@ -25,8 +25,8 @@ public class StoreResDTO {
 
 	@Builder
 	public record MyItemInfo(
-			Long memberItemId,
-			ItemInfo item
+			ItemInfo item,
+			Long count
 	) {
 	}
 
@@ -46,7 +46,6 @@ public class StoreResDTO {
 
 	@Builder
 	public record UseResult(
-			Long memberItemId,
 			String itemName,
 			Long remainingCount,
 			HintResult hintResult

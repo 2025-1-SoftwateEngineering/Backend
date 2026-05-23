@@ -43,7 +43,6 @@ public class StoreServiceTest {
 	private StoreService storeService;
 
 	private Member member;
-	private Member otherMember;
 	private AuthMember authMember;
 	private Item item;
 	private MemberItem memberItem;
@@ -62,15 +61,6 @@ public class StoreServiceTest {
 						 .coin(200L)
 						 .build();
 
-		otherMember = Member.builder()
-							  .id(2L)
-							  .email("other@example.com")
-							  .nickname("타인")
-							  .password("password")
-							  .refreshToken("token")
-							  .coin(0L)
-							  .build();
-
 		authMember = new AuthMember(member);
 
 		item = Item.builder()
@@ -84,6 +74,7 @@ public class StoreServiceTest {
 							 .id(10L)
 							 .member(member)
 							 .item(item)
+							 .count(1L)
 							 .build();
 	}
 
@@ -100,10 +91,11 @@ public class StoreServiceTest {
 	}
 
 	@Test
-	@DisplayName("아이템 구매 성공 - 코인 차감 및 MemberItem 저장")
-	void purchaseItem_Success() {
+	@DisplayName("아이템 구매 성공 - 첫 구매 시 새 row 생성")
+	void purchaseItem_Success_FirstPurchase() {
 		given(itemRepository.findById(1L)).willReturn(Optional.of(item));
 		given(memberRepository.findByIdWithLock(1L)).willReturn(Optional.of(member));
+		given(memberItemRepository.findByMemberAndItem(member, item)).willReturn(Optional.empty());
 		given(memberItemRepository.save(any())).willReturn(memberItem);
 
 		StoreResDTO.PurchaseResult result = storeService.purchaseItem(1L, authMember);
@@ -112,6 +104,21 @@ public class StoreServiceTest {
 		assertEquals(100L, result.remainingCoins()); // 200 - 100
 		assertEquals("연속학습 파괴 방어권", result.purchasedItem().name());
 		verify(memberItemRepository).save(any(MemberItem.class));
+	}
+
+	@Test
+	@DisplayName("아이템 구매 성공 - 중복 구매 시 count 증가")
+	void purchaseItem_Success_DuplicatePurchase() {
+		MemberItem existingItem = MemberItem.builder()
+				.id(10L).member(member).item(item).count(2L).build();
+
+		given(itemRepository.findById(1L)).willReturn(Optional.of(item));
+		given(memberRepository.findByIdWithLock(1L)).willReturn(Optional.of(member));
+		given(memberItemRepository.findByMemberAndItem(member, item)).willReturn(Optional.of(existingItem));
+
+		storeService.purchaseItem(1L, authMember);
+
+		assertEquals(3L, existingItem.getCount());
 	}
 
 	@Test
@@ -154,20 +161,20 @@ public class StoreServiceTest {
 
 		assertNotNull(result);
 		assertEquals(1, result.totalCount());
-		assertEquals(10L, result.items().get(0).memberItemId());
+		assertEquals("연속학습 파괴 방어권", result.items().get(0).item().name());
+		assertEquals(1L, result.items().get(0).count());
 	}
 
 	@Test
-	@DisplayName("아이템 사용 성공 - MemberItem 삭제 및 잔여 개수 반환")
-	void useItem_Success() {
-		given(memberItemRepository.findWithItemById(10L)).willReturn(Optional.of(memberItem));
+	@DisplayName("아이템 사용 성공 - count가 1이면 row 삭제")
+	void useItem_Success_DeleteWhenLastItem() {
 		given(memberRepository.findById(1L)).willReturn(Optional.of(member));
-		given(memberItemRepository.countByMemberAndItem(member, item)).willReturn(0L);
+		given(itemRepository.findById(1L)).willReturn(Optional.of(item));
+		given(memberItemRepository.findByMemberAndItemWithLock(member, item)).willReturn(Optional.of(memberItem));
 
-		StoreResDTO.UseResult result = storeService.useItem(10L, authMember, null);
+		StoreResDTO.UseResult result = storeService.useItem(1L, authMember, null);
 
 		assertNotNull(result);
-		assertEquals(10L, result.memberItemId());
 		assertEquals("연속학습 파괴 방어권", result.itemName());
 		assertEquals(0L, result.remainingCount());
 		assertNull(result.hintResult());
@@ -175,30 +182,30 @@ public class StoreServiceTest {
 	}
 
 	@Test
-	@DisplayName("아이템 사용 실패 - 존재하지 않는 MemberItem")
-	void useItem_MemberItemNotFound() {
-		given(memberItemRepository.findWithItemById(99L)).willReturn(Optional.empty());
+	@DisplayName("아이템 사용 성공 - count > 1이면 count 차감")
+	void useItem_Success_DecrementCount() {
+		MemberItem multiItem = MemberItem.builder()
+				.id(10L).member(member).item(item).count(3L).build();
 
-		StoreException ex = assertThrows(StoreException.class,
-				() -> storeService.useItem(99L, authMember, null));
+		given(memberRepository.findById(1L)).willReturn(Optional.of(member));
+		given(itemRepository.findById(1L)).willReturn(Optional.of(item));
+		given(memberItemRepository.findByMemberAndItemWithLock(member, item)).willReturn(Optional.of(multiItem));
 
-		assertEquals(StoreErrorCode.ITEM_NOT_OWNED, ex.getCode());
+		StoreResDTO.UseResult result = storeService.useItem(1L, authMember, null);
+
+		assertEquals(2L, result.remainingCount());
+		assertEquals(2L, multiItem.getCount());
 	}
 
 	@Test
-	@DisplayName("아이템 사용 실패 - 다른 멤버의 아이템")
-	void useItem_ItemNotOwned_WrongMember() {
-		MemberItem othersMemberItem = MemberItem.builder()
-											  .id(20L)
-											  .member(otherMember)
-											  .item(item)
-											  .build();
-
-		given(memberItemRepository.findWithItemById(20L)).willReturn(Optional.of(othersMemberItem));
+	@DisplayName("아이템 사용 실패 - 보유하지 않은 아이템")
+	void useItem_ItemNotOwned() {
 		given(memberRepository.findById(1L)).willReturn(Optional.of(member));
+		given(itemRepository.findById(1L)).willReturn(Optional.of(item));
+		given(memberItemRepository.findByMemberAndItemWithLock(member, item)).willReturn(Optional.empty());
 
 		StoreException ex = assertThrows(StoreException.class,
-				() -> storeService.useItem(20L, authMember, null));
+				() -> storeService.useItem(1L, authMember, null));
 
 		assertEquals(StoreErrorCode.ITEM_NOT_OWNED, ex.getCode());
 	}
@@ -207,29 +214,5 @@ public class StoreServiceTest {
 	@Test
 	@DisplayName("중복 구매 불가 아이템 - 이미 보유 중이면 예외")
 	void purchaseItem_AlreadyOwned_NotAllowDuplicate() {
-		// allowDuplicate=false인 ItemType 추가 후 아래 코드 완성
-		// Item nonDuplicateItem = Item.builder()
-		//         .id(3L).name("프로필 프레임").price(50L).itemType(ItemType.PROFILE_FRAME).build();
-		// given(itemRepository.findById(3L)).willReturn(Optional.of(nonDuplicateItem));
-		// given(memberRepository.findByIdWithLock(1L)).willReturn(Optional.of(member));
-		// given(memberItemRepository.findFirstByMemberAndItem(member, nonDuplicateItem))
-		//         .willReturn(Optional.of(memberItem));
-		// StoreException ex = assertThrows(StoreException.class,
-		//         () -> storeService.purchaseItem(3L, authMember));
-		// assertEquals(StoreErrorCode.ITEM_ALREADY_OWNED, ex.getCode());
-	}
-
-	@Test
-	@DisplayName("중복 구매 가능 아이템 - 이미 보유 중이어도 구매 성공")
-	void purchaseItem_AllowDuplicate_Success() {
-		given(itemRepository.findById(1L)).willReturn(Optional.of(item));
-		given(memberRepository.findByIdWithLock(1L)).willReturn(Optional.of(member));
-		given(memberItemRepository.save(any())).willReturn(memberItem);
-
-		// STREAK_FREEZE는 allowDuplicate=true → 이미 보유 중 여부 체크 없이 구매 성공
-		StoreResDTO.PurchaseResult result = storeService.purchaseItem(1L, authMember);
-
-		assertNotNull(result);
-		assertEquals(100L, result.remainingCoins());
 	}
 }

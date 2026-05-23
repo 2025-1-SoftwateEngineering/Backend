@@ -26,8 +26,8 @@ public class StoreConverter {
 
 	public static StoreResDTO.MyItemInfo toMyItemInfo(MemberItem memberItem) {
 		return StoreResDTO.MyItemInfo.builder()
-					   .memberItemId(memberItem.getId())
 					   .item(toItemInfo(memberItem.getItem()))
+					   .count(memberItem.getCount())
 					   .build();
 	}
 
@@ -45,10 +45,9 @@ public class StoreConverter {
 					   .build();
 	}
 
-	public static StoreResDTO.UseResult toUseResult(Long memberItemId, MemberItem memberItem, long remainingCount, StoreResDTO.HintResult hintResult) {
+	public static StoreResDTO.UseResult toUseResult(Item item, long remainingCount, StoreResDTO.HintResult hintResult) {
 		return StoreResDTO.UseResult.builder()
-					   .memberItemId(memberItemId)
-					   .itemName(memberItem.getItem().getName())
+					   .itemName(item.getName())
 					   .remainingCount(remainingCount)
 					   .hintResult(hintResult)
 					   .build();

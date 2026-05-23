@@ -42,19 +42,22 @@ public class StoreService {
 		Member member = memberRepository.findByIdWithLock(authMember.getMember().getId())
 								.orElseThrow();
 
-		if (!item.getItemType().isAllowDuplicate()) {
-			boolean alreadyOwned = memberItemRepository.findFirstByMemberAndItem(member, item).isPresent();
-			if (alreadyOwned) {
-				throw new StoreException(StoreErrorCode.ITEM_ALREADY_OWNED);
-			}
-		}
-
 		if (member.getCoin() < item.getPrice()) {
 			throw new StoreException(StoreErrorCode.INSUFFICIENT_COINS);
 		}
 
+		Optional<MemberItem> existing = memberItemRepository.findByMemberAndItem(member, item);
+
+		if (!item.getItemType().isAllowDuplicate() && existing.isPresent()) {
+			throw new StoreException(StoreErrorCode.ITEM_ALREADY_OWNED);
+		}
+
 		member.spendCoin(item.getPrice());
-		memberItemRepository.save(MemberItem.builder().member(member).item(item).build());
+
+		existing.ifPresentOrElse(
+				MemberItem::increaseCount,
+				() -> memberItemRepository.save(MemberItem.builder().member(member).item(item).build())
+		);
 
 		return StoreConverter.toPurchaseResult(member.getCoin(), item);
 	}
@@ -67,27 +70,30 @@ public class StoreService {
 	}
 
 	@Transactional
-	public StoreResDTO.UseResult useItem(Long memberItemId, AuthMember authMember, Long contextId) {
-		MemberItem memberItem = memberItemRepository.findWithItemById(memberItemId)
-										.orElseThrow(() -> new StoreException(StoreErrorCode.ITEM_NOT_OWNED));
-
+	public StoreResDTO.UseResult useItem(Long itemId, AuthMember authMember, Long contextId) {
 		Member member = memberRepository.findById(authMember.getMember().getId())
 								.orElseThrow();
 
-		if (!memberItem.getMember().getId().equals(member.getId())) {
-			throw new StoreException(StoreErrorCode.ITEM_NOT_OWNED);
-		}
+		Item item = itemRepository.findById(itemId)
+							.orElseThrow(() -> new StoreException(StoreErrorCode.ITEM_NOT_FOUND));
+
+		MemberItem memberItem = memberItemRepository.findByMemberAndItemWithLock(member, item)
+										.orElseThrow(() -> new StoreException(StoreErrorCode.ITEM_NOT_OWNED));
 
 		ItemUseStrategy strategy = itemUseStrategies.stream()
-										   .filter(s -> s.supports(memberItem.getItem().getItemType()))
+										   .filter(s -> s.supports(item.getItemType()))
 										   .findFirst()
 										   .orElseThrow(() -> new StoreException(StoreErrorCode.ITEM_NOT_FOUND));
 
-		Item item = memberItem.getItem();
-		memberItemRepository.delete(memberItem);
+		long remaining;
+		if (memberItem.getCount() <= 1) {
+			memberItemRepository.delete(memberItem);
+			remaining = 0;
+		} else {
+			remaining = memberItem.decreaseCount();
+		}
 
-		long remaining = memberItemRepository.countByMemberAndItem(member, item);
 		Optional<StoreResDTO.HintResult> hint = strategy.apply(member, memberItem, contextId);
-		return StoreConverter.toUseResult(memberItemId, memberItem, remaining, hint.orElse(null));
+		return StoreConverter.toUseResult(item, remaining, hint.orElse(null));
 	}
 }

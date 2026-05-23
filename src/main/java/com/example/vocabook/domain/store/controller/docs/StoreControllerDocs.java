@@ -22,10 +22,10 @@ public interface StoreControllerDocs {
 			summary = "상점 아이템 목록 조회 API By 윤민재",
 			description = """
 					# 상점 아이템 목록 조회
-					
+
 					## 요청 형식
 					- 반드시 로그인을 먼저 해야 합니다 (JWT 토큰 필수)
-					
+
 					## 응답
 					- 상점에 등록된 전체 아이템 목록 및 총 개수 반환
 					"""
@@ -86,14 +86,14 @@ public interface StoreControllerDocs {
 			summary = "아이템 구매 API By 윤민재",
 			description = """
 					# 아이템 구매
-					
+
 					## 요청 형식
 					- itemId: 구매할 아이템 ID (PathVariable)
 					- 반드시 로그인을 먼저 해야 합니다 (JWT 토큰 필수)
-					
+
 					## 응답
 					- 구매 후 남은 코인 및 구매한 아이템 정보 반환
-					- 소모성 아이템은 중복 구매 가능
+					- 소모성 아이템은 중복 구매 가능 (count 증가)
 					- 비소모성 아이템(프로필/배경 등)은 중복 구매 불가
 					"""
 	)
@@ -197,13 +197,13 @@ public interface StoreControllerDocs {
 			summary = "보유 아이템 목록 조회 API By 윤민재",
 			description = """
 					# 보유 아이템 목록 조회
-					
+
 					## 요청 형식
 					- 반드시 로그인을 먼저 해야 합니다 (JWT 토큰 필수)
-					
+
 					## 응답
-					- 로그인한 멤버의 보유 아이템 전체 목록 반환
-					- 동일 아이템 여러 개 보유 시 각각 개별 항목으로 반환 (memberItemId 다름)
+					- 로그인한 멤버의 보유 아이템 목록 반환
+					- 동일 아이템 여러 개 보유 시 count 필드로 개수 표시
 					"""
 	)
 	@ApiResponses(value = {
@@ -221,22 +221,22 @@ public interface StoreControllerDocs {
 									  "result": {
 									    "items": [
 									      {
-									        "memberItemId": 10,
 									        "item": {
 									          "itemId": 1,
 									          "name": "연속학습 파괴 방어권",
 									          "price": 100,
 									          "itemType": "STREAK_FREEZE"
-									        }
+									        },
+									        "count": 2
 									      },
 									      {
-									        "memberItemId": 11,
 									        "item": {
-									          "itemId": 1,
-									          "name": "연속학습 파괴 방어권",
+									          "itemId": 2,
+									          "name": "사료",
 									          "price": 100,
-									          "itemType": "STREAK_FREEZE"
-									        }
+									          "itemType": "PET_FOOD_BASIC"
+									        },
+									        "count": 1
 									      }
 									    ],
 									    "totalCount": 2
@@ -272,7 +272,7 @@ public interface StoreControllerDocs {
 					# 아이템 사용
 
 					## 요청 형식
-					- memberItemId: 사용할 보유 아이템 ID (PathVariable) — getMyItems에서 반환된 memberItemId 사용
+					- itemId: 사용할 아이템 ID (PathVariable) — getItemList 또는 getMyItems에서 확인
 					- 반드시 로그인을 먼저 해야 합니다 (JWT 토큰 필수)
 					- CROSSWORD_HINT_START, CROSSWORD_HINT_MIDDLE 아이템 사용 시 RequestBody에 contextId(CrosswordHint ID) 필수
 					- CHOICE_TIME_10, CHOICE_TIME_30 아이템: 같은 종류 중복 사용 불가 (10+10, 30+30 차단, 10+30 허용)
@@ -298,7 +298,6 @@ public interface StoreControllerDocs {
 									  "code": "STORE200_4",
 									  "message": "아이템을 성공적으로 사용했습니다.",
 									  "result": {
-									    "memberItemId": 10,
 									    "itemName": "연속학습 파괴 방어권",
 									    "remainingCount": 1,
 									    "hintResult": null
@@ -319,7 +318,6 @@ public interface StoreControllerDocs {
 									  "code": "STORE200_4",
 									  "message": "아이템을 성공적으로 사용했습니다.",
 									  "result": {
-									    "memberItemId": 15,
 									    "itemName": "첫 스펠링 힌트",
 									    "remainingCount": 0,
 									    "hintResult": {
@@ -429,9 +427,9 @@ public interface StoreControllerDocs {
 					)
 			)
 	})
-	@Parameter(name = "memberItemId", description = "사용할 보유 아이템 ID (getMyItems에서 반환된 memberItemId)", required = true, example = "10")
+	@Parameter(name = "itemId", description = "사용할 아이템 ID (getItemList 또는 getMyItems에서 확인)", required = true, example = "1")
 	ApiResponse<StoreResDTO.UseResult> useItem(
-			@PathVariable Long memberItemId,
+			@PathVariable Long itemId,
 			@AuthenticationPrincipal AuthMember authMember,
 			@RequestBody(required = false) StoreReqDTO.UseItemRequest request
 	);

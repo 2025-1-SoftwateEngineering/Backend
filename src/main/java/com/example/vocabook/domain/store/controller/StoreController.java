@@ -38,13 +38,13 @@ public class StoreController implements StoreControllerDocs {
 		return ApiResponse.onSuccess(StoreSuccessCode.GET_MY_ITEMS, storeService.getMyItems(authMember));
 	}
 
-	@PostMapping("/my-items/{memberItemId}/use")
+	@PostMapping("/items/{itemId}/use")
 	public ApiResponse<StoreResDTO.UseResult> useItem(
-			@PathVariable Long memberItemId,
+			@PathVariable Long itemId,
 			@AuthenticationPrincipal AuthMember authMember,
 			@RequestBody(required = false) StoreReqDTO.UseItemRequest request
 	) {
 		Long contextId = (request != null) ? request.contextId() : null;
-		return ApiResponse.onSuccess(StoreSuccessCode.USE_ITEM, storeService.useItem(memberItemId, authMember, contextId));
+		return ApiResponse.onSuccess(StoreSuccessCode.USE_ITEM, storeService.useItem(itemId, authMember, contextId));
 	}
 }

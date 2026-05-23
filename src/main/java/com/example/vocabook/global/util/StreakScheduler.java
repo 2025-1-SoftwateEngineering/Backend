@@ -8,6 +8,7 @@ import com.example.vocabook.domain.alert.repository.AlertDetailRepository;
 import com.example.vocabook.domain.alert.repository.AlertRepository;
 import com.example.vocabook.domain.alert.service.AlertScheduleService;
 import com.example.vocabook.domain.member.entity.Member;
+import com.example.vocabook.domain.member.entity.mapping.MemberItem;
 import com.example.vocabook.domain.member.repository.MemberItemRepository;
 import com.example.vocabook.domain.member.repository.MemberRepository;
 import com.example.vocabook.domain.store.enums.ItemType;
@@ -33,7 +34,6 @@ public class StreakScheduler {
 
     private static final ZoneId zoneId = ZoneId.of("Asia/Seoul");
 
-    // streak 리셋
     @Scheduled(cron = "0 0 0 * * *", zone = "Asia/Seoul")
     @Transactional
     public void resetStreak() {
@@ -43,9 +43,12 @@ public class StreakScheduler {
         List<Alert> alertList = alertRepository.findAllByMemberIn(members);
 
         for (Member member : members) {
-            memberItemRepository.findFirstByMemberAndItem_ItemType(member, ItemType.STREAK_FREEZE)
+            memberItemRepository.findByMemberAndItem_ItemType(member, ItemType.STREAK_FREEZE)
                     .ifPresentOrElse(
-                            memberItemRepository::delete,
+                            mi -> {
+                                if (mi.getCount() <= 1) memberItemRepository.delete(mi);
+                                else mi.decreaseCount();
+                            },
                             member::resetStreak
                     );
         }
