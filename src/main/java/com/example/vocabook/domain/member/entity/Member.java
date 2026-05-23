@@ -1,6 +1,9 @@
 package com.example.vocabook.domain.member.entity;
 
+import com.example.vocabook.domain.member.code.MemberErrorCode;
 import com.example.vocabook.domain.member.enums.Authorize;
+import com.example.vocabook.domain.member.exception.MemberException;
+import com.example.vocabook.global.apiPayload.code.BaseErrorCode;
 import com.example.vocabook.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
@@ -83,6 +86,13 @@ public class Member extends BaseEntity {
     }
     public void addCoin(long amount) {
         this.coin += amount;
+    }
+
+    public void spendCoin(long amount) {
+        if (this.coin < amount) {
+            throw new MemberException(MemberErrorCode.NOT_ENOUGH_COIN);
+        }
+        this.coin -= amount;
     }
     public void suspend() {
         this.isSuspended = true;

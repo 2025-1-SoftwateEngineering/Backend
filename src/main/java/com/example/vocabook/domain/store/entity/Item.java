@@ -12,17 +12,17 @@ import lombok.*;
 @Table(name = "item")
 public class Item {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "item_id")
-    private Long id;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "item_id")
+	private Long id;
 
-    @Column(name = "name", nullable = false)
-    private String name;
+	@Column(name = "name", nullable = false)
+	private String name;
 
-    @Column(name = "price", nullable = false)
-    @Builder.Default
-    private Long price = 0L;
+	@Column(name = "price", nullable = false)
+	@Builder.Default
+	private Long price = 0L;
 
     @Column(name = "image_url", nullable = false)
     @Builder.Default
