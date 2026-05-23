@@ -25,6 +25,7 @@ import com.example.vocabook.domain.voca.code.VocaErrorCode;
 
 import java.lang.reflect.Field;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -144,7 +145,7 @@ public class VocaServiceCompleteTestTest {
         MemberVoca existing = MemberVoca.builder()
                 .member(member).voca(voca)
                 .correctCnt(1L).learningWordCnt(2L)
-                .solvedAt(LocalDateTime.now())
+                .solvedAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")))
                 .build();
 
         VocaReqDTO.CompleteTest dto = makeCompleteTestDto(List.of(
@@ -175,7 +176,7 @@ public class VocaServiceCompleteTestTest {
         MemberVoca existing = MemberVoca.builder()
                 .member(member).voca(voca)
                 .correctCnt(0L).learningWordCnt(2L)
-                .solvedAt(LocalDateTime.now())
+                .solvedAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")))
                 .build();
 
         VocaReqDTO.CompleteTest dto = makeCompleteTestDto(List.of(
@@ -369,7 +370,7 @@ public class VocaServiceCompleteTestTest {
         MemberVoca yesterdayRecord = MemberVoca.builder()
                 .member(member).voca(voca)
                 .correctCnt(1L).learningWordCnt(2L)
-                .solvedAt(LocalDateTime.now().minusDays(1))
+                .solvedAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")).minusDays(1))
                 .build();
 
         VocaReqDTO.CompleteTest dto = makeCompleteTestDto(List.of(makeAnswer(1L, "apple")));
