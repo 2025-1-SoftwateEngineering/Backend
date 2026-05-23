@@ -33,6 +33,12 @@ public enum MemberSuccessCode implements BaseSuccessCode {
     REPORTING(HttpStatus.OK,
             "MEMBER200_7",
             "성공적으로 사용자를 신고했습니다."),
+    CREATE_SIGNED_URI(HttpStatus.OK,
+            "MEMBER200_8",
+            "성공적으로 Signed URL을 생성했습니다."),
+    UPLOAD_URI(HttpStatus.OK,
+            "MEMBER200_9",
+            "성공적으로 사진을 업로드했습니다."),
     ;
 
     private final HttpStatus status;

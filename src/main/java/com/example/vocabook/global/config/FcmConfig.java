@@ -4,18 +4,23 @@ import com.google.auth.oauth2.GoogleCredentials;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
 import com.google.firebase.messaging.FirebaseMessaging;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
 
 import java.io.IOException;
 
 @Configuration
+@RequiredArgsConstructor
 public class FcmConfig {
 
     @Value("${fcm.path}")
     private String path;
+
+    private final ResourceLoader resourceLoader;
 
     @Bean
     public FirebaseApp firebaseApp() {
@@ -24,7 +29,7 @@ public class FcmConfig {
             return FirebaseApp.getInstance();
         }
         try {
-            ClassPathResource resource = new ClassPathResource(path);
+            Resource resource = resourceLoader.getResource(path);
 
             // 파일이 없는 경우 (CI/테스트 환경) → 빈 생성 건너뜀
             // 테스트에서는 @MockitoBean FirebaseMessaging으로 대체됨

@@ -27,5 +27,14 @@ public interface MemberItemRepository extends JpaRepository<MemberItem, Long> {
 	@EntityGraph(attributePaths = {"item"})
 	List<MemberItem> findByMember(Member member);
 
+	@EntityGraph(attributePaths = {"item"})
+	Optional<MemberItem> findWithItemById(Long id);
+
+	Optional<MemberItem> findFirstByMemberAndItem(Member member, Item item);
+
+	Optional<MemberItem> findFirstByMemberAndItem_ItemType(Member member, ItemType itemType);
+
+	long countByMemberAndItem(Member member, Item item);
+
 	long countByMemberAndItem_ItemType(Member member, ItemType itemType);
 }

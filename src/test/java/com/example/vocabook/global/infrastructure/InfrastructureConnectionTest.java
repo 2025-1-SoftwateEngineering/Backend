@@ -10,6 +10,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import com.google.firebase.messaging.FirebaseMessaging;
+import com.google.cloud.storage.Storage;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -28,6 +29,9 @@ public class InfrastructureConnectionTest {
 
     @MockitoBean
     private FirebaseMessaging firebaseMessaging;
+
+    @MockitoBean
+    private Storage storage;
 
     @Test
     @DisplayName("인프라 점검: Redis 연결 및 데이터 읽기/쓰기 정상 작동 확인")

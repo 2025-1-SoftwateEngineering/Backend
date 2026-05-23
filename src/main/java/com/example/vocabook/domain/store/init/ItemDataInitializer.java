@@ -21,7 +21,7 @@ public class ItemDataInitializer implements ApplicationRunner {
 
 	private static final List<ItemDef> ITEM_DEFINITIONS = List.of(
 			new ItemDef(ItemType.STREAK_FREEZE,         "연속학습 파괴 방어권",   500L),
-			new ItemDef(ItemType.PET_FOOD,        "사료",                 80L),
+			new ItemDef(ItemType.PET_FOOD,              "사료",                  80L),
 			new ItemDef(ItemType.PET_WATER,             "물",                    50L),
 			new ItemDef(ItemType.CHOICE_TIME_10,        "사지선다 시간 +10초",   100L),
 			new ItemDef(ItemType.CHOICE_TIME_30,        "사지선다 시간 +30초",   200L),

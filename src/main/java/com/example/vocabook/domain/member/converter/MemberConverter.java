@@ -8,8 +8,10 @@ import com.example.vocabook.domain.member.entity.Report;
 import com.example.vocabook.domain.member.entity.mapping.MemberChoice;
 import com.example.vocabook.domain.member.entity.mapping.MemberCrossword;
 import com.example.vocabook.domain.member.enums.FriendState;
+import com.example.vocabook.domain.member.enums.PhotoType;
 import com.example.vocabook.domain.voca.entity.Choice;
 import com.example.vocabook.domain.voca.entity.Crossword;
+import com.google.cloud.storage.Blob;
 
 import java.time.LocalDateTime;
 
@@ -141,6 +143,30 @@ public class MemberConverter {
         return MemberCrossword.builder()
                 .member(member)
                 .crossword(crossword)
+                .build();
+    }
+
+    // 프로필 업로드용 URI 생성
+    public static MemberResDTO.CreateSignedUri toCreateSignedUri(
+            String fileName,
+            String url,
+            PhotoType photoType
+    ){
+        return MemberResDTO.CreateSignedUri.builder()
+                .fileName(fileName)
+                .url(url)
+                .photoType(photoType)
+                .build();
+    }
+
+    // 프로필 업데이트
+    public static MemberResDTO.UploadImage toUploadImage(
+            Blob blob,
+            String publicUrl
+    ) {
+        return MemberResDTO.UploadImage.builder()
+                .uploadAt(blob.getUpdateTimeOffsetDateTime().toLocalDateTime())
+                .publicUrl(publicUrl)
                 .build();
     }
 }

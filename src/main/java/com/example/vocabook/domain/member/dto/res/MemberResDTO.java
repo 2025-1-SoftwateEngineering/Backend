@@ -2,6 +2,7 @@ package com.example.vocabook.domain.member.dto.res;
 
 import com.example.vocabook.domain.member.enums.Authorize;
 import com.example.vocabook.domain.member.enums.FriendState;
+import com.example.vocabook.domain.member.enums.PhotoType;
 import com.example.vocabook.domain.store.enums.ItemType;
 import lombok.Builder;
 
@@ -84,5 +85,23 @@ public class MemberResDTO {
             Long id,
             String email,
             LocalDateTime reportedAt
+    ) {}
+
+    @Builder
+    public record UploadImage(
+            String publicUrl,
+            LocalDateTime uploadAt
+    ) {}
+
+    @Builder
+    public record CreateSignedUri(
+            String url,
+            String fileName,
+            PhotoType photoType
+    ) {}
+
+    @Builder
+    public record UpdateProfile(
+            String publicUrl
     ) {}
 }

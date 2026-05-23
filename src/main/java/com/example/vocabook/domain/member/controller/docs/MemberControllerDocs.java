@@ -5,6 +5,7 @@ import com.example.vocabook.domain.member.dto.res.MemberResDTO;
 import com.example.vocabook.global.apiPayload.ApiResponse;
 import com.example.vocabook.global.apiPayload.dto.PagingResDTO;
 import com.example.vocabook.global.security.entity.AuthMember;
+import com.example.vocabook.domain.member.enums.PhotoType;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -887,5 +888,198 @@ public interface MemberControllerDocs {
             @AuthenticationPrincipal AuthMember auth,
             @PathVariable Long memberId,
             @RequestBody @Valid MemberReqDTO.ReportMember dto
+    );
+
+    // 사진 업로드용 URL 생성
+    @Operation(
+            summary = "사진 업로드용 URL 발급 API By 김주헌",
+            description = """
+                    # 사진 업로드용 URL 발급
+                    GCS(Google Cloud Storage)에 사진을 업로드하기 위한 Signed URL을 발급받습니다.
+                    
+                    ## 주의사항
+                    - 반드시 로그인을 해야 합니다.
+                    - 확장자가 포함된 파일명을 입력해야 합니다 (예: image.png).
+                    - 허용된 확장자(png, jpg, jpeg, webp)만 업로드 가능합니다.
+                    - 일반 사용자는 PROFILE 타입만 업로드 가능하며, 관리자는 모든 타입(PROFILE, ITEM, BACKGROUND, PET) 업로드 가능합니다.
+                    """
+    )
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "성공 예시",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ApiResponse.class),
+                            examples = @ExampleObject(value = """
+                                    {
+                                      "isSuccess": true,
+                                      "code": "MEMBER200_8",
+                                      "message": "성공적으로 URL을 발급했습니다.",
+                                      "result": {
+                                        "fileName": "550e8400-e29b-41d4-a716-446655440000.png",
+                                        "signedUrl": "https://storage.googleapis.com/vocabook-bucket/profile/550e8400-e29b-41d4-a716-446655440000.png?X-Goog-Algorithm=GOOG4-RSA-SHA256...",
+                                        "photoType": "PROFILE"
+                                      }
+                                    }
+                                    """)
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "400",
+                    description = "실패 - 지원하지 않는 파일 형식 또는 권한 없는 타입",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ApiResponse.class),
+                            examples = @ExampleObject(value = """
+                                    {
+                                      "isSuccess": false,
+                                      "code": "MEMBER400_6",
+                                      "message": "지원하지 않는 파일 형식이거나 권한이 없는 타입입니다.",
+                                      "result": null
+                                    }
+                                    """)
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "401",
+                    description = "실패 - 로그인이 필요한 경우",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ApiResponse.class),
+                            examples = @ExampleObject(value = """
+                                    {
+                                      "isSuccess": false,
+                                      "code": "COMMON401_1",
+                                      "message": "인증이 필요합니다.",
+                                      "result": null
+                                    }
+                                    """)
+                    )
+            )
+    })
+    @Parameter(
+            name = "fileName",
+            description = "업로드할 파일명 (확장자 포함)",
+            example = "profile.png",
+            required = true
+    )
+    @Parameter(
+            name = "photoType",
+            description = "사진 타입 (PROFILE, ITEM, BACKGROUND, PET)",
+            example = "PROFILE",
+            required = true
+    )
+    ApiResponse<MemberResDTO.CreateSignedUri> createSignedUri(
+            @AuthenticationPrincipal AuthMember auth,
+            @RequestParam String fileName,
+            @RequestParam PhotoType photoType
+    );
+
+    // 사진 업로드 완료
+    @Operation(
+            summary = "사진 업로드 완료 API By 김주헌",
+            description = """
+                    # 사진 업로드 완료
+                    Signed URL을 통해 GCS에 업로드를 마친 후, 해당 파일명을 서버에 등록(완료) 처리합니다.
+                    
+                    ## 주의사항
+                    - 반드시 로그인을 해야 합니다.
+                    - 발급받았던 uuid 형태의 파일명(fileName)을 정확히 입력해야 합니다.
+                    - PROFILE 변경 시 targetId는 필요하지 않지만, 다른 타입(ITEM, BACKGROUND, PET)은 대상 targetId가 필수입니다.
+                    """
+    )
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "성공 예시",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ApiResponse.class),
+                            examples = @ExampleObject(value = """
+                                    {
+                                      "isSuccess": true,
+                                      "code": "MEMBER200_9",
+                                      "message": "성공적으로 이미지를 등록했습니다.",
+                                      "result": {
+                                        "objectName": "profile/550e8400-e29b-41d4-a716-446655440000.png",
+                                        "publicUrl": "https://storage.googleapis.com/vocabook-bucket/profile/550e8400-e29b-41d4-a716-446655440000.png"
+                                      }
+                                    }
+                                    """)
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "400",
+                    description = "실패 - 대상 ID가 없는 경우",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ApiResponse.class),
+                            examples = @ExampleObject(value = """
+                                    {
+                                      "isSuccess": false,
+                                      "code": "MEMBER400_7",
+                                      "message": "대상 ID가 필요합니다.",
+                                      "result": null
+                                    }
+                                    """)
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "404",
+                    description = "실패 - 업로드된 파일을 찾지 못했거나 대상을 찾지 못한 경우",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ApiResponse.class),
+                            examples = @ExampleObject(value = """
+                                    {
+                                      "isSuccess": false,
+                                      "code": "MEMBER404_3",
+                                      "message": "업로드된 파일을 찾지 못했거나 등록 대상을 찾지 못했습니다.",
+                                      "result": null
+                                    }
+                                    """)
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "401",
+                    description = "실패 - 로그인이 필요한 경우",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ApiResponse.class),
+                            examples = @ExampleObject(value = """
+                                    {
+                                      "isSuccess": false,
+                                      "code": "COMMON401_1",
+                                      "message": "인증이 필요합니다.",
+                                      "result": null
+                                    }
+                                    """)
+                    )
+            )
+    })
+    @Parameter(
+            name = "fileName",
+            description = "발급받았던 UUID 파일명",
+            example = "550e8400-e29b-41d4-a716-446655440000.png",
+            required = true
+    )
+    @Parameter(
+            name = "photoType",
+            description = "사진 타입 (PROFILE, ITEM, BACKGROUND, PET)",
+            example = "PROFILE",
+            required = true
+    )
+    @Parameter(
+            name = "targetId",
+            description = "등록 대상 ID (PROFILE 외의 타입에 필수)",
+            example = "1",
+            required = false
+    )
+    ApiResponse<MemberResDTO.UploadImage> uploadImage(
+            @AuthenticationPrincipal AuthMember auth,
+            @RequestParam String fileName,
+            @RequestParam PhotoType photoType,
+            @RequestParam(required = false) Long targetId
     );
 }

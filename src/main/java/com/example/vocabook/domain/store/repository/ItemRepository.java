@@ -8,9 +8,9 @@ import org.springframework.data.jpa.repository.Query;
 
 public interface ItemRepository extends JpaRepository<Item, Long> {
 
-    boolean existsByItemType(ItemType itemType);
+	boolean existsByItemType(ItemType itemType);
 
-    @Modifying
-    @Query(value = "DELETE FROM item WHERE item_type IN ('PET_FOOD_PREMIUM', 'PET_FOOD_BASIC')", nativeQuery = true)
-    void deleteObsoleteItems();
+	@Modifying
+	@Query(value = "DELETE FROM item WHERE item_type IN ('PET_FOOD_PREMIUM', 'PET_FOOD_BASIC')", nativeQuery = true)
+	void deleteObsoleteItems();
 }
