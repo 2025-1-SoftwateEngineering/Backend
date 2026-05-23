@@ -210,9 +210,58 @@ public class StoreServiceTest {
 		assertEquals(StoreErrorCode.ITEM_NOT_OWNED, ex.getCode());
 	}
 
-	@Disabled("비소모템 ItemType 추가 시 활성화")
 	@Test
 	@DisplayName("중복 구매 불가 아이템 - 이미 보유 중이면 예외")
 	void purchaseItem_AlreadyOwned_NotAllowDuplicate() {
+		Item bgItem = Item.builder()
+				.id(3L)
+				.name("펫 배경 1")
+				.price(100L)
+				.itemType(ItemType.PET_BG_1)
+				.build();
+		MemberItem existing = MemberItem.builder()
+				.id(20L).member(member).item(bgItem).count(1L).build();
+
+		given(itemRepository.findById(3L)).willReturn(Optional.of(bgItem));
+		given(memberRepository.findByIdWithLock(1L)).willReturn(Optional.of(member));
+		given(memberItemRepository.findByMemberAndItem(member, bgItem)).willReturn(Optional.of(existing));
+
+		StoreException ex = assertThrows(StoreException.class,
+				() -> storeService.purchaseItem(3L, authMember));
+
+		assertEquals(StoreErrorCode.ITEM_ALREADY_OWNED, ex.getCode());
+	}
+
+	@Test
+	@DisplayName("아이템 구매 성공 - 코인이 정확히 아이템 가격과 같을 때")
+	void purchaseItem_Success_ExactCoins() {
+		Item exactPriceItem = Item.builder()
+				.id(4L)
+				.name("딱 맞는 아이템")
+				.price(200L)
+				.itemType(ItemType.PET_FOOD)
+				.build();
+
+		given(itemRepository.findById(4L)).willReturn(Optional.of(exactPriceItem));
+		given(memberRepository.findByIdWithLock(1L)).willReturn(Optional.of(member));
+		given(memberItemRepository.findByMemberAndItem(member, exactPriceItem)).willReturn(Optional.empty());
+		given(memberItemRepository.save(any())).willReturn(
+				MemberItem.builder().id(11L).member(member).item(exactPriceItem).count(1L).build());
+
+		StoreResDTO.PurchaseResult result = storeService.purchaseItem(4L, authMember);
+
+		assertEquals(0L, result.remainingCoins());
+	}
+
+	@Test
+	@DisplayName("아이템 사용 실패 - 존재하지 않는 아이템 ID")
+	void useItem_ItemNotFound() {
+		given(memberRepository.findById(1L)).willReturn(Optional.of(member));
+		given(itemRepository.findById(99L)).willReturn(Optional.empty());
+
+		StoreException ex = assertThrows(StoreException.class,
+				() -> storeService.useItem(99L, authMember, null));
+
+		assertEquals(StoreErrorCode.ITEM_NOT_FOUND, ex.getCode());
 	}
 }

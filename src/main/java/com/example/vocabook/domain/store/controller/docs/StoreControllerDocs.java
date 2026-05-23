@@ -44,20 +44,21 @@ public interface StoreControllerDocs {
 									  "message": "상점 아이템 목록을 성공적으로 불러왔습니다.",
 									  "result": {
 									    "items": [
-									      {
-									        "itemId": 1,
-									        "name": "연속학습 파괴 방어권",
-									        "price": 100,
-									        "itemType": "STREAK_FREEZE"
-									      },
-									      {
-									        "itemId": 2,
-									        "name": "사료 (기본)",
-									        "price": 50,
-									        "itemType": "PET_FOOD"
-									      }
+									      { "itemId": 1, "name": "연속학습 파괴 방어권", "price": 500, "itemType": "STREAK_FREEZE" },
+									      { "itemId": 2, "name": "사료", "price": 100, "itemType": "PET_FOOD" },
+									      { "itemId": 3, "name": "물", "price": 65, "itemType": "PET_WATER" },
+									      { "itemId": 4, "name": "사지선다 시간 +10초", "price": 100, "itemType": "CHOICE_TIME_10" },
+									      { "itemId": 5, "name": "사지선다 시간 +30초", "price": 200, "itemType": "CHOICE_TIME_30" },
+									      { "itemId": 6, "name": "십자말풀이 시작 힌트", "price": 180, "itemType": "CROSSWORD_HINT_START" },
+									      { "itemId": 7, "name": "십자말풀이 중간 힌트", "price": 220, "itemType": "CROSSWORD_HINT_MIDDLE" },
+									      { "itemId": 8, "name": "펫 배경 1", "price": 200, "itemType": "PET_BG_1" },
+									      { "itemId": 9, "name": "펫 배경 2", "price": 500, "itemType": "PET_BG_2" },
+									      { "itemId": 10, "name": "프로필 사진 1", "price": 300, "itemType": "PROFILE_PHOTO_1" },
+									      { "itemId": 11, "name": "프로필 사진 2", "price": 300, "itemType": "PROFILE_PHOTO_2" },
+									      { "itemId": 12, "name": "프로필 배경 1", "price": 200, "itemType": "PROFILE_BG_1" },
+									      { "itemId": 13, "name": "프로필 배경 2", "price": 200, "itemType": "PROFILE_BG_2" }
 									    ],
-									    "totalCount": 2
+									    "totalCount": 13
 									  }
 									}
 									""")
@@ -224,17 +225,17 @@ public interface StoreControllerDocs {
 									        "item": {
 									          "itemId": 1,
 									          "name": "연속학습 파괴 방어권",
-									          "price": 100,
+									          "price": 500,
 									          "itemType": "STREAK_FREEZE"
 									        },
 									        "count": 2
 									      },
 									      {
 									        "item": {
-									          "itemId": 2,
-									          "name": "사료",
-									          "price": 100,
-									          "itemType": "PET_FOOD"
+									          "itemId": 10,
+									          "name": "프로필 사진 1",
+									          "price": 300,
+									          "itemType": "PROFILE_PHOTO_1"
 									        },
 									        "count": 1
 									      }
@@ -277,6 +278,8 @@ public interface StoreControllerDocs {
 					- CROSSWORD_HINT_START, CROSSWORD_HINT_MIDDLE 아이템 사용 시 RequestBody에 contextId(CrosswordHint ID) 필수
 					- CHOICE_TIME_10, CHOICE_TIME_30 아이템: 같은 종류 중복 사용 불가 (10+10, 30+30 차단, 10+30 허용)
 					- CROSSWORD_HINT: 같은 단어에 같은 힌트 종류 중복 사용 불가 (START+START 차단, START+MIDDLE 허용)
+					- PROFILE_PHOTO_1, PROFILE_PHOTO_2: 사용 시 멤버의 프로필 사진이 해당 스타일로 변경됨
+					- PROFILE_BG_1, PROFILE_BG_2: 사용 시 멤버의 프로필 배경이 해당 스타일로 변경됨
 
 					## 응답
 					- 사용한 아이템 이름 및 동일 아이템 잔여 개수 반환

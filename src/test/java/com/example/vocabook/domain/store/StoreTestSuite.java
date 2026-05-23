@@ -2,6 +2,9 @@ package com.example.vocabook.domain.store;
 
 import com.example.vocabook.domain.store.service.ChoiceTimeBonusStrategyTest;
 import com.example.vocabook.domain.store.service.CrosswordHintStrategyTest;
+import com.example.vocabook.domain.store.service.PetFoodStrategyTest;
+import com.example.vocabook.domain.store.service.PetWaterStrategyTest;
+import com.example.vocabook.domain.store.service.ProfileDecorationStrategyTest;
 import com.example.vocabook.domain.store.service.StoreServiceTest;
 import org.junit.platform.suite.api.SelectClasses;
 import org.junit.platform.suite.api.Suite;
@@ -12,7 +15,10 @@ import org.junit.platform.suite.api.SuiteDisplayName;
 @SelectClasses({
 		StoreServiceTest.class,
 		ChoiceTimeBonusStrategyTest.class,
-		CrosswordHintStrategyTest.class
+		CrosswordHintStrategyTest.class,
+		PetFoodStrategyTest.class,
+		PetWaterStrategyTest.class,
+		ProfileDecorationStrategyTest.class
 })
 public class StoreTestSuite {
 }

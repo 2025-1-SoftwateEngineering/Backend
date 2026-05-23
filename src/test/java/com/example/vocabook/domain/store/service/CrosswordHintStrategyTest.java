@@ -211,4 +211,15 @@ public class CrosswordHintStrategyTest {
 		assertTrue(result.isPresent());
 		assertEquals("P", result.get().letter());
 	}
+
+	@Test
+	@DisplayName("존재하지 않는 crosswordHintId - ITEM_NOT_FOUND 예외")
+	void apply_InvalidContextId_Throws() {
+		MemberItem memberItem = buildMemberItem(ItemType.CROSSWORD_HINT_START);
+		given(crosswordHintRepository.findByIdWithCrossword(999L)).willReturn(Optional.empty());
+
+		StoreException ex = assertThrows(StoreException.class,
+				() -> strategy.apply(member, memberItem, 999L));
+		assertEquals(StoreErrorCode.ITEM_NOT_FOUND, ex.getCode());
+	}
 }

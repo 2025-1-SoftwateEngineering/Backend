@@ -120,4 +120,15 @@ public class ChoiceTimeBonusStrategyTest {
 		assertTrue(result.isEmpty());
 		verify(redisUtil).save(eq("bonus:choiceTime:30:1"), eq(30), eq(Duration.ofHours(1)));
 	}
+
+	@Test
+	@DisplayName("CHOICE_TIME_30 중복 사용 차단 - 동일 아이템 이미 활성화 중")
+	void apply_Time30_Duplicate_Throws() {
+		MemberItem memberItem = buildMemberItem(ItemType.CHOICE_TIME_30);
+		given(redisUtil.hasKey("bonus:choiceTime:30:1")).willReturn(true);
+
+		StoreException ex = assertThrows(StoreException.class,
+				() -> strategy.apply(member, memberItem, null));
+		assertEquals(StoreErrorCode.CHOICE_TIME_ALREADY_ACTIVE, ex.getCode());
+	}
 }
