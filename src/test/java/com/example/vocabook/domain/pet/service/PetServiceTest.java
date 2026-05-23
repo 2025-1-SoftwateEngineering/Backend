@@ -66,7 +66,7 @@ public class PetServiceTest {
 	void getPet_Success() {
 		given(memberRepository.findById(1L)).willReturn(Optional.of(member));
 		given(memberPetRepository.findByMember(member)).willReturn(Optional.of(memberPet));
-		given(memberItemRepository.countByMemberAndItem_ItemType(member, ItemType.PET_FOOD_BASIC)).willReturn(2L);
+		given(memberItemRepository.countByMemberAndItem_ItemType(member, ItemType.PET_FOOD)).willReturn(2L);
 		given(memberItemRepository.countByMemberAndItem_ItemType(member, ItemType.PET_WATER)).willReturn(1L);
 
 		PetResDTO.PetInfo result = petService.getPet(authMember);

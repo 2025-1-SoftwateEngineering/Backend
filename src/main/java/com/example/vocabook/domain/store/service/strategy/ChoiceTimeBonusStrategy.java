@@ -2,43 +2,41 @@ package com.example.vocabook.domain.store.service.strategy;
 
 import com.example.vocabook.domain.member.entity.Member;
 import com.example.vocabook.domain.member.entity.mapping.MemberItem;
-import com.example.vocabook.domain.member.entity.mapping.MemberPet;
-import com.example.vocabook.domain.pet.exception.PetException;
-import com.example.vocabook.domain.pet.exception.code.PetErrorCode;
-import com.example.vocabook.domain.pet.repository.MemberPetRepository;
 import com.example.vocabook.domain.store.dto.StoreResDTO;
 import com.example.vocabook.domain.store.enums.ItemType;
 import com.example.vocabook.domain.store.exception.StoreException;
 import com.example.vocabook.domain.store.exception.code.StoreErrorCode;
+import com.example.vocabook.global.util.RedisUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
+import java.time.Duration;
 import java.util.Optional;
 
 @Component
 @Order(1)
 @RequiredArgsConstructor
-public class PetBgStrategy implements ItemUseStrategy {
+public class ChoiceTimeBonusStrategy implements ItemUseStrategy {
 
-	private final MemberPetRepository memberPetRepository;
+	private final RedisUtil redisUtil;
 
 	@Override
 	public boolean supports(ItemType itemType) {
-		return itemType == ItemType.PET_BG_1 || itemType == ItemType.PET_BG_2;
+		return itemType == ItemType.CHOICE_TIME_10 || itemType == ItemType.CHOICE_TIME_30;
 	}
 
 	@Override
 	public Optional<StoreResDTO.HintResult> apply(Member member, MemberItem memberItem, Long contextId) {
-		MemberPet pet = memberPetRepository.findByMember(member)
-				.orElseThrow(() -> new PetException(PetErrorCode.PET_NOT_FOUND));
-
 		ItemType itemType = memberItem.getItem().getItemType();
-		if (itemType == pet.getActiveBackground()) {
-			throw new StoreException(StoreErrorCode.DECORATION_ALREADY_EQUIPPED);
+		int bonus = itemType == ItemType.CHOICE_TIME_10 ? 10 : 30;
+		String redisKey = "bonus:choiceTime:" + bonus + ":" + member.getId();
+
+		if (redisUtil.hasKey(redisKey)) {
+			throw new StoreException(StoreErrorCode.CHOICE_TIME_ALREADY_ACTIVE);
 		}
 
-		pet.changeBackground(itemType);
+		redisUtil.save(redisKey, bonus, Duration.ofHours(1));
 		return Optional.empty();
 	}
 }

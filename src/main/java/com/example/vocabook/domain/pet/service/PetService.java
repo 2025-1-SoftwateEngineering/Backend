@@ -28,7 +28,7 @@ public class PetService {
 		Member member = memberRepository.findById(authMember.getMember().getId()).orElseThrow();
 		MemberPet pet = memberPetRepository.findByMember(member)
 				.orElseThrow(() -> new PetException(PetErrorCode.PET_NOT_FOUND));
-		long foodCount = memberItemRepository.countByMemberAndItem_ItemType(member, ItemType.PET_FOOD_BASIC);
+		long foodCount = memberItemRepository.countByMemberAndItem_ItemType(member, ItemType.PET_FOOD);
 		long waterCount = memberItemRepository.countByMemberAndItem_ItemType(member, ItemType.PET_WATER);
 		return PetConverter.toPetInfo(pet, foodCount, waterCount);
 	}
@@ -43,7 +43,7 @@ public class PetService {
 				.member(member)
 				.build();
 		MemberPet savedPet = memberPetRepository.save(pet);
-		long foodCount = memberItemRepository.countByMemberAndItem_ItemType(member, ItemType.PET_FOOD_BASIC);
+		long foodCount = memberItemRepository.countByMemberAndItem_ItemType(member, ItemType.PET_FOOD);
 		long waterCount = memberItemRepository.countByMemberAndItem_ItemType(member, ItemType.PET_WATER);
 		return PetConverter.toPetInfo(savedPet, foodCount, waterCount);
 	}

@@ -25,8 +25,9 @@ public class StoreResDTO {
 
 	@Builder
 	public record MyItemInfo(
-			Long memberItemId,
-			ItemInfo item
+			ItemInfo item,
+			Long count,
+			boolean isEquipped
 	) {
 	}
 
@@ -46,9 +47,17 @@ public class StoreResDTO {
 
 	@Builder
 	public record UseResult(
-			Long memberItemId,
 			String itemName,
-			Long remainingCount
+			Long remainingCount,
+			HintResult hintResult
+	) {
+	}
+
+	@Builder
+	public record HintResult(
+			String letter,
+			int verticalStartPoint,
+			int horizontalStartPoint
 	) {
 	}
 }

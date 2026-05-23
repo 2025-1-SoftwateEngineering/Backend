@@ -4,22 +4,37 @@ import com.example.vocabook.domain.member.entity.Member;
 import com.example.vocabook.domain.member.entity.mapping.MemberItem;
 import com.example.vocabook.domain.store.entity.Item;
 import com.example.vocabook.domain.store.enums.ItemType;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
 
 public interface MemberItemRepository extends JpaRepository<MemberItem, Long> {
-    Optional<MemberItem> findFirstByMemberAndItem_ItemType(Member member, ItemType itemType);
 
-    @EntityGraph(attributePaths = {"item"})
-    List<MemberItem> findByMember(Member member);
+	Optional<MemberItem> findByMemberAndItem(Member member, Item item);
 
-    @EntityGraph(attributePaths = {"item"})
-    Optional<MemberItem> findWithItemById(Long id);
+	@Lock(LockModeType.PESSIMISTIC_WRITE)
+	@Query("SELECT mi FROM MemberItem mi WHERE mi.member = :member AND mi.item = :item")
+	Optional<MemberItem> findByMemberAndItemWithLock(@Param("member") Member member, @Param("item") Item item);
 
-    Optional<MemberItem> findFirstByMemberAndItem(Member member, Item item);
-    long countByMemberAndItem(Member member, Item item);
-    long countByMemberAndItem_ItemType(Member member, ItemType itemType);
+	Optional<MemberItem> findByMemberAndItem_ItemType(Member member, ItemType itemType);
+
+	@EntityGraph(attributePaths = {"item"})
+	List<MemberItem> findByMember(Member member);
+
+	@EntityGraph(attributePaths = {"item"})
+	Optional<MemberItem> findWithItemById(Long id);
+
+	Optional<MemberItem> findFirstByMemberAndItem(Member member, Item item);
+
+	Optional<MemberItem> findFirstByMemberAndItem_ItemType(Member member, ItemType itemType);
+
+	long countByMemberAndItem(Member member, Item item);
+
+	long countByMemberAndItem_ItemType(Member member, ItemType itemType);
 }
