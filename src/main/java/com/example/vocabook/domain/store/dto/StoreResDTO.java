@@ -26,7 +26,8 @@ public class StoreResDTO {
 	@Builder
 	public record MyItemInfo(
 			ItemInfo item,
-			Long count
+			Long count,
+			boolean isEquipped
 	) {
 	}
 

@@ -4,6 +4,8 @@ import com.example.vocabook.domain.member.entity.Member;
 import com.example.vocabook.domain.member.entity.mapping.MemberItem;
 import com.example.vocabook.domain.store.dto.StoreResDTO;
 import com.example.vocabook.domain.store.enums.ItemType;
+import com.example.vocabook.domain.store.exception.StoreException;
+import com.example.vocabook.domain.store.exception.code.StoreErrorCode;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
@@ -23,7 +25,19 @@ public class ProfileDecorationStrategy implements ItemUseStrategy {
 
 	@Override
 	public Optional<StoreResDTO.HintResult> apply(Member member, MemberItem memberItem, Long contextId) {
-		member.applyProfileDecoration(memberItem.getItem().getItemType());
+		ItemType itemType = memberItem.getItem().getItemType();
+
+		if (itemType == ItemType.PROFILE_PHOTO_1 || itemType == ItemType.PROFILE_PHOTO_2) {
+			if (itemType == member.getActiveProfilePhoto()) {
+				throw new StoreException(StoreErrorCode.DECORATION_ALREADY_EQUIPPED);
+			}
+		} else {
+			if (itemType == member.getActiveProfileBg()) {
+				throw new StoreException(StoreErrorCode.DECORATION_ALREADY_EQUIPPED);
+			}
+		}
+
+		member.applyProfileDecoration(itemType);
 		return Optional.empty();
 	}
 }

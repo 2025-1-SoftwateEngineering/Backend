@@ -2,6 +2,7 @@ package com.example.vocabook.domain.store;
 
 import com.example.vocabook.domain.store.service.ChoiceTimeBonusStrategyTest;
 import com.example.vocabook.domain.store.service.CrosswordHintStrategyTest;
+import com.example.vocabook.domain.store.service.PetBgStrategyTest;
 import com.example.vocabook.domain.store.service.PetFoodStrategyTest;
 import com.example.vocabook.domain.store.service.PetWaterStrategyTest;
 import com.example.vocabook.domain.store.service.ProfileDecorationStrategyTest;
@@ -16,6 +17,7 @@ import org.junit.platform.suite.api.SuiteDisplayName;
 		StoreServiceTest.class,
 		ChoiceTimeBonusStrategyTest.class,
 		CrosswordHintStrategyTest.class,
+		PetBgStrategyTest.class,
 		PetFoodStrategyTest.class,
 		PetWaterStrategyTest.class,
 		ProfileDecorationStrategyTest.class

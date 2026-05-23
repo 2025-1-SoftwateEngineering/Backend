@@ -4,9 +4,11 @@ import com.example.vocabook.domain.member.entity.Member;
 import com.example.vocabook.domain.member.entity.mapping.MemberItem;
 import com.example.vocabook.domain.member.repository.MemberItemRepository;
 import com.example.vocabook.domain.member.repository.MemberRepository;
+import com.example.vocabook.domain.pet.repository.MemberPetRepository;
 import com.example.vocabook.domain.store.converter.StoreConverter;
 import com.example.vocabook.domain.store.dto.StoreResDTO;
 import com.example.vocabook.domain.store.entity.Item;
+import com.example.vocabook.domain.store.enums.ItemType;
 import com.example.vocabook.domain.store.exception.StoreException;
 import com.example.vocabook.domain.store.exception.code.StoreErrorCode;
 import com.example.vocabook.domain.store.repository.ItemRepository;
@@ -16,8 +18,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -27,6 +31,7 @@ public class StoreService {
 	private final ItemRepository itemRepository;
 	private final MemberItemRepository memberItemRepository;
 	private final MemberRepository memberRepository;
+	private final MemberPetRepository memberPetRepository;
 	private final List<ItemUseStrategy> itemUseStrategies;
 
 	public StoreResDTO.ItemList getItemList() {
@@ -66,7 +71,15 @@ public class StoreService {
 		Member member = memberRepository.findById(authMember.getMember().getId())
 								.orElseThrow();
 		List<MemberItem> memberItems = memberItemRepository.findByMember(member);
-		return StoreConverter.toMyItemList(memberItems);
+
+		Set<ItemType> equippedTypes = EnumSet.noneOf(ItemType.class);
+		if (member.getActiveProfilePhoto() != null) equippedTypes.add(member.getActiveProfilePhoto());
+		if (member.getActiveProfileBg() != null) equippedTypes.add(member.getActiveProfileBg());
+		memberPetRepository.findByMember(member)
+				.map(pet -> pet.getActiveBackground())
+				.ifPresent(equippedTypes::add);
+
+		return StoreConverter.toMyItemList(memberItems, equippedTypes);
 	}
 
 	@Transactional
@@ -86,11 +99,15 @@ public class StoreService {
 										   .orElseThrow(() -> new StoreException(StoreErrorCode.ITEM_NOT_FOUND));
 
 		long remaining;
-		if (memberItem.getCount() <= 1) {
-			memberItemRepository.delete(memberItem);
-			remaining = 0;
+		if (item.getItemType().isAllowDuplicate()) {
+			if (memberItem.getCount() <= 1) {
+				memberItemRepository.delete(memberItem);
+				remaining = 0;
+			} else {
+				remaining = memberItem.decreaseCount();
+			}
 		} else {
-			remaining = memberItem.decreaseCount();
+			remaining = memberItem.getCount();
 		}
 
 		Optional<StoreResDTO.HintResult> hint = strategy.apply(member, memberItem, contextId);

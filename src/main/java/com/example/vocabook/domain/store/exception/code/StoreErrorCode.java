@@ -16,7 +16,8 @@ public enum StoreErrorCode implements BaseErrorCode {
 	CROSSWORD_HINT_CONTEXT_REQUIRED(HttpStatus.BAD_REQUEST, "STORE400_3", "힌트 아이템 사용 시 contextId가 필요합니다."),
 	CROSSWORD_NOT_IN_PROGRESS(HttpStatus.BAD_REQUEST, "STORE400_4", "진행 중인 십자말풀이가 없습니다."),
 	CHOICE_TIME_ALREADY_ACTIVE(HttpStatus.BAD_REQUEST, "STORE400_5", "동일한 시간 보너스 아이템이 이미 활성화 중입니다."),
-	HINT_ALREADY_USED(HttpStatus.BAD_REQUEST, "STORE400_6", "해당 단어에 같은 힌트를 이미 사용했습니다.");
+	HINT_ALREADY_USED(HttpStatus.BAD_REQUEST, "STORE400_6", "해당 단어에 같은 힌트를 이미 사용했습니다."),
+	DECORATION_ALREADY_EQUIPPED(HttpStatus.BAD_REQUEST, "STORE400_7", "이미 장착 중인 아이템입니다.");
 
 	private final HttpStatus status;
 	private final String code;

@@ -39,6 +39,8 @@ public class StoreServiceTest {
 	private MemberItemRepository memberItemRepository;
 	@Mock
 	private MemberRepository memberRepository;
+	@Mock
+	private com.example.vocabook.domain.pet.repository.MemberPetRepository memberPetRepository;
 
 	private StoreService storeService;
 
@@ -50,7 +52,7 @@ public class StoreServiceTest {
 	@BeforeEach
 	void setUp() {
 		List<ItemUseStrategy> strategies = List.of(new DefaultItemUseStrategy());
-		storeService = new StoreService(itemRepository, memberItemRepository, memberRepository, strategies);
+		storeService = new StoreService(itemRepository, memberItemRepository, memberRepository, memberPetRepository, strategies);
 
 		member = Member.builder()
 						 .id(1L)
@@ -152,17 +154,40 @@ public class StoreServiceTest {
 	}
 
 	@Test
-	@DisplayName("보유 아이템 목록 조회 성공")
-	void getMyItems_Success() {
+	@DisplayName("보유 아이템 목록 조회 성공 - 소모성 아이템은 isEquipped=false")
+	void getMyItems_Success_ConsumableIsNotEquipped() {
 		given(memberRepository.findById(1L)).willReturn(Optional.of(member));
 		given(memberItemRepository.findByMember(member)).willReturn(List.of(memberItem));
+		given(memberPetRepository.findByMember(member)).willReturn(Optional.empty());
 
 		StoreResDTO.MyItemList result = storeService.getMyItems(authMember);
 
 		assertNotNull(result);
 		assertEquals(1, result.totalCount());
 		assertEquals("연속학습 파괴 방어권", result.items().get(0).item().name());
-		assertEquals(1L, result.items().get(0).count());
+		assertFalse(result.items().get(0).isEquipped());
+	}
+
+	@Test
+	@DisplayName("보유 아이템 목록 조회 - 장착 중인 치장 아이템은 isEquipped=true")
+	void getMyItems_DecorationItem_IsEquipped() {
+		Item bgItem = Item.builder()
+				.id(3L).name("펫 배경 1").price(200L).itemType(ItemType.PET_BG_1).build();
+		MemberItem bgMemberItem = MemberItem.builder()
+				.id(20L).member(member).item(bgItem).count(1L).build();
+
+		com.example.vocabook.domain.member.entity.mapping.MemberPet pet =
+				com.example.vocabook.domain.member.entity.mapping.MemberPet.builder()
+						.id(1L).member(member).build();
+		pet.changeBackground(ItemType.PET_BG_1);
+
+		given(memberRepository.findById(1L)).willReturn(Optional.of(member));
+		given(memberItemRepository.findByMember(member)).willReturn(List.of(bgMemberItem));
+		given(memberPetRepository.findByMember(member)).willReturn(Optional.of(pet));
+
+		StoreResDTO.MyItemList result = storeService.getMyItems(authMember);
+
+		assertTrue(result.items().get(0).isEquipped());
 	}
 
 	@Test
@@ -263,5 +288,27 @@ public class StoreServiceTest {
 				() -> storeService.useItem(99L, authMember, null));
 
 		assertEquals(StoreErrorCode.ITEM_NOT_FOUND, ex.getCode());
+	}
+
+	@Test
+	@DisplayName("비소모성 아이템 사용 시 count가 유지됨 (삭제되지 않음)")
+	void useItem_NonConsumable_CountNotDecreased() {
+		Item bgItem = Item.builder()
+				.id(3L)
+				.name("펫 배경 1")
+				.price(200L)
+				.itemType(ItemType.PET_BG_1)
+				.build();
+		MemberItem bgMemberItem = MemberItem.builder()
+				.id(20L).member(member).item(bgItem).count(1L).build();
+
+		given(memberRepository.findById(1L)).willReturn(Optional.of(member));
+		given(itemRepository.findById(3L)).willReturn(Optional.of(bgItem));
+		given(memberItemRepository.findByMemberAndItemWithLock(member, bgItem)).willReturn(Optional.of(bgMemberItem));
+
+		StoreResDTO.UseResult result = storeService.useItem(3L, authMember, null);
+
+		assertEquals(1L, result.remainingCount());
+		assertEquals(1L, bgMemberItem.getCount());
 	}
 }

@@ -5,6 +5,8 @@ import com.example.vocabook.domain.member.entity.mapping.MemberItem;
 import com.example.vocabook.domain.store.dto.StoreResDTO;
 import com.example.vocabook.domain.store.entity.Item;
 import com.example.vocabook.domain.store.enums.ItemType;
+import com.example.vocabook.domain.store.exception.StoreException;
+import com.example.vocabook.domain.store.exception.code.StoreErrorCode;
 import com.example.vocabook.domain.store.service.strategy.ProfileDecorationStrategy;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -117,6 +119,44 @@ public class ProfileDecorationStrategyTest {
 		strategy.apply(member, buildMemberItem(ItemType.PROFILE_BG_2), null);
 
 		assertEquals(ItemType.PROFILE_PHOTO_1, member.getActiveProfilePhoto());
+		assertEquals(ItemType.PROFILE_BG_2, member.getActiveProfileBg());
+	}
+
+	@Test
+	@DisplayName("이미 장착 중인 사진 아이템 재사용 시 예외")
+	void apply_SamePhoto_AlreadyEquipped_Throws() {
+		strategy.apply(member, buildMemberItem(ItemType.PROFILE_PHOTO_1), null);
+
+		StoreException ex = assertThrows(StoreException.class,
+				() -> strategy.apply(member, buildMemberItem(ItemType.PROFILE_PHOTO_1), null));
+		assertEquals(StoreErrorCode.DECORATION_ALREADY_EQUIPPED, ex.getCode());
+	}
+
+	@Test
+	@DisplayName("이미 장착 중인 배경 아이템 재사용 시 예외")
+	void apply_SameBg_AlreadyEquipped_Throws() {
+		strategy.apply(member, buildMemberItem(ItemType.PROFILE_BG_1), null);
+
+		StoreException ex = assertThrows(StoreException.class,
+				() -> strategy.apply(member, buildMemberItem(ItemType.PROFILE_BG_1), null));
+		assertEquals(StoreErrorCode.DECORATION_ALREADY_EQUIPPED, ex.getCode());
+	}
+
+	@Test
+	@DisplayName("PHOTO_1 장착 중 PHOTO_2 사용 - 자동 교체됨")
+	void apply_Photo1_ThenPhoto2_AutoReplaces() {
+		strategy.apply(member, buildMemberItem(ItemType.PROFILE_PHOTO_1), null);
+		strategy.apply(member, buildMemberItem(ItemType.PROFILE_PHOTO_2), null);
+
+		assertEquals(ItemType.PROFILE_PHOTO_2, member.getActiveProfilePhoto());
+	}
+
+	@Test
+	@DisplayName("BG_1 장착 중 BG_2 사용 - 자동 교체됨")
+	void apply_Bg1_ThenBg2_AutoReplaces() {
+		strategy.apply(member, buildMemberItem(ItemType.PROFILE_BG_1), null);
+		strategy.apply(member, buildMemberItem(ItemType.PROFILE_BG_2), null);
+
 		assertEquals(ItemType.PROFILE_BG_2, member.getActiveProfileBg());
 	}
 }

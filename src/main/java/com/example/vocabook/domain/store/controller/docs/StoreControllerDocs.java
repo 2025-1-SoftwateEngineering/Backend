@@ -45,8 +45,8 @@ public interface StoreControllerDocs {
 									  "result": {
 									    "items": [
 									      { "itemId": 1, "name": "연속학습 파괴 방어권", "price": 500, "itemType": "STREAK_FREEZE" },
-									      { "itemId": 2, "name": "사료", "price": 100, "itemType": "PET_FOOD" },
-									      { "itemId": 3, "name": "물", "price": 65, "itemType": "PET_WATER" },
+									      { "itemId": 2, "name": "사료", "price": 80, "itemType": "PET_FOOD" },
+									      { "itemId": 3, "name": "물", "price": 50, "itemType": "PET_WATER" },
 									      { "itemId": 4, "name": "사지선다 시간 +10초", "price": 100, "itemType": "CHOICE_TIME_10" },
 									      { "itemId": 5, "name": "사지선다 시간 +30초", "price": 200, "itemType": "CHOICE_TIME_30" },
 									      { "itemId": 6, "name": "십자말풀이 시작 힌트", "price": 180, "itemType": "CROSSWORD_HINT_START" },
@@ -205,6 +205,7 @@ public interface StoreControllerDocs {
 					## 응답
 					- 로그인한 멤버의 보유 아이템 목록 반환
 					- 동일 아이템 여러 개 보유 시 count 필드로 개수 표시
+					- isEquipped: 현재 장착 중인 치장 아이템이면 true (PET_BG, PROFILE_PHOTO, PROFILE_BG), 소모성 아이템은 항상 false
 					"""
 	)
 	@ApiResponses(value = {
@@ -228,7 +229,8 @@ public interface StoreControllerDocs {
 									          "price": 500,
 									          "itemType": "STREAK_FREEZE"
 									        },
-									        "count": 2
+									        "count": 2,
+									        "isEquipped": false
 									      },
 									      {
 									        "item": {
@@ -237,7 +239,8 @@ public interface StoreControllerDocs {
 									          "price": 300,
 									          "itemType": "PROFILE_PHOTO_1"
 									        },
-									        "count": 1
+									        "count": 1,
+									        "isEquipped": true
 									      }
 									    ],
 									    "totalCount": 2
@@ -278,8 +281,7 @@ public interface StoreControllerDocs {
 					- CROSSWORD_HINT_START, CROSSWORD_HINT_MIDDLE 아이템 사용 시 RequestBody에 contextId(CrosswordHint ID) 필수
 					- CHOICE_TIME_10, CHOICE_TIME_30 아이템: 같은 종류 중복 사용 불가 (10+10, 30+30 차단, 10+30 허용)
 					- CROSSWORD_HINT: 같은 단어에 같은 힌트 종류 중복 사용 불가 (START+START 차단, START+MIDDLE 허용)
-					- PROFILE_PHOTO_1, PROFILE_PHOTO_2: 사용 시 멤버의 프로필 사진이 해당 스타일로 변경됨
-					- PROFILE_BG_1, PROFILE_BG_2: 사용 시 멤버의 프로필 배경이 해당 스타일로 변경됨
+					- PROFILE_PHOTO_1/2, PROFILE_BG_1/2, PET_BG_1/2: 이미 장착 중인 아이템 재사용 불가, 다른 아이템 장착 시 기존 아이템 자동 해제
 
 					## 응답
 					- 사용한 아이템 이름 및 동일 아이템 잔여 개수 반환
@@ -392,6 +394,22 @@ public interface StoreControllerDocs {
 									  "isSuccess": false,
 									  "code": "STORE400_6",
 									  "message": "해당 단어에 같은 힌트를 이미 사용했습니다.",
+									  "result": null
+									}
+									""")
+					)
+			),
+			@io.swagger.v3.oas.annotations.responses.ApiResponse(
+					responseCode = "400",
+					description = "실패 - 이미 장착 중인 치장 아이템 재사용",
+					content = @Content(
+							mediaType = "application/json",
+							schema = @Schema(implementation = ApiResponse.class),
+							examples = @ExampleObject(value = """
+									{
+									  "isSuccess": false,
+									  "code": "STORE400_7",
+									  "message": "이미 장착 중인 아이템입니다.",
 									  "result": null
 									}
 									""")

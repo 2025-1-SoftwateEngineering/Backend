@@ -8,6 +8,8 @@ import com.example.vocabook.domain.pet.exception.code.PetErrorCode;
 import com.example.vocabook.domain.pet.repository.MemberPetRepository;
 import com.example.vocabook.domain.store.dto.StoreResDTO;
 import com.example.vocabook.domain.store.enums.ItemType;
+import com.example.vocabook.domain.store.exception.StoreException;
+import com.example.vocabook.domain.store.exception.code.StoreErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
@@ -31,7 +33,12 @@ public class PetBgStrategy implements ItemUseStrategy {
 		MemberPet pet = memberPetRepository.findByMember(member)
 				.orElseThrow(() -> new PetException(PetErrorCode.PET_NOT_FOUND));
 
-		pet.changeBackground(memberItem.getItem().getItemType());
+		ItemType itemType = memberItem.getItem().getItemType();
+		if (itemType == pet.getActiveBackground()) {
+			throw new StoreException(StoreErrorCode.DECORATION_ALREADY_EQUIPPED);
+		}
+
+		pet.changeBackground(itemType);
 		return Optional.empty();
 	}
 }

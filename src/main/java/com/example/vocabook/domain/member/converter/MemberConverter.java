@@ -37,6 +37,8 @@ public class MemberConverter {
                 .streak(member.getStreak())
                 .nickname(member.getNickname())
                 .authorize(member.getAuthorize())
+                .activeProfilePhoto(member.getActiveProfilePhoto())
+                .activeProfileBg(member.getActiveProfileBg())
                 .build();
     }
 
