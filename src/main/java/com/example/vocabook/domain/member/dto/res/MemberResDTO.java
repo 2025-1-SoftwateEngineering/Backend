@@ -67,6 +67,7 @@ public class MemberResDTO {
     public record FriendProfile(
             Long id,
             String nickname,
+            Integer totalWordsLearned,
             Long streak,
             Long coin,
             LocalDateTime loginAt

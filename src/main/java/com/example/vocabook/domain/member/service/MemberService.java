@@ -10,13 +10,11 @@ import com.example.vocabook.domain.member.entity.Friend;
 import com.example.vocabook.domain.member.entity.Member;
 import com.example.vocabook.domain.member.entity.Pet;
 import com.example.vocabook.domain.member.entity.Report;
+import com.example.vocabook.domain.member.entity.mapping.MemberVoca;
 import com.example.vocabook.domain.member.enums.FriendState;
 import com.example.vocabook.domain.member.enums.PhotoType;
 import com.example.vocabook.domain.member.exception.MemberException;
-import com.example.vocabook.domain.member.repository.FriendRepository;
-import com.example.vocabook.domain.member.repository.MemberRepository;
-import com.example.vocabook.domain.member.repository.PetRepository;
-import com.example.vocabook.domain.member.repository.ReportRepository;
+import com.example.vocabook.domain.member.repository.*;
 import com.example.vocabook.domain.store.code.StoreErrorCode;
 import com.example.vocabook.domain.store.entity.Item;
 import com.example.vocabook.domain.store.enums.ItemType;
@@ -47,6 +45,7 @@ public class MemberService {
     private final ItemRepository itemRepository;
     private final PetRepository petRepository;
     private final MemberAlertService memberAlertService;
+    private final MemberVocaRepository memberVocaRepository;
 
     // 내 프로필 조회
     public MemberResDTO.MyProfile getMyProfile(
@@ -300,7 +299,15 @@ public class MemberService {
             throw new MemberException(MemberErrorCode.BLOCKING);
         }
 
-        return MemberConverter.toFriendProfile(friend);
+        // 친구 학습한 단어 개수 카운트
+        List<MemberVoca> friendVoca = memberVocaRepository.findAllByMember(friend);
+
+        Integer totalWordLearned = 0;
+        for (MemberVoca i : friendVoca){
+            totalWordLearned += i.getLearningWordCnt().intValue();
+        }
+
+        return MemberConverter.toFriendProfile(friend, totalWordLearned);
     }
 
     // 사용자 차단

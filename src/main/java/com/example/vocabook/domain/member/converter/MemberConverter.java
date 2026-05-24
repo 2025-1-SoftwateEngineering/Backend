@@ -92,11 +92,13 @@ public class MemberConverter {
 
     // 친구 프로필 조회
     public static MemberResDTO.FriendProfile toFriendProfile(
-            Member friend
+            Member friend,
+            Integer totalWordLearned
     ) {
         return MemberResDTO.FriendProfile.builder()
                 .id(friend.getId())
                 .nickname(friend.getNickname())
+                .totalWordsLearned(totalWordLearned)
                 .coin(friend.getCoin())
                 .streak(friend.getStreak())
                 .loginAt(friend.getLoginAt())
