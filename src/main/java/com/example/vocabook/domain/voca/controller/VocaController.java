@@ -64,7 +64,7 @@ public class VocaController implements VocaControllerDocs {
 		return ApiResponse.onSuccess(VocaSuccessCode.GET_WORDS, vocaService.getWords(vocaId, page, pageSize));
 	}
 
-	@GetMapping("/v1/vocabularies{vocaId}/test")
+	@GetMapping("/v1/vocabularies/{vocaId}/test")
 	public ApiResponse<List<VocaResDTO.TestQuestion>> getTestQuestions(
 			@PathVariable Long vocaId
 	) {
