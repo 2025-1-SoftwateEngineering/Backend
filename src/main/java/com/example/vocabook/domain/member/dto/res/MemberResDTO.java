@@ -18,6 +18,7 @@ public class MemberResDTO {
             Long streak,
             Long coin,
             Authorize authorize,
+            String profileUrl,
             ItemType activeProfilePhoto,
             ItemType activeProfileBg
     ) {}
@@ -66,6 +67,7 @@ public class MemberResDTO {
     public record FriendProfile(
             Long id,
             String nickname,
+            Integer totalWordsLearned,
             Long streak,
             Long coin,
             LocalDateTime loginAt

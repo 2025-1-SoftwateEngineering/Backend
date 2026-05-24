@@ -85,7 +85,7 @@ class MemberControllerTest {
     @DisplayName("내 프로필 조회 성공")
     void getMyProfile_Success() throws Exception {
         // given
-        MemberResDTO.MyProfile response = new MemberResDTO.MyProfile("Tester", "test@example.com", 0L, 0L, Authorize.ROLE_USER, null, null);
+        MemberResDTO.MyProfile response = new MemberResDTO.MyProfile("Tester", "test@example.com", 0L, 0L, Authorize.ROLE_USER, "http://profile.url", null, null);
         given(memberService.getMyProfile(any(AuthMember.class))).willReturn(response);
 
         // when & then
@@ -191,7 +191,7 @@ class MemberControllerTest {
     void getFriendProfile_Success() throws Exception {
         // given
         Long friendId = 2L;
-        MemberResDTO.FriendProfile response = new MemberResDTO.FriendProfile(2L, "Friend", 0L, 0L, LocalDateTime.now());
+        MemberResDTO.FriendProfile response = new MemberResDTO.FriendProfile(2L, "Friend", 0, 0L, 0L, LocalDateTime.now());
         given(memberService.getFriendProfile(any(AuthMember.class), eq(friendId))).willReturn(response);
 
         // when & then
