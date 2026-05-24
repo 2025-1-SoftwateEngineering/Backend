@@ -71,7 +71,7 @@ public class VocaController implements VocaControllerDocs {
 		return ApiResponse.onSuccess(VocaSuccessCode.GET_TEST, vocaService.getTestQuestions(vocaId));
 	}
 
-	@PostMapping("/v1/vocabularies{vocaId}/test/submit")
+	@PostMapping("/v1/vocabularies/{vocaId}/test/submit")
 	public ApiResponse<VocaResDTO.AnswerResult> submitAnswer(
 			@PathVariable Long vocaId,
 			@RequestBody @Valid VocaReqDTO.SubmitAnswer dto
