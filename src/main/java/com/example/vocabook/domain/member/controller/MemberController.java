@@ -49,7 +49,7 @@ public class MemberController implements MemberControllerDocs {
         return ApiResponse.onSuccess(code, memberService.getFriendRequestList(cursor, pageSize, auth));
     }
 
-    // 친구 요청 보내기 (알림 전송해야 함)
+    // 친구 요청 보내기
     @PostMapping("/v1/friends/{friendId}/request")
     public ApiResponse<MemberResDTO.SendFriendRequest> sendFriendRequest(
             @AuthenticationPrincipal AuthMember auth,

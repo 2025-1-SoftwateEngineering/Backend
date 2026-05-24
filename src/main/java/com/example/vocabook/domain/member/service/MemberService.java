@@ -1,12 +1,5 @@
 package com.example.vocabook.domain.member.service;
 
-import com.example.vocabook.domain.alert.code.AlertErrorCode;
-import com.example.vocabook.domain.alert.converter.AlertConverter;
-import com.example.vocabook.domain.alert.entity.Alert;
-import com.example.vocabook.domain.alert.entity.AlertDetail;
-import com.example.vocabook.domain.alert.enums.Repeat;
-import com.example.vocabook.domain.alert.repository.AlertRepository;
-import com.example.vocabook.domain.alert.service.AlertScheduleService;
 import com.example.vocabook.domain.member.code.MemberErrorCode;
 import com.example.vocabook.domain.member.converter.FriendConverter;
 import com.example.vocabook.domain.member.converter.MemberConverter;
@@ -17,13 +10,11 @@ import com.example.vocabook.domain.member.entity.Friend;
 import com.example.vocabook.domain.member.entity.Member;
 import com.example.vocabook.domain.member.entity.Pet;
 import com.example.vocabook.domain.member.entity.Report;
+import com.example.vocabook.domain.member.entity.mapping.MemberVoca;
 import com.example.vocabook.domain.member.enums.FriendState;
 import com.example.vocabook.domain.member.enums.PhotoType;
 import com.example.vocabook.domain.member.exception.MemberException;
-import com.example.vocabook.domain.member.repository.FriendRepository;
-import com.example.vocabook.domain.member.repository.MemberRepository;
-import com.example.vocabook.domain.member.repository.PetRepository;
-import com.example.vocabook.domain.member.repository.ReportRepository;
+import com.example.vocabook.domain.member.repository.*;
 import com.example.vocabook.domain.store.code.StoreErrorCode;
 import com.example.vocabook.domain.store.entity.Item;
 import com.example.vocabook.domain.store.enums.ItemType;
@@ -37,12 +28,10 @@ import com.example.vocabook.global.util.GcsUtil;
 import com.google.cloud.storage.Blob;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.quartz.SchedulerException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 
-import java.time.OffsetDateTime;
 import java.util.List;
 
 @Service
@@ -52,11 +41,11 @@ public class MemberService {
     private final MemberRepository memberRepository;
     private final FriendRepository friendRepository;
     private final ReportRepository reportRepository;
-    private final AlertScheduleService alertScheduleService;
-    private final AlertRepository alertRepository;
     private final GcsUtil gcsUtil;
     private final ItemRepository itemRepository;
     private final PetRepository petRepository;
+    private final MemberAlertService memberAlertService;
+    private final MemberVocaRepository memberVocaRepository;
 
     // 내 프로필 조회
     public MemberResDTO.MyProfile getMyProfile(
@@ -159,25 +148,8 @@ public class MemberService {
         // 친구 요청 생성
         friendRepository.save(FriendConverter.toFriend(auth.getMember(), friend));
 
-        // 친구 FCM 토큰 조회
-        Alert alert = alertRepository.findByMember(friend)
-                .orElseThrow(() -> new MemberException(AlertErrorCode.NOT_FOUND_FCM));
-
-        // AlertDetail 제작
-        AlertDetail alertDetail = AlertConverter
-                .toAlertDetail(
-                        alert,
-                        OffsetDateTime.now().plusMinutes(1),
-                        Repeat.NONE,
-                        auth.getMember().getNickname()+"님이 친구 요청을 보냈습니다. 확인해주세요!"
-                );
-
-        // 알림 스케쥴러 삽입
-        try {
-            alertScheduleService.schedule(alertDetail);
-        } catch (SchedulerException e) {
-            throw new MemberException(AlertErrorCode.FAILED_SET_ALERT);
-        }
+        // 알림 전송 비동기 처리
+        memberAlertService.sendFriendRequestAlert(auth, friend);
 
         return FriendConverter.toFriendRequest(friend);
     }
@@ -327,7 +299,15 @@ public class MemberService {
             throw new MemberException(MemberErrorCode.BLOCKING);
         }
 
-        return MemberConverter.toFriendProfile(friend);
+        // 친구 학습한 단어 개수 카운트
+        List<MemberVoca> friendVoca = memberVocaRepository.findAllByMember(friend);
+
+        Integer totalWordLearned = 0;
+        for (MemberVoca i : friendVoca){
+            totalWordLearned += i.getLearningWordCnt().intValue();
+        }
+
+        return MemberConverter.toFriendProfile(friend, totalWordLearned);
     }
 
     // 사용자 차단

@@ -167,7 +167,7 @@ public class VocaControllerTest {
         given(vocaService.getTestQuestions(1L)).willReturn(List.of(question));
 
         // when & then
-        mockMvc.perform(get("/api/v1/vocabularies1/test"))
+        mockMvc.perform(get("/api/v1/vocabularies/1/test"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.isSuccess").value(true))
                 .andExpect(jsonPath("$.result[0].meaning").value("사과"));
@@ -183,7 +183,7 @@ public class VocaControllerTest {
         given(vocaService.submitAnswer(eq(1L), any())).willReturn(response);
 
         // when & then
-        mockMvc.perform(post("/api/v1/vocabularies1/test/submit")
+        mockMvc.perform(post("/api/v1/vocabularies/1/test/submit")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"wordId\":1,\"answer\":\"apple\"}"))
                 .andExpect(status().isOk())
@@ -271,7 +271,7 @@ public class VocaControllerTest {
     @Test
     @DisplayName("즉시 채점 API - body 없이 요청하면 400")
     void submitAnswer_NoBody_BadRequest() throws Exception {
-        mockMvc.perform(post("/api/v1/vocabularies1/test/submit")
+        mockMvc.perform(post("/api/v1/vocabularies/1/test/submit")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest());
     }
