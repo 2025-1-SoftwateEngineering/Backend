@@ -103,13 +103,15 @@ public class VocaConverter {
             Long id,
             Long score,
             String question,
-            List<VocaResDTO.ChoiceElement> choices
+            List<VocaResDTO.ChoiceElement> choices,
+            int totalTime
     ){
         return VocaResDTO.GetChoice.builder()
                 .id(id)
                 .score(score)
                 .question(question)
                 .choices(choices)
+                .totalTime(totalTime)
                 .build();
     }
 

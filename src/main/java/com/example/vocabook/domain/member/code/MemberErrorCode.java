@@ -34,6 +34,9 @@ public enum MemberErrorCode implements BaseErrorCode {
         NOT_NULL_TARGET_ID(HttpStatus.BAD_REQUEST,
                 "MEMBER400_7",
                 "조회할 대상 ID는 필수입니다."),
+        NOT_ENOUGH_COIN(HttpStatus.BAD_REQUEST,
+                "MEMBER400_8",
+                "코인이 충분하지 않습니다."),
 
         BLOCKING(HttpStatus.FORBIDDEN,
             "MEMBER403_1",

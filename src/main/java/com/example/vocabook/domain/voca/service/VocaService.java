@@ -136,7 +136,7 @@ public class VocaService {
 				.orElseThrow(() -> new VocaException(VocaErrorCode.VOCA_NOT_FOUND));
 		Word word = wordRepository.findById(dto.getWordId())
 				.orElseThrow(() -> new VocaException(VocaErrorCode.WORD_NOT_FOUND));
-		boolean isCorrect = word.getEnglishWord().equalsIgnoreCase(dto.getAnswer());
+		boolean isCorrect = word.getEnglishWord().equalsIgnoreCase(dto.getAnswer().trim());
 		return VocaResDTO.AnswerResult.builder()
 				.wordId(word.getId())
 				.meaning(word.getMeaning())
@@ -155,9 +155,13 @@ public class VocaService {
 				.orElseThrow(() -> new VocaException(VocaErrorCode.VOCA_NOT_FOUND));
 
 		LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
-		boolean alreadySubmittedToday = memberVocaRepository.findByMemberAndVoca(member, voca)
+		Optional<MemberVoca> existingMemberVoca = memberVocaRepository.findByMemberAndVoca(member, voca);
+		boolean alreadySubmittedToday = existingMemberVoca
 				.map(mv -> mv.getSolvedAt() != null && mv.getSolvedAt().toLocalDate().isEqual(today))
 				.orElse(false);
+		long previousCorrectCount = alreadySubmittedToday
+				? existingMemberVoca.map(MemberVoca::getCorrectCnt).orElse(0L)
+				: 0L;
 
 		List<Long> wordIds = dto.getAnswers().stream()
 				.map(VocaReqDTO.CompleteTest.Answer::getWordId)
@@ -169,13 +173,9 @@ public class VocaService {
 		int correctCount = 0;
 
 		for (VocaReqDTO.CompleteTest.Answer answer : dto.getAnswers()) {
-            Word word = wordRepository.findById(answer.getWordId())
-                    .orElseThrow(() -> new VocaException(VocaErrorCode.WORD_NOT_FOUND));
-        }
-		for (VocaReqDTO.CompleteTest.Answer answer : dto.getAnswers()) {
 			Word word = Optional.ofNullable(wordMap.get(answer.getWordId()))
 					.orElseThrow(() -> new VocaException(VocaErrorCode.WORD_NOT_FOUND));
-			boolean isCorrect = word.getEnglishWord().equalsIgnoreCase(answer.getAnswer());
+			boolean isCorrect = word.getEnglishWord().equalsIgnoreCase(answer.getAnswer().trim());
 			if (isCorrect) correctCount++;
 
 			results.add(VocaResDTO.AnswerResult.builder()
@@ -187,18 +187,15 @@ public class VocaService {
 					.build());
 		}
 
-		long earnedCoins = 0;
+		long newlyCorrectCount = Math.max(0L, correctCount - previousCorrectCount);
+		long earnedCoins = newlyCorrectCount * 5;
+		member.addCoin(earnedCoins);
 		if (!alreadySubmittedToday) {
-			earnedCoins = (long) correctCount * 5;
-			member.addCoin(earnedCoins);
 			member.updateStreak();
 			if (member.getStreak() % 7 == 0) {
 				member.addCoin(500);
 				earnedCoins += 500;
 			}
-		} else {
-			earnedCoins = (long) correctCount * 3;
-			member.addCoin(earnedCoins);
 		}
 		memberRepository.saveAndFlush(member);
 		saveMemberVoca(member, voca, (long) correctCount, (long) dto.getAnswers().size());
@@ -332,12 +329,15 @@ public class VocaService {
         }
         Collections.shuffle(choiceElements);
 
-        // Redis에 시간 삽입 (폴링 시간 계산 +1초 허용)
+        // 시간 보너스 아이템 적용
+        int totalTime = getChoiceTotalTime(auth.getMember().getId());
+
+        // Redis에 시간 삽입 (보너스 반영, 폴링 +1초 허용)
         // Redis Key 구조: choice:사용자 ID:사지선다 ID:사지선다 항목 ID
         redisUtil.save(
                 "choice:"+auth.getMember().getId()+":"+choice.getId().toString()+":"+choiceQuestion.get().getId(),
                 LocalDateTime.now(ZoneId.of("Asia/Seoul")),
-                Duration.ofSeconds(6)
+                Duration.ofSeconds(totalTime + 1)
         );
 
         return VocaConverter
@@ -345,7 +345,8 @@ public class VocaService {
                         memberChoice.getId(),
                         memberChoice.getScore(),
                         question,
-                        choiceElements
+                        choiceElements,
+                        totalTime
                         );
     }
 
@@ -371,10 +372,8 @@ public class VocaService {
 
         // 가장 먼저 Redis에서 시간 꺼내오기
         String redisKey = "choice:"+auth.getMember().getId()+":"+memberChoice.getChoice().getId().toString()+":"+choiceQuestion.getId();
-        LocalDateTime submitTime = null;
-        if (redisUtil.hasKey(redisKey)){
-            submitTime = (LocalDateTime) redisUtil.get(redisKey);
-        }
+        Object redisVal = redisUtil.get(redisKey);
+        LocalDateTime submitTime = redisVal != null ? (LocalDateTime) redisVal : null;
 
         // 사용자랑 맞는지 검증
         if (!memberChoice.getMember().getId().equals(auth.getMember().getId())) {
@@ -389,23 +388,31 @@ public class VocaService {
         // 사지선다 채점 로직
         Boolean isCorrect = Boolean.FALSE;
         Long userScore = memberChoice.getScore();
+        int totalTime = getChoiceTotalTime(auth.getMember().getId());
 
         // 답변이 존재하고 Redis에 시작 시간이 기록된 경우에만 정답 체크
         if (answer != null && answer > 0 && submitTime != null) {
             Word answerWord = wordRepository.findById(answer).orElse(null);
 
             if (answerWord != null && choiceQuestion.getWord().getId().equals(answerWord.getId())) {
-                // 스코어 계산 (5초 기준)
                 long remain = Duration.between(submitTime, LocalDateTime.now(ZoneId.of("Asia/Seoul"))).getSeconds();
 
-                Long score = switch ((int) (5 - remain)) {
-                    case 5, 4 -> 1000L;
-                    case 3 -> 800L;
-                    case 2 -> 600L;
-                    case 1 -> 400L;
-                    case 0 -> 200L;
-                    default -> 0L;
-                };
+                Long score;
+                if (remain <= 5) {
+                    score = switch ((int) (5 - remain)) {
+                        case 5, 4 -> 1000L;
+                        case 3 -> 800L;
+                        case 2 -> 600L;
+                        case 1 -> 400L;
+                        case 0 -> 200L;
+                        default -> 0L;
+                    };
+                } else if (remain <= totalTime) {
+                    score = 200L;
+                } else {
+                    score = 0L;
+                }
+
                 memberChoice.correct(score);
                 userScore += score;
                 isCorrect = Boolean.TRUE;
@@ -624,5 +631,11 @@ public class VocaService {
 
         // 응답
         return VocaConverter.toSubmitCrossword(isCorrect, hasNext, solvingTime);
+    }
+
+    private int getChoiceTotalTime(Long memberId) {
+        int bonus10 = redisUtil.hasKey("bonus:choiceTime:10:" + memberId) ? 10 : 0;
+        int bonus30 = redisUtil.hasKey("bonus:choiceTime:30:" + memberId) ? 30 : 0;
+        return 5 + bonus10 + bonus30;
     }
 }

@@ -1,6 +1,9 @@
 package com.example.vocabook.domain.member.entity;
 
+import com.example.vocabook.domain.member.code.MemberErrorCode;
 import com.example.vocabook.domain.member.enums.Authorize;
+import com.example.vocabook.domain.member.exception.MemberException;
+import com.example.vocabook.domain.store.enums.ItemType;
 import com.example.vocabook.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
@@ -23,91 +26,119 @@ import java.util.UUID;
 @SQLRestriction(value = "deleted_at is null")
 public class Member extends BaseEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "member_id")
-    private Long id;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "member_id")
+	private Long id;
 
-    @Column(name = "email", unique = true, nullable = false)
-    private String email;
+	@Column(name = "email", unique = true, nullable = false)
+	private String email;
 
-    @Column(name = "password", nullable = false)
-    private String password;
+	@Column(name = "password", nullable = false)
+	private String password;
 
-    @Column(name = "nickname", nullable = false)
-    private String nickname;
+	@Column(name = "nickname", nullable = false)
+	private String nickname;
 
-    @Column(name = "authorize", nullable = false)
-    @Enumerated(EnumType.STRING)
-    @Builder.Default
-    private Authorize authorize = Authorize.ROLE_USER;
+	@Column(name = "authorize", nullable = false)
+	@Enumerated(EnumType.STRING)
+	@Builder.Default
+	private Authorize authorize = Authorize.ROLE_USER;
 
-    @Column(name = "login_at", nullable = false)
-    @Builder.Default
-    private LocalDateTime loginAt = LocalDateTime.now();
+	@Column(name = "login_at", nullable = false)
+	@Builder.Default
+	private LocalDateTime loginAt = LocalDateTime.now();
 
-    @Column(name = "streak", nullable = false)
-    @Builder.Default
-    private Long streak = 0L;
+	@Column(name = "streak", nullable = false)
+	@Builder.Default
+	private Long streak = 0L;
 
-    @Column(name = "coin", nullable = false)
-    @Builder.Default
-    private Long coin = 0L;
+	@Column(name = "coin", nullable = false)
+	@Builder.Default
+	private Long coin = 0L;
 
-    @Column(name = "last_studied_at")
-    private LocalDate lastStudiedAt;
+	@Column(name = "last_studied_at")
+	private LocalDate lastStudiedAt;
 
-    @Column(name = "refresh_token", columnDefinition = "text", nullable = false)
-    private String refreshToken;
+	@Column(name = "refresh_token", columnDefinition = "text", nullable = false)
+	private String refreshToken;
 
-    @Column(name = "is_suspended", nullable = false)
-    @Builder.Default
-    private boolean isSuspended = false;
+	@Column(name = "is_suspended", nullable = false)
+	@Builder.Default
+	private boolean isSuspended = false;
 
-    @Column(name = "choice_higher", nullable = false)
-    @Builder.Default
-    private Long choiceHigher = 0L;
+	@Column(name = "choice_higher", nullable = false)
+	@Builder.Default
+	private Long choiceHigher = 0L;
 
-    @Column(name = "crossword_higher")
-    private Duration crosswordHigher;
+	@Column(name = "crossword_higher")
+	private Duration crosswordHigher;
 
-    @Column(name = "profile_url", nullable = false)
-    @Builder.Default
-    private String profileUrl = "https://storage.googleapis.com/vocabuddy-storage/profile/default-profile.png";
+	@Column(name = "active_profile_photo")
+	@Enumerated(EnumType.STRING)
+	private ItemType activeProfilePhoto;
 
-    public void updateRefreshToken(String refreshToken) {
-        this.refreshToken = refreshToken;
-    }
-    public void updateLoginAt() {
-        this.loginAt = LocalDateTime.now();
-    }
-    public void addCoin(long amount) {
-        this.coin += amount;
-    }
-    public void suspend() {
-        this.isSuspended = true;
-        this.nickname = "정지 당한 사용자 " + UUID.randomUUID();
-        this.streak = 0L;
-        this.coin = 0L;
-        this.refreshToken = "";
-    }
+	@Column(name = "active_profile_bg")
+	@Enumerated(EnumType.STRING)
+	private ItemType activeProfileBg;
 
-    public void updateStreak() {
-        this.streak += 1;
-        this.lastStudiedAt = LocalDate.now(ZoneId.of("Asia/Seoul"));
-    }
+	@Column(name = "profile_url", nullable = false)
+	@Builder.Default
+	private String profileUrl = "https://storage.googleapis.com/vocabuddy-storage/profile/default-profile.png";
 
-    public void resetStreak() {
-        this.streak = 0L;
-    }
+	public void updateRefreshToken(String refreshToken) {
+		this.refreshToken = refreshToken;
+	}
 
-    public void updateChoiceHigher(Long higher) {
-        this.choiceHigher = higher;
-    }
+	public void updateLoginAt() {
+		this.loginAt = LocalDateTime.now();
+	}
 
-    public void updateCrosswordHigher(Duration higher) {
-        this.crosswordHigher = higher;
-    }
+	public void addCoin(long amount) {
+		this.coin += amount;
+	}
 
-    public void updateProfileUrl(String profileUrl) { this.profileUrl = profileUrl;}
+	public void spendCoin(long amount) {
+		if (this.coin < amount) {
+			throw new MemberException(MemberErrorCode.NOT_ENOUGH_COIN);
+		}
+		this.coin -= amount;
+	}
+
+	public void suspend() {
+		this.isSuspended = true;
+		this.nickname = "정지 당한 사용자 " + UUID.randomUUID();
+		this.streak = 0L;
+		this.coin = 0L;
+		this.refreshToken = "";
+	}
+
+	public void updateStreak() {
+		this.streak += 1;
+		this.lastStudiedAt = LocalDate.now(ZoneId.of("Asia/Seoul"));
+	}
+
+	public void resetStreak() {
+		this.streak = 0L;
+	}
+
+	public void updateChoiceHigher(Long higher) {
+		this.choiceHigher = higher;
+	}
+
+	public void updateCrosswordHigher(Duration higher) {
+		this.crosswordHigher = higher;
+	}
+
+	public void applyProfileDecoration(ItemType itemType) {
+		if (itemType == ItemType.PROFILE_PHOTO_1 || itemType == ItemType.PROFILE_PHOTO_2) {
+			this.activeProfilePhoto = itemType;
+		} else if (itemType == ItemType.PROFILE_BG_1 || itemType == ItemType.PROFILE_BG_2) {
+			this.activeProfileBg = itemType;
+		}
+	}
+
+	public void updateProfileUrl(String profileUrl) {
+		this.profileUrl = profileUrl;
+	}
 }

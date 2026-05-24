@@ -124,7 +124,8 @@ public class VocaResDTO {
             Long id,
             Long score,
             String question,
-            List<ChoiceElement> choices
+            List<ChoiceElement> choices,
+            int totalTime
     ) {}
 
     @Builder

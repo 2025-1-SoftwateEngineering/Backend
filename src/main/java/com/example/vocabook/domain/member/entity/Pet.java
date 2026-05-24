@@ -11,23 +11,23 @@ import lombok.*;
 @Table(name = "pet")
 public class Pet {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "pet_id")
-    private Long id;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "pet_id")
+	private Long id;
 
-    @Column(name = "level", nullable = false)
-    @Builder.Default
-    private Long level = 1L;
+	@Column(name = "level", nullable = false)
+	@Builder.Default
+	private Long level = 1L;
 
-    @Column(name = "required_exp", nullable = false)
-    @Builder.Default
-    private Long requiredExp = 100L;
+	@Column(name = "required_exp", nullable = false)
+	@Builder.Default
+	private Long requiredExp = 100L;
 
-    @Column(name = "pet_image_url", nullable = false)
-    private String petImageUrl;
+	@Column(name = "pet_image_url", nullable = false)
+	private String petImageUrl;
 
-    public void updateImageUrl(String petImageUrl) {
-        this.petImageUrl = petImageUrl;
-    }
+	public void updateImageUrl(String petImageUrl) {
+		this.petImageUrl = petImageUrl;
+	}
 }

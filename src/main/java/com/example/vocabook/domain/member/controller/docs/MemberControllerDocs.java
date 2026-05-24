@@ -51,7 +51,9 @@ public interface MemberControllerDocs {
                                         "email": "user@example.com",
                                         "streak": 0,
                                         "coin": 0,
-                                        "authorize": "ROLE_USER"
+                                        "authorize": "ROLE_USER",
+                                        "activeProfilePhoto": "PROFILE_PHOTO_1",
+                                        "activeProfileBg": null
                                       }
                                     }
                                     """)

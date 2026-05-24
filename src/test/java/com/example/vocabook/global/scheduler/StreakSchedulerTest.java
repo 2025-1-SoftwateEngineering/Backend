@@ -6,9 +6,15 @@ import com.example.vocabook.domain.alert.repository.AlertDetailRepository;
 import com.example.vocabook.domain.alert.repository.AlertRepository;
 import com.example.vocabook.domain.alert.service.AlertScheduleService;
 import com.example.vocabook.domain.member.entity.Member;
+import com.example.vocabook.domain.member.entity.mapping.MemberItem;
+import com.example.vocabook.domain.member.repository.MemberItemRepository;
 import com.example.vocabook.domain.member.repository.MemberRepository;
+import com.example.vocabook.domain.store.entity.Item;
+import com.example.vocabook.domain.store.enums.ItemType;
 import com.example.vocabook.global.util.StreakScheduler;
 import com.google.firebase.messaging.FirebaseMessaging;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -36,6 +42,8 @@ class StreakSchedulerTest {
     @Autowired private MemberRepository memberRepository;
     @Autowired private AlertRepository alertRepository;
     @Autowired private AlertDetailRepository alertDetailRepository;
+    @Autowired private MemberItemRepository memberItemRepository;
+    @PersistenceContext private EntityManager em;
 
     // Quartz 실제 등록은 AlertScheduleServiceTest에서 별도 검증 → 여기선 Mock 처리
     @MockitoBean private AlertScheduleService alertScheduleService;
@@ -142,5 +150,46 @@ class StreakSchedulerTest {
         boolean isZeroStreakMemberIncluded = details.stream()
                 .anyMatch(d -> d.getAlert().getMember().getId().equals(memberWithZeroStreak.getId()));
         assertThat(isZeroStreakMemberIncluded).isFalse();
+    }
+
+    @Test
+    @DisplayName("[엣지] 스트릭프리즈 아이템 보유 시 스트릭 유지되고 아이템만 삭제된다")
+    void resetStreak_shouldKeepStreakAndDeleteItemWhenStreakFreezeExists() throws Exception {
+        // given - 스트릭 5, 이틀 전 학습 → 원래라면 스트릭 깨져야 하는 대상
+        Member memberWithFreeze = memberRepository.save(Member.builder()
+                .email("freeze@test.com")
+                .password("pw")
+                .nickname("프리즈보유자")
+                .streak(5L)
+                .lastStudiedAt(LocalDate.now(ZONE).minusDays(2))
+                .refreshToken("token4")
+                .build());
+        alertRepository.save(Alert.builder()
+                .member(memberWithFreeze)
+                .fcmToken("fcm-token-4")
+                .build());
+
+        // 스트릭프리즈 아이템 생성 후 연결
+        Item freezeItem = Item.builder()
+                .name("스트릭프리즈")
+                .price(500L)
+                .itemType(ItemType.STREAK_FREEZE)
+                .build();
+        em.persist(freezeItem);
+
+        MemberItem memberItem = memberItemRepository.save(MemberItem.builder()
+                .member(memberWithFreeze)
+                .item(freezeItem)
+                .build());
+
+        // when
+        streakScheduler.resetStreak();
+
+        // then - 스트릭 유지
+        Member updated = memberRepository.findById(memberWithFreeze.getId()).orElseThrow();
+        assertThat(updated.getStreak()).isEqualTo(5L);
+
+        // then - 아이템 삭제됨
+        assertThat(memberItemRepository.findById(memberItem.getId())).isEmpty();
     }
 }

@@ -164,7 +164,6 @@ public class VocaServiceChoiceTest {
                 .thenReturn(Optional.of(currentQ));
         
         // Redis recorded time = 1 second ago (valid)
-        when(redisUtil.hasKey("choice:1:1:10")).thenReturn(true);
         when(redisUtil.get("choice:1:1:10")).thenReturn(LocalDateTime.now().minusSeconds(1));
         
         when(wordRepository.findById(100L)).thenReturn(Optional.of(mockWord));
