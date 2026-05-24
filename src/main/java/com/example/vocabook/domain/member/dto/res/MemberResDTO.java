@@ -18,6 +18,7 @@ public class MemberResDTO {
             Long streak,
             Long coin,
             Authorize authorize,
+            String profileUrl,
             ItemType activeProfilePhoto,
             ItemType activeProfileBg
     ) {}
