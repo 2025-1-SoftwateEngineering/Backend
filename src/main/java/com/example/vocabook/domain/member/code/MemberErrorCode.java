@@ -54,10 +54,6 @@ public enum MemberErrorCode implements BaseErrorCode {
         NOT_UPLOAD_PROFILE(HttpStatus.NOT_FOUND,
                 "MEMBER404_3",
                 "아직 프로필을 업로드하지 않았습니다."),
-        PET_NOT_FOUND(HttpStatus.NOT_FOUND,
-                "MEMBER404_4",
-                "해당 애완동물을 찾지 못했습니다."),
-
 
         EXISTS_FRIEND_REQUEST(HttpStatus.CONFLICT,
                         "MEMBER409_1",
