@@ -50,6 +50,7 @@ public interface MemberControllerDocs {
                                         "nickname": "User",
                                         "email": "user@example.com",
                                         "streak": 0,
+                                        "totalStudyDays": 0,
                                         "coin": 0,
                                         "authorize": "ROLE_USER",
                                         "activeProfilePhoto": "PROFILE_PHOTO_1",
@@ -619,6 +620,7 @@ public interface MemberControllerDocs {
                                         "id": 7,
                                         "nickname": "user2",
                                         "streak": 0,
+                                        "totalStudyDays": 0,
                                         "coin": 0,
                                         "loginAt": "2026-04-28T12:29:54.074504"
                                       }

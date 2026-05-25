@@ -37,6 +37,7 @@ public class MemberConverter {
                 .coin(member.getCoin())
                 .email(member.getEmail())
                 .streak(member.getStreak())
+                .totalStudyDays(member.getTotalStudyDays())
                 .nickname(member.getNickname())
                 .authorize(member.getAuthorize())
                 .profileUrl(member.getProfileUrl())
@@ -101,6 +102,7 @@ public class MemberConverter {
                 .totalWordsLearned(totalWordLearned)
                 .coin(friend.getCoin())
                 .streak(friend.getStreak())
+                .totalStudyDays(friend.getTotalStudyDays())
                 .loginAt(friend.getLoginAt())
                 .build();
     }
