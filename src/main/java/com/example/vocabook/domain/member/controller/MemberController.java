@@ -106,7 +106,7 @@ public class MemberController implements MemberControllerDocs {
         return ApiResponse.onSuccess(code, memberService.getFriendProfile(auth, friendId));
     }
 
-    // 친구 차단
+    // 사용자 차단
     @PatchMapping("/v1/friends/{friendId}/block")
     public ApiResponse<MemberResDTO.Blocking> blockMember(
             @AuthenticationPrincipal AuthMember auth,
@@ -158,5 +158,15 @@ public class MemberController implements MemberControllerDocs {
     ){
         BaseSuccessCode code = MemberSuccessCode.UPDATE_PROFILE;
         return ApiResponse.onSuccess(code, memberService.updateProfile(auth, dto));
+    }
+
+    // 친구 삭제
+    @DeleteMapping("/v1/friends/{friendId}")
+    public ApiResponse<MemberResDTO.DeleteFriend> deleteFriend(
+            @AuthenticationPrincipal AuthMember auth,
+            @PathVariable Long friendId
+    ){
+        BaseSuccessCode code = MemberSuccessCode.DELETE_FRIEND;
+        return ApiResponse.onSuccess(code, memberService.deleteFriend(auth, friendId));
     }
 }
