@@ -514,8 +514,8 @@ public interface VocaControllerDocs {
 
 					## 응답
 					- 최종 결과, 획득 코인, 스트릭 반영
-					- 당일 첫 제출: 정답 1개당 5코인 + streak +1 (7일마다 보너스 500코인)
-					- 당일 재제출: 정답 1개당 3코인 (streak 갱신 없음)
+					- 당일 첫 제출: 정답 1개당 5코인 + streak +1 + totalStudyDays +1 (7일마다 보너스 500코인)
+					- 당일 재제출: 이전 제출 대비 새로 맞춘 단어 1개당 5코인 (streak / totalStudyDays 갱신 없음)
 					"""
 	)
 	@ApiResponses(value = {

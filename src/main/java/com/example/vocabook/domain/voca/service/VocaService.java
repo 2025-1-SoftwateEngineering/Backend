@@ -151,10 +151,12 @@ public class VocaService {
 	public VocaResDTO.TestResult completeTest(Long vocaId, AuthMember authMember, VocaReqDTO.CompleteTest dto) {
 		Voca voca = vocaRepository.findById(vocaId)
 				.orElseThrow(() -> new VocaException(VocaErrorCode.VOCA_NOT_FOUND));
-		Member member = memberRepository.findById(authMember.getMember().getId())
+		Member member = memberRepository.findByIdWithLock(authMember.getMember().getId())
 				.orElseThrow(() -> new VocaException(VocaErrorCode.VOCA_NOT_FOUND));
 
 		LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
+		boolean studiedTodayAlready = member.getLastStudiedAt() != null
+				&& member.getLastStudiedAt().isEqual(today);
 		Optional<MemberVoca> existingMemberVoca = memberVocaRepository.findByMemberAndVoca(member, voca);
 		boolean alreadySubmittedToday = existingMemberVoca
 				.map(mv -> mv.getSolvedAt() != null && mv.getSolvedAt().toLocalDate().isEqual(today))
@@ -190,8 +192,8 @@ public class VocaService {
 		long newlyCorrectCount = Math.max(0L, correctCount - previousCorrectCount);
 		long earnedCoins = newlyCorrectCount * 5;
 		member.addCoin(earnedCoins);
-		if (!alreadySubmittedToday) {
-			member.updateStreak();
+		if (!studiedTodayAlready) {
+			member.updateStreak(today);
 			if (member.getStreak() % 7 == 0) {
 				member.addCoin(500);
 				earnedCoins += 500;
@@ -212,13 +214,13 @@ public class VocaService {
 	private void saveMemberVoca(Member member, Voca voca, Long correctCnt, Long learningWordCnt) {
 		memberVocaRepository.findByMemberAndVoca(member, voca)
 				.ifPresentOrElse(
-						memberVoca -> memberVoca.updateResult(correctCnt, learningWordCnt, LocalDateTime.now()),
+						memberVoca -> memberVoca.updateResult(correctCnt, learningWordCnt, LocalDateTime.now(ZoneId.of("Asia/Seoul"))),
 						() -> memberVocaRepository.save(MemberVoca.builder()
 								.member(member)
 								.voca(voca)
 								.correctCnt(correctCnt)
 								.learningWordCnt(learningWordCnt)
-								.solvedAt(LocalDateTime.now())
+								.solvedAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")))
 								.build())
 				);
 	}

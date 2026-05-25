@@ -60,6 +60,10 @@ public class Member extends BaseEntity {
 	@Column(name = "last_studied_at")
 	private LocalDate lastStudiedAt;
 
+	@Column(name = "total_study_days", nullable = false)
+	@Builder.Default
+	private Long totalStudyDays = 0L;
+
 	@Column(name = "refresh_token", columnDefinition = "text", nullable = false)
 	private String refreshToken;
 
@@ -113,9 +117,10 @@ public class Member extends BaseEntity {
 		this.refreshToken = "";
 	}
 
-	public void updateStreak() {
+	public void updateStreak(LocalDate today) {
 		this.streak += 1;
-		this.lastStudiedAt = LocalDate.now(ZoneId.of("Asia/Seoul"));
+		this.totalStudyDays += 1;
+		this.lastStudiedAt = today;
 	}
 
 	public void resetStreak() {
@@ -141,4 +146,14 @@ public class Member extends BaseEntity {
 	public void updateProfileUrl(String profileUrl) {
 		this.profileUrl = profileUrl;
 	}
+
+    public void updateNickname(String nickname) {
+        this.nickname = nickname;
+    }
+
+    public void updateEmail(String email) {
+        this.email = email;
+    }
+
+    public void updatePassword(String password) {}
 }

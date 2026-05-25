@@ -1,5 +1,6 @@
 package com.example.vocabook.domain.member.service;
 
+import com.example.vocabook.domain.member.code.AuthErrorCode;
 import com.example.vocabook.domain.member.code.MemberErrorCode;
 import com.example.vocabook.domain.member.converter.FriendConverter;
 import com.example.vocabook.domain.member.converter.MemberConverter;
@@ -8,7 +9,6 @@ import com.example.vocabook.domain.member.dto.req.MemberReqDTO;
 import com.example.vocabook.domain.member.dto.res.MemberResDTO;
 import com.example.vocabook.domain.member.entity.Friend;
 import com.example.vocabook.domain.member.entity.Member;
-import com.example.vocabook.domain.member.entity.Pet;
 import com.example.vocabook.domain.member.entity.Report;
 import com.example.vocabook.domain.member.entity.mapping.MemberVoca;
 import com.example.vocabook.domain.member.enums.FriendState;
@@ -30,9 +30,11 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -43,9 +45,9 @@ public class MemberService {
     private final ReportRepository reportRepository;
     private final GcsUtil gcsUtil;
     private final ItemRepository itemRepository;
-    private final PetRepository petRepository;
     private final MemberAlertService memberAlertService;
     private final MemberVocaRepository memberVocaRepository;
+    private final PasswordEncoder passwordEncoder;
 
     // 내 프로필 조회
     public MemberResDTO.MyProfile getMyProfile(
@@ -401,7 +403,6 @@ public class MemberService {
                 case PROFILE -> "profile/";
                 case ITEM -> "item/";
                 case BACKGROUND -> "background/";
-                case PET -> "pet/";
             };
 
         } else {
@@ -440,7 +441,6 @@ public class MemberService {
                 case PROFILE -> "profile/";
                 case ITEM -> "item/";
                 case BACKGROUND -> "background/";
-                case PET -> "pet/";
             };
         } else {
             if (!photoType.equals(PhotoType.PROFILE)) {
@@ -505,26 +505,6 @@ public class MemberService {
 
                 item.updateImageUrl(publicUrl);
             }
-            case PET -> {
-                // 프리픽스로 검증
-                if (!object.getBlobId().getName().startsWith(prefix)) {
-                    throw new MemberException(MemberErrorCode.INVADE_PHOTO_TYPE);
-                }
-
-                Pet pet = petRepository.findById(targetId)
-                        .orElseThrow(() -> new MemberException(MemberErrorCode.PET_NOT_FOUND));
-
-                // 기존 사진 객체 삭제
-                if (!pet.getPetImageUrl().isBlank()) {
-                    String oldObjectName = pet.getPetImageUrl().substring(pet.getPetImageUrl().lastIndexOf("/")+1);
-                    Blob oldObject = gcsUtil.findObject(oldObjectName, prefix);
-                    if (oldObject != null) {
-                        oldObject.delete();
-                    }
-                }
-
-                pet.updateImageUrl(publicUrl);
-            }
             case BACKGROUND -> {
                 // 프리픽스로 검증
                 if (!object.getBlobId().getName().startsWith(prefix)) {
@@ -555,4 +535,32 @@ public class MemberService {
         return MemberConverter.toUploadImage(object, publicUrl);
     }
 
+    // 프로필 수정
+    @Transactional
+    public MemberResDTO.UpdateProfile updateProfile(
+            AuthMember auth,
+            MemberReqDTO.UpdateProfile dto
+    ) {
+        Member member = memberRepository.findById(auth.getMember().getId())
+                .orElseThrow(() -> new MemberException(MemberErrorCode.NOT_FOUND));
+
+        // 비밀번호 검증
+        if (!passwordEncoder.matches(dto.confirmPassword(), member.getPassword())){
+            throw new MemberException(AuthErrorCode.WRONG_PASSWORD);
+        }
+
+        // 변경할 부분만 변경
+        if (dto.nickname() != null && !dto.nickname().isBlank()){
+            member.updateNickname(dto.nickname());
+        }
+
+        if (dto.email() != null && !dto.email().isBlank()){
+            member.updateEmail(dto.email());
+
+            // 이메일 변경 시 기존 Refresh Token 만료처리 (UUID로 예측 못하게 처리)
+            member.updateRefreshToken(UUID.randomUUID().toString());
+        }
+
+        return MemberConverter.toUpdateProfile(member);
+    }
 }
