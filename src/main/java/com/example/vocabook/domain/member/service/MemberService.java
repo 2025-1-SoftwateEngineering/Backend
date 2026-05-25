@@ -1,5 +1,6 @@
 package com.example.vocabook.domain.member.service;
 
+import com.example.vocabook.domain.member.code.AuthErrorCode;
 import com.example.vocabook.domain.member.code.MemberErrorCode;
 import com.example.vocabook.domain.member.converter.FriendConverter;
 import com.example.vocabook.domain.member.converter.MemberConverter;
@@ -29,6 +30,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -44,6 +46,7 @@ public class MemberService {
     private final ItemRepository itemRepository;
     private final MemberAlertService memberAlertService;
     private final MemberVocaRepository memberVocaRepository;
+    private final PasswordEncoder passwordEncoder;
 
     // 내 프로필 조회
     public MemberResDTO.MyProfile getMyProfile(
@@ -531,4 +534,29 @@ public class MemberService {
         return MemberConverter.toUploadImage(object, publicUrl);
     }
 
+    // 프로필 수정
+    @Transactional
+    public MemberResDTO.UpdateProfile updateProfile(
+            AuthMember auth,
+            MemberReqDTO.UpdateProfile dto
+    ) {
+        Member member = memberRepository.findById(auth.getMember().getId())
+                .orElseThrow(() -> new MemberException(MemberErrorCode.NOT_FOUND));
+
+        // 비밀번호 검증
+        if (!passwordEncoder.matches(member.getPassword(), dto.confirmPassword())){
+            throw new MemberException(AuthErrorCode.WRONG_PASSWORD);
+        }
+
+        // 변경할 부분만 변경
+        if (dto.nickname() != null && !dto.nickname().isBlank()){
+            member.updateNickname(dto.nickname());
+        }
+
+        if (dto.email() != null && !dto.email().isBlank()){
+            member.updateEmail(dto.email());
+        }
+
+        return MemberConverter.toUpdateProfile(member);
+    }
 }
