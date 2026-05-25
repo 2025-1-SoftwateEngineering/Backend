@@ -1095,6 +1095,7 @@ public interface MemberControllerDocs {
                     - 비밀번호 확인(confirmPassword)은 필수입니다.
                     - 변경을 원하지 않는 필드(nickname, email)는 비워두면 기존 값이 유지됩니다.
                     - 프로필 사진 변경은 `사진 업로드용 URI 발급 API` -> `사진 업로드 완료 API`를 순서대로 사용해주세요.
+                    - 이메일을 변경할 경우 기존 JWT 토큰은 만료(무효화)되므로 다시 로그인해야 합니다.
                     """
     )
     @ApiResponses(value = {

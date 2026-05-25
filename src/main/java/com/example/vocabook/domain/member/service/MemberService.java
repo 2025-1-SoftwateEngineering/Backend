@@ -34,6 +34,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -555,6 +556,9 @@ public class MemberService {
 
         if (dto.email() != null && !dto.email().isBlank()){
             member.updateEmail(dto.email());
+
+            // 이메일 변경 시 기존 Refresh Token 만료처리 (UUID로 예측 못하게 처리)
+            member.updateRefreshToken(UUID.randomUUID().toString());
         }
 
         return MemberConverter.toUpdateProfile(member);
