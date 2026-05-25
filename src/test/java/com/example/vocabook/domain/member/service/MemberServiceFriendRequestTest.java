@@ -73,7 +73,7 @@ class MemberServiceFriendRequestTest {
     void getFriendRequestList_Success_FirstPage() {
         Friend friendReq = Friend.builder().id(100L).fromMember(friendMember).toMember(myMember).friendState(FriendState.WAITING).build();
         Slice<Friend> slice = new SliceImpl<>(List.of(friendReq));
-        given(friendRepository.findFriendRequestListWithoutCursor(eq(myMember.getId()), eq("WAITING"), any(PageRequest.class))).willReturn(slice);
+        given(friendRepository.findFriendRequestListWithoutCursor(eq(myMember.getId()), eq(FriendState.WAITING), any(PageRequest.class))).willReturn(slice);
 
         PagingResDTO.Cursor<MemberResDTO.FriendRequestList> response = memberService.getFriendRequestList("-1", 10, authMember);
 
@@ -87,7 +87,7 @@ class MemberServiceFriendRequestTest {
     void getFriendRequestList_Success_NextPage() {
         Friend friendReq = Friend.builder().id(99L).fromMember(friendMember).toMember(myMember).friendState(FriendState.WAITING).build();
         Slice<Friend> slice = new SliceImpl<>(List.of(friendReq));
-        given(friendRepository.findFriendRequestListWithCursor(eq(myMember.getId()), eq("WAITING"), eq(100L), any(PageRequest.class))).willReturn(slice);
+        given(friendRepository.findFriendRequestListWithCursor(eq(myMember.getId()), eq(FriendState.WAITING), eq(100L), any(PageRequest.class))).willReturn(slice);
 
         PagingResDTO.Cursor<MemberResDTO.FriendRequestList> response = memberService.getFriendRequestList("100", 10, authMember);
 
@@ -120,8 +120,11 @@ class MemberServiceFriendRequestTest {
     @DisplayName("친구 요청 보내기 실패 - 이미 친구이거나 요청 상태 (EXISTS_FRIEND_REQUEST)")
     void sendFriendRequest_Fail_ExistsFriendRequest() {
         given(memberRepository.findById(2L)).willReturn(Optional.of(friendMember));
-        // 조건식 첫번째: 상대방이 나에게 보낸 요청이 존재한다고 모킹
-        given(friendRepository.existsByFromMemberAndToMember(friendMember, myMember)).willReturn(true);
+        // 조건식: 내 -> 친구 상태가 WAITING이라고 모킹
+        Friend myToFriend = Friend.builder().fromMember(myMember).toMember(friendMember).friendState(FriendState.WAITING).build();
+        given(friendRepository.findByFromMemberAndToMember(myMember, friendMember)).willReturn(Optional.of(myToFriend));
+        given(friendRepository.findByFromMemberAndToMember(friendMember, myMember)).willReturn(Optional.empty());
+
         MemberException exception = assertThrows(MemberException.class, () ->
                 memberService.sendFriendRequest(authMember, 2L)
         );
@@ -132,9 +135,11 @@ class MemberServiceFriendRequestTest {
     @DisplayName("친구 요청 보내기 실패 - 친구가 나를 차단함 (BLOCKING)")
     void sendFriendRequest_Fail_Blocking() {
         given(memberRepository.findById(2L)).willReturn(Optional.of(friendMember));
-        given(friendRepository.existsByFromMemberAndToMember(friendMember, myMember)).willReturn(false);
-        given(friendRepository.existsByFromMemberAndToMember(myMember, friendMember)).willReturn(false);
-        given(friendRepository.existsByFromMemberAndToMemberAndFriendStateIs(friendMember, myMember, FriendState.BLOCKED)).willReturn(true);
+        // 조건식: 친구 -> 나 상태가 BLOCKED라고 모킹
+        Friend friendToMe = Friend.builder().fromMember(friendMember).toMember(myMember).friendState(FriendState.BLOCKED).build();
+        given(friendRepository.findByFromMemberAndToMember(myMember, friendMember)).willReturn(Optional.empty());
+        given(friendRepository.findByFromMemberAndToMember(friendMember, myMember)).willReturn(Optional.of(friendToMe));
+
         MemberException exception = assertThrows(MemberException.class, () ->
                 memberService.sendFriendRequest(authMember, 2L)
         );
