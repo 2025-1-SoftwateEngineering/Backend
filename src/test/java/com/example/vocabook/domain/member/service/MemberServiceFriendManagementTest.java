@@ -71,7 +71,7 @@ class MemberServiceFriendManagementTest {
     void getFriendList_Success_FirstPage() {
         Friend friendRel = Friend.builder().id(100L).fromMember(myMember).toMember(friendMember).friendState(FriendState.ACCEPTED).build();
         Slice<Friend> slice = new SliceImpl<>(List.of(friendRel));
-        given(friendRepository.findFriendListWithoutCursor(eq(myMember.getId()), eq("ACCEPTED"), any(PageRequest.class))).willReturn(slice);
+        given(friendRepository.findFriendListWithoutCursor(eq(myMember.getId()), eq(FriendState.ACCEPTED), any(PageRequest.class))).willReturn(slice);
 
         PagingResDTO.Cursor<MemberResDTO.FriendList> response = memberService.getFriendList(authMember, "-1", 10);
 
@@ -85,7 +85,7 @@ class MemberServiceFriendManagementTest {
     void getFriendList_Success_NextPage() {
         Friend friendRel = Friend.builder().id(99L).fromMember(myMember).toMember(friendMember).friendState(FriendState.ACCEPTED).build();
         Slice<Friend> slice = new SliceImpl<>(List.of(friendRel));
-        given(friendRepository.findFriendListWithCursor(eq(myMember.getId()), eq("ACCEPTED"), eq(100L), any(PageRequest.class))).willReturn(slice);
+        given(friendRepository.findFriendListWithCursor(eq(myMember.getId()), eq(FriendState.ACCEPTED), eq(100L), any(PageRequest.class))).willReturn(slice);
 
         PagingResDTO.Cursor<MemberResDTO.FriendList> response = memberService.getFriendList(authMember, "100", 10);
 

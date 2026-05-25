@@ -18,7 +18,7 @@ public interface FriendRepository extends JpaRepository<Friend, Long> {
                     "ORDER BY friend_id DESC ",
             nativeQuery = true
     )
-    Slice<Friend> findFriendRequestListWithCursor(Long toId, String friendState, Long cursor, PageRequest pageRequest);
+    Slice<Friend> findFriendRequestListWithCursor(Long toId, FriendState friendState, Long cursor, PageRequest pageRequest);
 
     @Query(
             value = "SELECT * " +
@@ -27,7 +27,7 @@ public interface FriendRepository extends JpaRepository<Friend, Long> {
                     "ORDER BY friend_id DESC ",
             nativeQuery = true
     )
-    Slice<Friend> findFriendRequestListWithoutCursor(Long toId, String friendState, PageRequest pageRequest);
+    Slice<Friend> findFriendRequestListWithoutCursor(Long toId, FriendState friendState, PageRequest pageRequest);
 
     boolean existsByFromMemberAndToMember(Member member, Member friend);
 
@@ -41,7 +41,7 @@ public interface FriendRepository extends JpaRepository<Friend, Long> {
                     "WHERE (f.fromMember.id = :fromId AND f.friendState = :friendState) AND f.id < :cursor AND f.toMember.isSuspended is false " +
                     "ORDER BY f.id DESC "
     )
-    Slice<Friend> findFriendListWithCursor(Long fromId, String friendState, Long cursor, PageRequest pageRequest);
+    Slice<Friend> findFriendListWithCursor(Long fromId, FriendState friendState, Long cursor, PageRequest pageRequest);
 
     @Query(
             value = "SELECT f " +
@@ -49,6 +49,7 @@ public interface FriendRepository extends JpaRepository<Friend, Long> {
                     "WHERE f.fromMember.id = :fromId AND f.friendState = :friendState AND f.toMember.isSuspended is false " +
                     "ORDER BY f.id DESC "
     )
-    Slice<Friend> findFriendListWithoutCursor(Long fromId, String friendState, PageRequest pageRequest);
+    Slice<Friend> findFriendListWithoutCursor(Long fromId, FriendState friendState, PageRequest pageRequest);
 
+    Optional<Friend> findByFromMemberAndToMemberAndFriendState(Member fromMember, Member toMember, FriendState friendState);
 }

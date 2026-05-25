@@ -201,6 +201,7 @@ public interface MemberControllerDocs {
                     ## 주의사항
                     - 반드시 로그인을 해야합니다
                     - 요청 보낼 상대의 ID를 반드시 입력해야 합니다
+                    - 이전에 친구 요청을 거절 당했더라도 재요청 시 다시 요청 대기 상태(WAITING)로 리셋되어 정상 처리됩니다.
                     """
     )
     @ApiResponses(value = {
@@ -776,6 +777,99 @@ public interface MemberControllerDocs {
             required = true
     )
     ApiResponse<MemberResDTO.Blocking> blockMember(
+            @AuthenticationPrincipal AuthMember auth,
+            @PathVariable Long friendId
+    );
+
+    // 친구 삭제 및 요청 취소
+    @Operation(
+            summary = "친구 삭제 및 요청 취소 API",
+            description = """
+                    # 친구 삭제 및 요청 취소
+                    친구 관계를 삭제하거나, 보냈던 친구 요청을 취소합니다.
+                    또한, 거절당한 내역(REJECTED)을 삭제하여 관계를 완전히 초기화할 수 있습니다.
+                    
+                    ## 주의사항
+                    - 반드시 로그인을 해야 합니다.
+                    - 차단(BLOCKED) 상태인 대상에게는 사용할 수 없습니다.
+                    """
+    )
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "성공 예시",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ApiResponse.class),
+                            examples = @ExampleObject(value = """
+                                    {
+                                      "isSuccess": true,
+                                      "code": "MEMBER200_12",
+                                      "message": "성공적으로 친구를 삭제했습니다.",
+                                      "result": {
+                                        "id": 2,
+                                        "nickname": "friendNickname"
+                                      }
+                                    }
+                                    """)
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "400",
+                    description = "실패 - 친구 관계가 아니거나 취소할 요청이 없는 경우",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ApiResponse.class),
+                            examples = @ExampleObject(value = """
+                                    {
+                                      "isSuccess": false,
+                                      "code": "MEMBER400_4",
+                                      "message": "대상과 친구가 아닙니다.",
+                                      "result": null
+                                    }
+                                    """)
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "404",
+                    description = "실패 - 사용자를 찾지 못한 경우",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ApiResponse.class),
+                            examples = @ExampleObject(value = """
+                                    {
+                                      "isSuccess": false,
+                                      "code": "MEMBER404_1",
+                                      "message": "해당 사용자를 찾지 못했습니다.",
+                                      "result": null
+                                    }
+                                    """)
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "401",
+                    description = "실패 - 로그인이 필요한 경우",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ApiResponse.class),
+                            examples = @ExampleObject(value = """
+                                    {
+                                      "isSuccess": false,
+                                      "code": "COMMON401_1",
+                                      "message": "인증이 필요합니다.",
+                                      "result": null
+                                    }
+                                    """)
+                    )
+            )
+    })
+    @Parameter(
+            name = "friendId",
+            description = "삭제할 친구(또는 취소할 요청의 대상) 사용자 ID",
+            example = "2",
+            required = true
+    )
+    ApiResponse<MemberResDTO.DeleteFriend> deleteFriend(
             @AuthenticationPrincipal AuthMember auth,
             @PathVariable Long friendId
     );

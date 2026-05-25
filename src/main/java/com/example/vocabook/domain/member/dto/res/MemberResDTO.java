@@ -91,12 +91,14 @@ public class MemberResDTO {
             LocalDateTime reportedAt
     ) {}
 
+    // 사진 업로드 완료
     @Builder
     public record UploadImage(
             String publicUrl,
             LocalDateTime uploadAt
     ) {}
 
+    // 사진 업로드용 URI 생성
     @Builder
     public record CreateSignedUri(
             String url,
@@ -104,9 +106,19 @@ public class MemberResDTO {
             PhotoType photoType
     ) {}
 
+    // 프로필 수정
     @Builder
     public record UpdateProfile(
             String email,
             String nickname
+    ) {}
+
+    // 친구 삭제
+    @Builder
+    public record DeleteFriend(
+            Long id,
+            String nickname,
+            String email,
+            LocalDateTime deletedAt
     ) {}
 }
