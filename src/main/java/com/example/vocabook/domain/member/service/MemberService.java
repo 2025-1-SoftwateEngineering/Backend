@@ -544,7 +544,7 @@ public class MemberService {
                 .orElseThrow(() -> new MemberException(MemberErrorCode.NOT_FOUND));
 
         // 비밀번호 검증
-        if (!passwordEncoder.matches(member.getPassword(), dto.confirmPassword())){
+        if (!passwordEncoder.matches(dto.confirmPassword(), member.getPassword())){
             throw new MemberException(AuthErrorCode.WRONG_PASSWORD);
         }
 
