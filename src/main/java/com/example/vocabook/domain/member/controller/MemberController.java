@@ -150,12 +150,13 @@ public class MemberController implements MemberControllerDocs {
         return ApiResponse.onSuccess(code, memberService.uploadImage(auth, fileName, photoType, targetId));
     }
 
-    // 프로필 사진 수정
-//    @PutMapping("/v1/members/me/profile-image")
-//    public ApiResponse<MemberResDTO.UpdateProfile> updateProfile(
-//            @AuthenticationPrincipal AuthMember auth,
-//            @RequestParam String fileName
-//    ){
-//
-//    }
+    // 프로필 수정
+    @PatchMapping("/v1/members/me")
+    public ApiResponse<MemberResDTO.UpdateProfile> updateProfile(
+            @AuthenticationPrincipal AuthMember auth,
+            @RequestBody @Valid MemberReqDTO.UpdateProfile dto
+    ){
+        BaseSuccessCode code = MemberSuccessCode.UPDATE_PROFILE;
+        return ApiResponse.onSuccess(code, memberService.updateProfile(auth, dto));
+    }
 }

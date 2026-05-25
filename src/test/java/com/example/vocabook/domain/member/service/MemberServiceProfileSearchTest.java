@@ -16,7 +16,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Optional;
 
+import org.springframework.security.crypto.password.PasswordEncoder;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.BDDMockito.given;
 
@@ -26,6 +28,9 @@ class MemberServiceProfileSearchTest {
 
     @Mock
     private MemberRepository memberRepository;
+
+    @Mock
+    private PasswordEncoder passwordEncoder;
 
     @InjectMocks
     private MemberService memberService;
@@ -38,6 +43,8 @@ class MemberServiceProfileSearchTest {
         myMember = Member.builder()
                 .id(1L)
                 .email("me@example.com")
+                .password("encodedPassword")
+                .refreshToken("oldToken")
                 .build();
         authMember = new AuthMember(myMember);
     }
@@ -58,5 +65,25 @@ class MemberServiceProfileSearchTest {
 
         // then
         assertEquals(MemberErrorCode.NOT_FOUND, exception.getCode());
+    }
+
+    @Test
+    @DisplayName("프로필 수정 성공 - 이메일 변경 시 RefreshToken 무효화")
+    void updateProfile_Success_ChangeEmail() {
+        // given
+        String newEmail = "new_me@example.com";
+        String confirmPassword = "password123";
+        MemberReqDTO.UpdateProfile dto = new MemberReqDTO.UpdateProfile("NewNickname", newEmail, confirmPassword);
+
+        given(memberRepository.findById(1L)).willReturn(Optional.of(myMember));
+        given(passwordEncoder.matches(confirmPassword, myMember.getPassword())).willReturn(true);
+
+        // when
+        memberService.updateProfile(authMember, dto);
+
+        // then
+        assertEquals(newEmail, myMember.getEmail());
+        assertEquals("NewNickname", myMember.getNickname());
+        assertNotEquals("oldToken", myMember.getRefreshToken()); // JWT 토큰 무효화 확인
     }
 }

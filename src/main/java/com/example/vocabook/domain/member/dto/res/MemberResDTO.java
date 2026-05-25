@@ -104,6 +104,7 @@ public class MemberResDTO {
 
     @Builder
     public record UpdateProfile(
-            String publicUrl
+            String email,
+            String nickname
     ) {}
 }
