@@ -155,6 +155,8 @@ public class VocaService {
 				.orElseThrow(() -> new VocaException(VocaErrorCode.VOCA_NOT_FOUND));
 
 		LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
+		boolean studiedTodayAlready = member.getLastStudiedAt() != null
+				&& member.getLastStudiedAt().isEqual(today);
 		Optional<MemberVoca> existingMemberVoca = memberVocaRepository.findByMemberAndVoca(member, voca);
 		boolean alreadySubmittedToday = existingMemberVoca
 				.map(mv -> mv.getSolvedAt() != null && mv.getSolvedAt().toLocalDate().isEqual(today))
@@ -190,7 +192,7 @@ public class VocaService {
 		long newlyCorrectCount = Math.max(0L, correctCount - previousCorrectCount);
 		long earnedCoins = newlyCorrectCount * 5;
 		member.addCoin(earnedCoins);
-		if (!alreadySubmittedToday) {
+		if (!studiedTodayAlready) {
 			member.updateStreak();
 			if (member.getStreak() % 7 == 0) {
 				member.addCoin(500);
