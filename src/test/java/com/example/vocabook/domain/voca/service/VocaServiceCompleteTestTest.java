@@ -24,6 +24,7 @@ import com.example.vocabook.domain.voca.exception.VocaException;
 import com.example.vocabook.domain.voca.code.VocaErrorCode;
 
 import java.lang.reflect.Field;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
@@ -122,7 +123,7 @@ public class VocaServiceCompleteTestTest {
         ));
 
         given(vocaRepository.findById(1L)).willReturn(Optional.of(voca));
-        given(memberRepository.findById(1L)).willReturn(Optional.of(member));
+        given(memberRepository.findByIdWithLock(1L)).willReturn(Optional.of(member));
         given(memberVocaRepository.findByMemberAndVoca(member, voca)).willReturn(Optional.empty());
         given(wordRepository.findAllById(any())).willReturn(List.of(word1, word2));
         given(memberRepository.saveAndFlush(any())).willReturn(member);
@@ -154,7 +155,7 @@ public class VocaServiceCompleteTestTest {
         ));
 
         given(vocaRepository.findById(1L)).willReturn(Optional.of(voca));
-        given(memberRepository.findById(1L)).willReturn(Optional.of(member));
+        given(memberRepository.findByIdWithLock(1L)).willReturn(Optional.of(member));
         given(memberVocaRepository.findByMemberAndVoca(member, voca)).willReturn(Optional.of(existing));
         given(wordRepository.findAllById(any())).willReturn(List.of(word1, word2));
         given(memberRepository.saveAndFlush(any())).willReturn(member);
@@ -185,7 +186,7 @@ public class VocaServiceCompleteTestTest {
         ));
 
         given(vocaRepository.findById(1L)).willReturn(Optional.of(voca));
-        given(memberRepository.findById(1L)).willReturn(Optional.of(member));
+        given(memberRepository.findByIdWithLock(1L)).willReturn(Optional.of(member));
         given(memberVocaRepository.findByMemberAndVoca(member, voca)).willReturn(Optional.of(existing));
         given(wordRepository.findAllById(any())).willReturn(List.of(word1, word2));
         given(memberRepository.saveAndFlush(any())).willReturn(member);
@@ -270,7 +271,7 @@ public class VocaServiceCompleteTestTest {
         // given
         VocaReqDTO.CompleteTest dto = makeCompleteTestDto(List.of());
         given(vocaRepository.findById(1L)).willReturn(Optional.of(voca));
-        given(memberRepository.findById(1L)).willReturn(Optional.empty());
+        given(memberRepository.findByIdWithLock(1L)).willReturn(Optional.empty());
 
         // when & then
         VocaException exception = assertThrows(VocaException.class,
@@ -284,7 +285,7 @@ public class VocaServiceCompleteTestTest {
         // given
         VocaReqDTO.CompleteTest dto = makeCompleteTestDto(List.of(makeAnswer(999L, "apple")));
         given(vocaRepository.findById(1L)).willReturn(Optional.of(voca));
-        given(memberRepository.findById(1L)).willReturn(Optional.of(member));
+        given(memberRepository.findByIdWithLock(1L)).willReturn(Optional.of(member));
         given(memberVocaRepository.findByMemberAndVoca(member, voca)).willReturn(Optional.empty());
         given(wordRepository.findAllById(any())).willReturn(List.of()); // 999L은 DB에 없음
 
@@ -325,7 +326,7 @@ public class VocaServiceCompleteTestTest {
         VocaReqDTO.CompleteTest dto = makeCompleteTestDto(List.of(makeAnswer(1L, "apple")));
 
         given(vocaRepository.findById(1L)).willReturn(Optional.of(voca));
-        given(memberRepository.findById(1L)).willReturn(Optional.of(memberWithStreak6));
+        given(memberRepository.findByIdWithLock(1L)).willReturn(Optional.of(memberWithStreak6));
         given(memberVocaRepository.findByMemberAndVoca(memberWithStreak6, voca)).willReturn(Optional.empty());
         given(wordRepository.findAllById(any())).willReturn(List.of(word1));
         given(memberRepository.saveAndFlush(any())).willReturn(memberWithStreak6);
@@ -348,7 +349,7 @@ public class VocaServiceCompleteTestTest {
         ));
 
         given(vocaRepository.findById(1L)).willReturn(Optional.of(voca));
-        given(memberRepository.findById(1L)).willReturn(Optional.of(member));
+        given(memberRepository.findByIdWithLock(1L)).willReturn(Optional.of(member));
         given(memberVocaRepository.findByMemberAndVoca(member, voca)).willReturn(Optional.empty());
         given(wordRepository.findAllById(any())).willReturn(List.of(word1, word2));
         given(memberRepository.saveAndFlush(any())).willReturn(member);
@@ -376,7 +377,7 @@ public class VocaServiceCompleteTestTest {
         VocaReqDTO.CompleteTest dto = makeCompleteTestDto(List.of(makeAnswer(1L, "apple")));
 
         given(vocaRepository.findById(1L)).willReturn(Optional.of(voca));
-        given(memberRepository.findById(1L)).willReturn(Optional.of(member));
+        given(memberRepository.findByIdWithLock(1L)).willReturn(Optional.of(member));
         given(memberVocaRepository.findByMemberAndVoca(member, voca)).willReturn(Optional.of(yesterdayRecord));
         given(wordRepository.findAllById(any())).willReturn(List.of(word1));
         given(memberRepository.saveAndFlush(any())).willReturn(member);
@@ -400,7 +401,7 @@ public class VocaServiceCompleteTestTest {
         VocaReqDTO.CompleteTest dto = makeCompleteTestDto(List.of(makeAnswer(1L, "apple")));
 
         given(vocaRepository.findById(1L)).willReturn(Optional.of(voca));
-        given(memberRepository.findById(1L)).willReturn(Optional.of(member));
+        given(memberRepository.findByIdWithLock(1L)).willReturn(Optional.of(member));
         given(memberVocaRepository.findByMemberAndVoca(member, voca)).willReturn(Optional.of(nullSolvedAtRecord));
         given(wordRepository.findAllById(any())).willReturn(List.of(word1));
         given(memberRepository.saveAndFlush(any())).willReturn(member);
@@ -419,7 +420,7 @@ public class VocaServiceCompleteTestTest {
         VocaReqDTO.CompleteTest dto = makeCompleteTestDto(List.of());
 
         given(vocaRepository.findById(1L)).willReturn(Optional.of(voca));
-        given(memberRepository.findById(1L)).willReturn(Optional.of(member));
+        given(memberRepository.findByIdWithLock(1L)).willReturn(Optional.of(member));
         given(memberVocaRepository.findByMemberAndVoca(member, voca)).willReturn(Optional.empty());
         given(wordRepository.findAllById(any())).willReturn(List.of());
         given(memberRepository.saveAndFlush(any())).willReturn(member);
@@ -434,6 +435,49 @@ public class VocaServiceCompleteTestTest {
         assertEquals(0, result.getWrongCount());
         assertEquals(0L, result.getEarnedCoins());
         assertTrue(result.getResults().isEmpty());
+    }
+
+    @Test
+    @DisplayName("테스트 완료 - 오늘 첫 completeTest() 후 totalStudyDays +1")
+    void completeTest_FirstSubmit_TotalStudyDaysIncreases() {
+        // given
+        VocaReqDTO.CompleteTest dto = makeCompleteTestDto(List.of(makeAnswer(1L, "apple")));
+        given(vocaRepository.findById(1L)).willReturn(Optional.of(voca));
+        given(memberRepository.findByIdWithLock(1L)).willReturn(Optional.of(member));
+        given(memberVocaRepository.findByMemberAndVoca(member, voca)).willReturn(Optional.empty());
+        given(wordRepository.findAllById(any())).willReturn(List.of(word1));
+        given(memberRepository.saveAndFlush(any())).willReturn(member);
+        given(memberVocaRepository.save(any(MemberVoca.class))).willReturn(null);
+
+        // when
+        vocaService.completeTest(1L, authMember, dto);
+
+        // then
+        assertEquals(1L, member.getTotalStudyDays());
+    }
+
+    @Test
+    @DisplayName("테스트 완료 - 오늘 이미 학습한 경우 streak/totalStudyDays 증가 없음")
+    void completeTest_ReSubmit_StudiedTodayAlready_StreakNotIncreased() {
+        // given - member가 오늘 이미 학습함 (lastStudiedAt = today)
+        LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
+        member.updateStreak(today); // streak=1, totalStudyDays=1, lastStudiedAt=today
+
+        VocaReqDTO.CompleteTest dto = makeCompleteTestDto(List.of(makeAnswer(1L, "apple")));
+
+        given(vocaRepository.findById(1L)).willReturn(Optional.of(voca));
+        given(memberRepository.findByIdWithLock(1L)).willReturn(Optional.of(member));
+        given(memberVocaRepository.findByMemberAndVoca(member, voca)).willReturn(Optional.empty());
+        given(wordRepository.findAllById(any())).willReturn(List.of(word1));
+        given(memberRepository.saveAndFlush(any())).willReturn(member);
+        given(memberVocaRepository.save(any(MemberVoca.class))).willReturn(null);
+
+        // when
+        vocaService.completeTest(1L, authMember, dto);
+
+        // then - studiedTodayAlready=true 이므로 streak/totalStudyDays 그대로 유지
+        assertEquals(1L, member.getStreak());
+        assertEquals(1L, member.getTotalStudyDays());
     }
 
     private VocaReqDTO.CompleteTest makeCompleteTestDto(List<VocaReqDTO.CompleteTest.Answer> answers) {

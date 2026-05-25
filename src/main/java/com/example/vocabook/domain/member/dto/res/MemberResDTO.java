@@ -16,6 +16,7 @@ public class MemberResDTO {
             String nickname,
             String email,
             Long streak,
+            Long totalStudyDays,
             Long coin,
             Authorize authorize,
             String profileUrl,
@@ -69,6 +70,7 @@ public class MemberResDTO {
             String nickname,
             Integer totalWordsLearned,
             Long streak,
+            Long totalStudyDays,
             Long coin,
             LocalDateTime loginAt
     ) {}
