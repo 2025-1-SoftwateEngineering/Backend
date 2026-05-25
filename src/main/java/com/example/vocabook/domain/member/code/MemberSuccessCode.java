@@ -42,6 +42,9 @@ public enum MemberSuccessCode implements BaseSuccessCode {
     UPDATE_PROFILE(HttpStatus.OK,
             "MEMBER200_10",
             "성공적으로 프로필을 수정했습니다."),
+    DELETE_FRIEND(HttpStatus.OK,
+            "MEMBER200_11",
+            "성공적으로 친구 삭제했습니다."),
     ;
 
     private final HttpStatus status;

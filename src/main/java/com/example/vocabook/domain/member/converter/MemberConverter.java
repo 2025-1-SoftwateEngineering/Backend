@@ -182,4 +182,16 @@ public class MemberConverter {
                 .nickname(member.getNickname())
                 .build();
     }
+
+    // 친구 삭제
+    public static MemberResDTO.DeleteFriend toDeleteFriend(
+            Member friend
+    ) {
+        return MemberResDTO.DeleteFriend.builder()
+                .id(friend.getId())
+                .email(friend.getEmail())
+                .nickname(friend.getNickname())
+                .deletedAt(LocalDateTime.now())
+                .build();
+    }
 }
