@@ -5,7 +5,6 @@ import com.example.vocabook.domain.store.service.CrosswordHintStrategyTest;
 import com.example.vocabook.domain.store.service.PetBgStrategyTest;
 import com.example.vocabook.domain.store.service.PetFoodStrategyTest;
 import com.example.vocabook.domain.store.service.PetWaterStrategyTest;
-import com.example.vocabook.domain.store.service.ProfileDecorationStrategyTest;
 import com.example.vocabook.domain.store.service.StoreServiceTest;
 import org.junit.platform.suite.api.SelectClasses;
 import org.junit.platform.suite.api.Suite;
@@ -19,8 +18,7 @@ import org.junit.platform.suite.api.SuiteDisplayName;
 		CrosswordHintStrategyTest.class,
 		PetBgStrategyTest.class,
 		PetFoodStrategyTest.class,
-		PetWaterStrategyTest.class,
-		ProfileDecorationStrategyTest.class
+		PetWaterStrategyTest.class
 })
 public class StoreTestSuite {
 }
