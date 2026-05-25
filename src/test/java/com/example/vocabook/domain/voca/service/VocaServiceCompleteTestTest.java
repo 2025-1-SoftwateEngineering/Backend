@@ -457,6 +457,55 @@ public class VocaServiceCompleteTestTest {
     }
 
     @Test
+    @DisplayName("테스트 완료 - 오늘 다른 단어장을 이미 풀었으면 스트릭 증가 없음 (핵심 버그 케이스)")
+    void completeTest_DifferentVoca_AlreadyStudiedToday_StreakNotIncreases() {
+        // given - 오늘 이미 다른 단어장을 풀어서 lastStudiedAt = 오늘인 상태
+        LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
+        member.updateStreak(today); // streak = 1, lastStudiedAt = 오늘
+        long streakBefore = member.getStreak();
+
+        Voca voca2 = Voca.builder().id(2L).description("다른 단어장").createdAt(LocalDateTime.now()).build();
+        Word word3 = Word.builder().id(3L).englishWord("cherry").meaning("체리").voca(voca2).build();
+        VocaReqDTO.CompleteTest dto = makeCompleteTestDto(List.of(makeAnswer(3L, "cherry")));
+
+        given(vocaRepository.findById(2L)).willReturn(Optional.of(voca2));
+        given(memberRepository.findByIdWithLock(1L)).willReturn(Optional.of(member));
+        given(memberVocaRepository.findByMemberAndVoca(member, voca2)).willReturn(Optional.empty());
+        given(wordRepository.findAllById(any())).willReturn(List.of(word3));
+        given(memberRepository.saveAndFlush(any())).willReturn(member);
+        given(memberVocaRepository.save(any(MemberVoca.class))).willReturn(null);
+
+        // when
+        vocaService.completeTest(2L, authMember, dto);
+
+        // then
+        assertEquals(streakBefore, member.getStreak()); // 스트릭 유지
+    }
+
+    @Test
+    @DisplayName("테스트 완료 - lastStudiedAt이 어제인 경우 오늘 첫 제출로 스트릭 증가")
+    void completeTest_LastStudiedAtYesterday_StreakIncreases() {
+        // given - lastStudiedAt = 어제
+        LocalDate yesterday = LocalDate.now(ZoneId.of("Asia/Seoul")).minusDays(1);
+        setField(member, "lastStudiedAt", yesterday);
+        setField(member, "streak", 3L);
+        VocaReqDTO.CompleteTest dto = makeCompleteTestDto(List.of(makeAnswer(1L, "apple")));
+
+        given(vocaRepository.findById(1L)).willReturn(Optional.of(voca));
+        given(memberRepository.findByIdWithLock(1L)).willReturn(Optional.of(member));
+        given(memberVocaRepository.findByMemberAndVoca(member, voca)).willReturn(Optional.empty());
+        given(wordRepository.findAllById(any())).willReturn(List.of(word1));
+        given(memberRepository.saveAndFlush(any())).willReturn(member);
+        given(memberVocaRepository.save(any(MemberVoca.class))).willReturn(null);
+
+        // when
+        vocaService.completeTest(1L, authMember, dto);
+
+        // then
+        assertEquals(4L, member.getStreak()); // 3 → 4
+    }
+
+    @Test
     @DisplayName("테스트 완료 - 오늘 이미 학습한 경우 streak/totalStudyDays 증가 없음")
     void completeTest_ReSubmit_StudiedTodayAlready_StreakNotIncreased() {
         // given - member가 오늘 이미 학습함 (lastStudiedAt = today)
@@ -478,6 +527,34 @@ public class VocaServiceCompleteTestTest {
         // then - studiedTodayAlready=true 이므로 streak/totalStudyDays 그대로 유지
         assertEquals(1L, member.getStreak());
         assertEquals(1L, member.getTotalStudyDays());
+    }
+
+    @Test
+    @DisplayName("테스트 완료 - 같은 단어장 당일 재제출 시 스트릭 유지")
+    void completeTest_SameVocaResubmit_StreakNotIncreases() {
+        // given - lastStudiedAt = 오늘 (이미 이 단어장을 풀었음)
+        LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
+        member.updateStreak(today); // streak = 1, lastStudiedAt = 오늘
+        long streakBefore = member.getStreak();
+
+        MemberVoca existing = MemberVoca.builder()
+                .member(member).voca(voca)
+                .correctCnt(1L).learningWordCnt(2L)
+                .solvedAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")))
+                .build();
+        VocaReqDTO.CompleteTest dto = makeCompleteTestDto(List.of(makeAnswer(1L, "apple")));
+
+        given(vocaRepository.findById(1L)).willReturn(Optional.of(voca));
+        given(memberRepository.findByIdWithLock(1L)).willReturn(Optional.of(member));
+        given(memberVocaRepository.findByMemberAndVoca(member, voca)).willReturn(Optional.of(existing));
+        given(wordRepository.findAllById(any())).willReturn(List.of(word1));
+        given(memberRepository.saveAndFlush(any())).willReturn(member);
+
+        // when
+        vocaService.completeTest(1L, authMember, dto);
+
+        // then
+        assertEquals(streakBefore, member.getStreak()); // 스트릭 유지
     }
 
     private VocaReqDTO.CompleteTest makeCompleteTestDto(List<VocaReqDTO.CompleteTest.Answer> answers) {
