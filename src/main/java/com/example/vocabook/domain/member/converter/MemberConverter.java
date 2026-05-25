@@ -151,7 +151,7 @@ public class MemberConverter {
                 .build();
     }
 
-    // 프로필 업로드용 URI 생성
+    // 사진 업로드용 URI 생성
     public static MemberResDTO.CreateSignedUri toCreateSignedUri(
             String fileName,
             String url,
@@ -164,7 +164,7 @@ public class MemberConverter {
                 .build();
     }
 
-    // 프로필 업데이트
+    // 사진 업로드 완료
     public static MemberResDTO.UploadImage toUploadImage(
             Blob blob,
             String publicUrl
@@ -172,6 +172,16 @@ public class MemberConverter {
         return MemberResDTO.UploadImage.builder()
                 .uploadAt(blob.getUpdateTimeOffsetDateTime().toLocalDateTime())
                 .publicUrl(publicUrl)
+                .build();
+    }
+
+    // 프로필 변경
+    public static MemberResDTO.UpdateProfile toUpdateProfile(
+            Member member
+    ) {
+        return MemberResDTO.UpdateProfile.builder()
+                .email(member.getEmail())
+                .nickname(member.getNickname())
                 .build();
     }
 }

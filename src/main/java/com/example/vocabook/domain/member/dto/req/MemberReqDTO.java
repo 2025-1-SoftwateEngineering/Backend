@@ -2,6 +2,7 @@ package com.example.vocabook.domain.member.dto.req;
 
 import com.example.vocabook.domain.member.enums.ReportReason;
 import jakarta.annotation.Nullable;
+import jakarta.validation.constraints.NotBlank;
 
 public class MemberReqDTO {
 
@@ -20,5 +21,13 @@ public class MemberReqDTO {
             ReportReason reportReason,
             @Nullable
             String detailReason
+    ) {}
+
+    // 프로필 수정
+    public record UpdateProfile(
+            String nickname,
+            String email,
+            @NotBlank(message = "기존 비밀번호는 필수 입력입니다.")
+            String confirmPassword
     ) {}
 }

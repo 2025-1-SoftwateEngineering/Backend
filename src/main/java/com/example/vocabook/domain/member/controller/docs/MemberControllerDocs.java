@@ -1084,4 +1084,93 @@ public interface MemberControllerDocs {
             @RequestParam PhotoType photoType,
             @RequestParam(required = false) Long targetId
     );
+
+    // 프로필 수정
+    @Operation(
+            summary = "프로필 수정 API By 김주헌",
+            description = """
+                    # 프로필 수정
+                    사용자의 닉네임과 이메일을 수정합니다.
+                    
+                    ## 주의사항
+                    - 반드시 로그인을 해야 합니다.
+                    - 비밀번호 확인(confirmPassword)은 필수입니다.
+                    - 변경을 원하지 않는 필드(nickname, email)는 비워두면 기존 값이 유지됩니다.
+                    - 프로필 사진 변경은 `사진 업로드용 URI 발급 API` -> `사진 업로드 완료 API`를 순서대로 사용해주세요.
+                    - 이메일을 변경할 경우 기존 JWT 토큰은 만료(무효화)되므로 다시 로그인해야 합니다.
+                    """
+    )
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "성공 예시",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ApiResponse.class),
+                            examples = @ExampleObject(value = """
+                                    {
+                                      "isSuccess": true,
+                                      "code": "MEMBER200_10",
+                                      "message": "성공적으로 프로필을 수정했습니다.",
+                                      "result": {
+                                        "email": "updated@example.com",
+                                        "nickname": "UpdatedNickname"
+                                      }
+                                    }
+                                    """)
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "400",
+                    description = "실패 - 비밀번호가 일치하지 않는 경우",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ApiResponse.class),
+                            examples = @ExampleObject(value = """
+                                    {
+                                      "isSuccess": false,
+                                      "code": "AUTH400_2",
+                                      "message": "아이디 혹은 비밀번호가 잘못되었습니다.",
+                                      "result": null
+                                    }
+                                    """)
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "404",
+                    description = "실패 - 사용자를 찾지 못한 경우",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ApiResponse.class),
+                            examples = @ExampleObject(value = """
+                                    {
+                                      "isSuccess": false,
+                                      "code": "MEMBER404_1",
+                                      "message": "해당 사용자를 찾지 못했습니다.",
+                                      "result": null
+                                    }
+                                    """)
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "401",
+                    description = "실패 - 로그인이 필요한 경우",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ApiResponse.class),
+                            examples = @ExampleObject(value = """
+                                    {
+                                      "isSuccess": false,
+                                      "code": "COMMON401_1",
+                                      "message": "인증이 필요합니다.",
+                                      "result": null
+                                    }
+                                    """)
+                    )
+            )
+    })
+    ApiResponse<MemberResDTO.UpdateProfile> updateProfile(
+            @AuthenticationPrincipal AuthMember auth,
+            @RequestBody @Valid MemberReqDTO.UpdateProfile dto
+    );
 }
