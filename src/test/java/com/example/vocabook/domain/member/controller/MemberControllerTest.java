@@ -214,4 +214,36 @@ class MemberControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.isSuccess").value(true));
     }
+
+    @Test
+    @DisplayName("프로필 수정 성공")
+    void updateProfile_Success() throws Exception {
+        // given
+        MemberReqDTO.UpdateProfile request = new MemberReqDTO.UpdateProfile("UpdatedNickname", "updated@example.com", "password123");
+        MemberResDTO.UpdateProfile response = new MemberResDTO.UpdateProfile("updated@example.com", "UpdatedNickname");
+        
+        given(memberService.updateProfile(any(AuthMember.class), any())).willReturn(response);
+
+        // when & then
+        mockMvc.perform(patch("/api/v1/members/me")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.isSuccess").value(true))
+                .andExpect(jsonPath("$.result.nickname").value("UpdatedNickname"))
+                .andExpect(jsonPath("$.result.email").value("updated@example.com"));
+    }
+
+    @Test
+    @DisplayName("프로필 수정 실패 - 비밀번호 누락 (400 Bad Request)")
+    void updateProfile_NoPassword_BadRequest() throws Exception {
+        // given
+        MemberReqDTO.UpdateProfile request = new MemberReqDTO.UpdateProfile("UpdatedNickname", "updated@example.com", null);
+
+        // when & then
+        mockMvc.perform(patch("/api/v1/members/me")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
+    }
 }
