@@ -85,7 +85,7 @@ class MemberControllerTest {
     @DisplayName("내 프로필 조회 성공")
     void getMyProfile_Success() throws Exception {
         // given
-        MemberResDTO.MyProfile response = new MemberResDTO.MyProfile("Tester", "test@example.com", 0L, 0L, 0L, Authorize.ROLE_USER, "http://profile.url", null, null);
+        MemberResDTO.MyProfile response = new MemberResDTO.MyProfile("Tester", "test@example.com", 0L, 0L, 0L, Authorize.ROLE_USER, "http://profile.url");
         given(memberService.getMyProfile(any(AuthMember.class))).willReturn(response);
 
         // when & then

@@ -3,7 +3,6 @@ package com.example.vocabook.domain.member.dto.res;
 import com.example.vocabook.domain.member.enums.Authorize;
 import com.example.vocabook.domain.member.enums.FriendState;
 import com.example.vocabook.domain.member.enums.PhotoType;
-import com.example.vocabook.domain.store.enums.ItemType;
 import lombok.Builder;
 
 import java.time.LocalDateTime;
@@ -19,9 +18,7 @@ public class MemberResDTO {
             Long totalStudyDays,
             Long coin,
             Authorize authorize,
-            String profileUrl,
-            ItemType activeProfilePhoto,
-            ItemType activeProfileBg
+            String profileUrl
     ) {}
 
     // 친구 요청 목록 조회

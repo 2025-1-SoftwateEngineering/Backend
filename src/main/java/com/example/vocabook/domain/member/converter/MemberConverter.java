@@ -41,8 +41,6 @@ public class MemberConverter {
                 .nickname(member.getNickname())
                 .authorize(member.getAuthorize())
                 .profileUrl(member.getProfileUrl())
-                .activeProfilePhoto(member.getActiveProfilePhoto())
-                .activeProfileBg(member.getActiveProfileBg())
                 .build();
     }
 

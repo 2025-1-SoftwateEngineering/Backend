@@ -73,8 +73,6 @@ public class StoreService {
 		List<MemberItem> memberItems = memberItemRepository.findByMember(member);
 
 		Set<ItemType> equippedTypes = EnumSet.noneOf(ItemType.class);
-		if (member.getActiveProfilePhoto() != null) equippedTypes.add(member.getActiveProfilePhoto());
-		if (member.getActiveProfileBg() != null) equippedTypes.add(member.getActiveProfileBg());
 		memberPetRepository.findByMember(member)
 				.map(pet -> pet.getActiveBackground())
 				.ifPresent(equippedTypes::add);
