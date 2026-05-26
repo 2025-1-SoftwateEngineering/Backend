@@ -52,9 +52,7 @@ public interface MemberControllerDocs {
                                         "streak": 0,
                                         "totalStudyDays": 0,
                                         "coin": 0,
-                                        "authorize": "ROLE_USER",
-                                        "activeProfilePhoto": "PROFILE_PHOTO_1",
-                                        "activeProfileBg": null
+                                        "authorize": "ROLE_USER"
                                       }
                                     }
                                     """)
