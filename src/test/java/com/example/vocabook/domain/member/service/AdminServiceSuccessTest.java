@@ -148,6 +148,15 @@ public class AdminServiceSuccessTest {
     @Mock
     private CrosswordHintRepository crosswordHintRepository;
 
+    @Mock
+    private com.example.vocabook.global.util.GcsUtil gcsUtil;
+
+    @Mock
+    private com.example.vocabook.domain.store.repository.ItemRepository itemRepository;
+
+    @Mock
+    private com.example.vocabook.domain.member.repository.PetImageRepository petImageRepository;
+
     @Test
     @DisplayName("십자말풀이 문제 생성 성공")
     void createCrosswordsSuccess() {
@@ -169,5 +178,36 @@ public class AdminServiceSuccessTest {
         assertThat(result.id()).isEqualTo(10L);
         assertThat(result.solvedCoin()).isEqualTo(200L);
         verify(crosswordHintRepository, times(1)).saveAll(anyList());
+    }
+
+    @Test
+    @DisplayName("이미지 업로드 성공 - BACKGROUND (PET_BG)")
+    void uploadImage_Background_PetBg_Success() {
+        // given
+        String fileName = "background.png";
+        com.example.vocabook.domain.member.enums.PhotoType photoType = com.example.vocabook.domain.member.enums.PhotoType.BACKGROUND;
+        Long targetId = 1L;
+
+        com.example.vocabook.domain.store.entity.Item mockItem = com.example.vocabook.domain.store.entity.Item.builder()
+                .id(targetId)
+                .itemType(com.example.vocabook.domain.store.enums.ItemType.PET_BG)
+                .imageUrl("") // empty string to avoid old object deletion branch
+                .build();
+
+        com.google.cloud.storage.Blob mockBlob = mock(com.google.cloud.storage.Blob.class);
+        com.google.cloud.storage.BlobId mockBlobId = com.google.cloud.storage.BlobId.of("bucket", "background/background.png");
+        
+        when(mockBlob.getBlobId()).thenReturn(mockBlobId);
+        when(mockBlob.getUpdateTimeOffsetDateTime()).thenReturn(java.time.OffsetDateTime.now());
+        when(gcsUtil.findObject(fileName, "background/")).thenReturn(mockBlob);
+        when(itemRepository.findById(targetId)).thenReturn(Optional.of(mockItem));
+
+        // when
+        com.example.vocabook.domain.member.dto.res.AdminResDTO.UploadImage result = 
+            adminService.uploadImage(fileName, photoType, targetId);
+
+        // then
+        assertThat(result.publicUrl()).isEqualTo("https://storage.googleapis.com/bucket/background/background.png");
+        assertThat(mockItem.getImageUrl()).isEqualTo("https://storage.googleapis.com/bucket/background/background.png");
     }
 }

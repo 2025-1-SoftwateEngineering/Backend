@@ -45,6 +45,9 @@ class MemberServiceProfileSearchTest {
 	@Mock
 	private MemberVocaRepository memberVocaRepository;
 
+	@Mock
+	private com.example.vocabook.domain.member.repository.MemberActiveProfileRepository memberActiveProfileRepository;
+
 	@InjectMocks
 	private MemberService memberService;
 
@@ -60,6 +63,8 @@ class MemberServiceProfileSearchTest {
 				.refreshToken("oldToken")
 				.build();
 		authMember = new AuthMember(myMember);
+		org.mockito.Mockito.lenient().when(memberActiveProfileRepository.findAllByMemberAndItem_ItemTypeIn(org.mockito.ArgumentMatchers.any(Member.class), org.mockito.ArgumentMatchers.anyList()))
+				.thenReturn(java.util.Collections.emptyList());
 	}
 
 	@Test
@@ -86,7 +91,7 @@ class MemberServiceProfileSearchTest {
 		// given
 		String newEmail = "new_me@example.com";
 		String confirmPassword = "password123";
-		MemberReqDTO.UpdateProfile dto = new MemberReqDTO.UpdateProfile("NewNickname", newEmail, confirmPassword);
+		MemberReqDTO.UpdateProfile dto = new MemberReqDTO.UpdateProfile("NewNickname", newEmail, java.util.Collections.emptyList(), confirmPassword);
 
 		given(memberRepository.findById(1L)).willReturn(Optional.of(myMember));
 		given(passwordEncoder.matches(confirmPassword, myMember.getPassword())).willReturn(true);
