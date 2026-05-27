@@ -3,9 +3,11 @@ package com.example.vocabook.domain.member.dto.res;
 import com.example.vocabook.domain.member.enums.Authorize;
 import com.example.vocabook.domain.member.enums.FriendState;
 import com.example.vocabook.domain.member.enums.PhotoType;
+import com.example.vocabook.domain.store.enums.ItemType;
 import lombok.Builder;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 public class MemberResDTO {
 
@@ -18,8 +20,14 @@ public class MemberResDTO {
             Long totalStudyDays,
             Long coin,
             Authorize authorize,
-            String profileUrl
+            List<Image> images
     ) {}
+
+    @Builder
+    public record Image(
+            String imageUrl,
+            ItemType itemType
+    ){}
 
     // 친구 요청 목록 조회
     @Builder
@@ -86,21 +94,6 @@ public class MemberResDTO {
             Long id,
             String email,
             LocalDateTime reportedAt
-    ) {}
-
-    // 사진 업로드 완료
-    @Builder
-    public record UploadImage(
-            String publicUrl,
-            LocalDateTime uploadAt
-    ) {}
-
-    // 사진 업로드용 URI 생성
-    @Builder
-    public record CreateSignedUri(
-            String url,
-            String fileName,
-            PhotoType photoType
     ) {}
 
     // 프로필 수정

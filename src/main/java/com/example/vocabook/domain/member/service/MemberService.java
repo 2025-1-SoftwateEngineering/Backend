@@ -10,22 +10,20 @@ import com.example.vocabook.domain.member.dto.res.MemberResDTO;
 import com.example.vocabook.domain.member.entity.Friend;
 import com.example.vocabook.domain.member.entity.Member;
 import com.example.vocabook.domain.member.entity.Report;
+import com.example.vocabook.domain.member.entity.mapping.MemberActiveProfile;
+import com.example.vocabook.domain.member.entity.mapping.MemberItem;
 import com.example.vocabook.domain.member.entity.mapping.MemberVoca;
 import com.example.vocabook.domain.member.enums.FriendState;
-import com.example.vocabook.domain.member.enums.PhotoType;
 import com.example.vocabook.domain.member.exception.MemberException;
 import com.example.vocabook.domain.member.repository.*;
 import com.example.vocabook.domain.store.code.StoreErrorCode;
 import com.example.vocabook.domain.store.entity.Item;
 import com.example.vocabook.domain.store.enums.ItemType;
-import com.example.vocabook.domain.store.exception.StoreException;
 import com.example.vocabook.domain.store.repository.ItemRepository;
 import com.example.vocabook.global.apiPayload.code.GeneralErrorCode;
 import com.example.vocabook.global.apiPayload.converter.PagingConverter;
 import com.example.vocabook.global.apiPayload.dto.PagingResDTO;
 import com.example.vocabook.global.security.entity.AuthMember;
-import com.example.vocabook.global.util.GcsUtil;
-import com.google.cloud.storage.Blob;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -45,11 +43,12 @@ public class MemberService {
     private final MemberRepository memberRepository;
     private final FriendRepository friendRepository;
     private final ReportRepository reportRepository;
-    private final GcsUtil gcsUtil;
     private final ItemRepository itemRepository;
     private final MemberAlertService memberAlertService;
     private final MemberVocaRepository memberVocaRepository;
     private final PasswordEncoder passwordEncoder;
+    private final MemberItemRepository memberItemRepository;
+    private final MemberActiveProfileRepository memberActiveProfileRepository;
 
     // 내 프로필 조회
     public MemberResDTO.MyProfile getMyProfile(
@@ -58,7 +57,15 @@ public class MemberService {
 
         Member member = auth.getMember();
 
-        return MemberConverter.toMyProfile(member);
+        // 프로필 이미지, 배경 사진 가져오기
+        List<MemberActiveProfile> memberActiveProfileList = memberActiveProfileRepository
+                .findAllByMemberAndItem_ItemTypeIn(member, List.of(ItemType.PROFILE_PHOTO, ItemType.PROFILE_BG));
+
+        List<MemberResDTO.Image> imageList = memberActiveProfileList.stream()
+                .map(MemberConverter::toImage)
+                .toList();
+
+        return MemberConverter.toMyProfile(member, imageList);
     }
 
     // 친구 요청 목록 조회
@@ -134,8 +141,8 @@ public class MemberService {
         }
 
         // 내(auth)가 친구에게 보낸 관계와 친구가 내게 보낸 관계 확인
-        java.util.Optional<Friend> myToFriend = friendRepository.findByFromMemberAndToMember(auth.getMember(), friend);
-        java.util.Optional<Friend> friendToMe = friendRepository.findByFromMemberAndToMember(friend, auth.getMember());
+        Optional<Friend> myToFriend = friendRepository.findByFromMemberAndToMember(auth.getMember(), friend);
+        Optional<Friend> friendToMe = friendRepository.findByFromMemberAndToMember(friend, auth.getMember());
 
         // 차단 상태인지 확인 (내가 차단했거나, 상대가 차단했거나)
         if (myToFriend.map(Friend::getFriendState).orElse(null) == FriendState.BLOCKED ||
@@ -389,165 +396,6 @@ public class MemberService {
         return MemberConverter.toReportMember(report);
     }
 
-    // 사진 업로드용 URL 발급
-    public MemberResDTO.CreateSignedUri createSignedUri(
-            AuthMember auth,
-            String fileName,
-            PhotoType photoType
-    ) {
-        // 확장자가 있는지 검증
-        if (fileName.lastIndexOf(".") == -1) {
-            throw new MemberException(MemberErrorCode.INVADE_PHOTO_TYPE);
-        }
-
-        // 확장자 추출
-        String extension = fileName.substring(fileName.lastIndexOf(".") + 1);
-
-        // UUID로 파일명 다시 조립
-        String uuid = java.util.UUID.randomUUID().toString();
-
-        // 권한 & 사진 타입에 따라 프리픽스 변경
-        String prefix;
-        if (auth.getAuthorities().stream()
-                .anyMatch(a -> a
-                        .getAuthority().equals("ROLE_ADMIN"))
-        ){
-             prefix = switch (photoType) {
-                case PROFILE -> "profile/";
-                case ITEM -> "item/";
-                case BACKGROUND -> "background/";
-            };
-
-        } else {
-            if (!photoType.equals(PhotoType.PROFILE)) {
-                throw new MemberException(MemberErrorCode.INVADE_PHOTO_TYPE);
-            }
-
-            prefix = "profile/";
-        }
-
-        String url = gcsUtil.createSignedUrl(uuid+'.'+extension, prefix);
-
-        return MemberConverter.toCreateSignedUri(uuid+"."+extension, url, photoType);
-    }
-
-    // 사진 업로드 완료
-    @Transactional
-    public MemberResDTO.UploadImage uploadImage(
-            AuthMember auth,
-            String fileName,
-            PhotoType photoType,
-            Long targetId
-    ) {
-        // 프로필 변경만 targetId NULL
-        if (!photoType.equals(PhotoType.PROFILE) && targetId == null) {
-            throw new MemberException(MemberErrorCode.NOT_NULL_TARGET_ID);
-        }
-
-        // 권한 & 사진 타입에 따라 프리픽스 변경
-        String prefix;
-        if (auth.getAuthorities().stream()
-                .anyMatch(a -> a.
-                        getAuthority().equals("ROLE_ADMIN"))
-        ){
-             prefix = switch (photoType) {
-                case PROFILE -> "profile/";
-                case ITEM -> "item/";
-                case BACKGROUND -> "background/";
-            };
-        } else {
-            if (!photoType.equals(PhotoType.PROFILE)) {
-                throw new MemberException(MemberErrorCode.INVADE_PHOTO_TYPE);
-            }
-
-            prefix = "profile/";
-        }
-
-        // GCS에서 객체 찾기
-        Blob object = gcsUtil.findObject(fileName, prefix);
-
-        if (object == null) {
-            throw new MemberException(MemberErrorCode.NOT_UPLOAD_PROFILE);
-        }
-
-        // 공개 URL 제작
-        String publicUrl = "https://storage.googleapis.com/" +
-                object.getBlobId().getBucket() +
-                "/"+object.getBlobId().getName();
-
-        // 사진 타입에 따라 행동
-        switch (photoType) {
-            case PROFILE -> {
-                // 프리픽스로 검증
-                if (!object.getBlobId().getName().startsWith(prefix)) {
-                    throw new MemberException(MemberErrorCode.INVADE_PHOTO_TYPE);
-                }
-
-                Member member = memberRepository.findById(auth.getMember().getId())
-                        .orElseThrow(() -> new MemberException(MemberErrorCode.NOT_FOUND));
-
-                // 기존 사진 객체 삭제
-                if (!member.getProfileUrl().isBlank() && !member.getProfileUrl().contains("default-profile")) {
-                    String oldObjectName = member.getProfileUrl().substring(member.getProfileUrl().lastIndexOf("/")+1);
-                    Blob oldObject = gcsUtil.findObject(oldObjectName, prefix);
-                    if (oldObject != null) {
-                        oldObject.delete();
-                    }
-                }
-
-                member.updateProfileUrl(publicUrl);
-            }
-
-            case ITEM -> {
-                // 프리픽스로 검증
-                if (!object.getBlobId().getName().startsWith(prefix)) {
-                    throw new MemberException(MemberErrorCode.INVADE_PHOTO_TYPE);
-                }
-
-                Item item = itemRepository.findById(targetId)
-                        .orElseThrow(() -> new StoreException(StoreErrorCode.ITEM_NOT_FOUND));
-
-                // 기존 사진 객체 삭제
-                if (!item.getImageUrl().isBlank()) {
-                    String oldObjectName = item.getImageUrl().substring(item.getImageUrl().lastIndexOf("/")+1);
-                    Blob oldObject = gcsUtil.findObject(oldObjectName, prefix);
-                    if (oldObject != null) {
-                        oldObject.delete();
-                    }
-                }
-
-                item.updateImageUrl(publicUrl);
-            }
-            case BACKGROUND -> {
-                // 프리픽스로 검증
-                if (!object.getBlobId().getName().startsWith(prefix)) {
-                    throw new MemberException(MemberErrorCode.INVADE_PHOTO_TYPE);
-                }
-
-                Item item = itemRepository.findById(targetId)
-                        .orElseThrow(() -> new StoreException(StoreErrorCode.ITEM_NOT_FOUND));
-
-                // 해당 아이템 종류가 배경화면인지
-                if (!item.getItemType().equals(ItemType.BACKGROUND)) {
-                    throw new MemberException(MemberErrorCode.INVADE_PHOTO_TYPE);
-                }
-
-                // 기존 사진 객체 삭제
-                if (!item.getImageUrl().isBlank()) {
-                    String oldObjectName = item.getImageUrl().substring(item.getImageUrl().lastIndexOf("/")+1);
-                    Blob oldObject = gcsUtil.findObject(oldObjectName, prefix);
-                    if (oldObject != null) {
-                        oldObject.delete();
-                    }
-                }
-
-                item.updateImageUrl(publicUrl);
-            }
-        }
-
-        return MemberConverter.toUploadImage(object, publicUrl);
-    }
-
     // 프로필 수정
     @Transactional
     public MemberResDTO.UpdateProfile updateProfile(
@@ -573,6 +421,34 @@ public class MemberService {
             // 이메일 변경 시 기존 Refresh Token 만료처리 (UUID로 예측 못하게 처리)
             member.updateRefreshToken(UUID.randomUUID().toString());
         }
+
+        dto.updateProfileList().forEach(i -> {
+            switch(i.itemType()){
+                case PROFILE_PHOTO, PROFILE_BG -> {
+
+                    // 프로필, 배경 화면 아이템을 가지고 있는지 확인
+                    Item item = itemRepository.findById(i.targetId())
+                            .orElseThrow(() -> new MemberException(StoreErrorCode.ITEM_NOT_FOUND));
+
+                    if (!memberItemRepository.existsByMemberAndItem(member, item)){
+                        throw new MemberException(MemberErrorCode.HAS_NOT_ITEM);
+                    }
+
+                    // 활성 프로필 조회 및 변경
+                    MemberActiveProfile activeProfile = memberActiveProfileRepository
+                            .findByMemberAndItem_ItemType(member, ItemType.PROFILE_PHOTO)
+                            .orElseThrow(() -> new MemberException(MemberErrorCode.ACTIVE_PROFILE_NOT_FOUND));
+
+                    MemberActiveProfile activeBg = memberActiveProfileRepository
+                            .findByMemberAndItem_ItemType(member, ItemType.PROFILE_PHOTO)
+                            .orElseThrow(() -> new MemberException(MemberErrorCode.ACTIVE_PROFILE_NOT_FOUND));
+
+                    activeProfile.updateItem(item);
+                    activeBg.updateItem(item);
+                }
+                default -> {}
+            }
+        });
 
         return MemberConverter.toUpdateProfile(member);
     }

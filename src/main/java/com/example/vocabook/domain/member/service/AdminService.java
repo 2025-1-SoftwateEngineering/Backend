@@ -6,12 +6,23 @@ import com.example.vocabook.domain.member.converter.AdminConverter;
 import com.example.vocabook.domain.member.dto.req.AdminReqDTO;
 import com.example.vocabook.domain.member.dto.res.AdminResDTO;
 import com.example.vocabook.domain.member.entity.Member;
+import com.example.vocabook.domain.member.entity.PetImage;
 import com.example.vocabook.domain.member.entity.Report;
 import com.example.vocabook.domain.member.entity.dto.ReportDTO;
+import com.example.vocabook.domain.member.entity.mapping.MemberPet;
+import com.example.vocabook.domain.member.enums.PhotoType;
 import com.example.vocabook.domain.member.exception.AdminException;
 import com.example.vocabook.domain.member.exception.MemberException;
 import com.example.vocabook.domain.member.repository.MemberRepository;
+import com.example.vocabook.domain.member.repository.PetImageRepository;
 import com.example.vocabook.domain.member.repository.ReportRepository;
+import com.example.vocabook.domain.pet.repository.MemberPetRepository;
+import com.example.vocabook.domain.store.code.StoreErrorCode;
+import com.example.vocabook.domain.store.converter.StoreConverter;
+import com.example.vocabook.domain.store.entity.Item;
+import com.example.vocabook.domain.store.enums.ItemType;
+import com.example.vocabook.domain.store.exception.StoreException;
+import com.example.vocabook.domain.store.repository.ItemRepository;
 import com.example.vocabook.domain.voca.converter.ChoiceConverter;
 import com.example.vocabook.domain.voca.converter.CrosswordConverter;
 import com.example.vocabook.domain.voca.converter.VocaConverter;
@@ -26,7 +37,10 @@ import com.example.vocabook.domain.voca.repository.*;
 import com.example.vocabook.global.apiPayload.code.GeneralErrorCode;
 import com.example.vocabook.global.apiPayload.converter.PagingConverter;
 import com.example.vocabook.global.apiPayload.dto.PagingResDTO;
+import com.example.vocabook.global.util.GcsUtil;
+import com.google.cloud.storage.Blob;
 import jakarta.transaction.Transactional;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
@@ -47,6 +61,10 @@ public class AdminService {
     private final ChoiceQuestionRepository choiceQuestionRepository;
     private final CrosswordRepository crosswordRepository;
     private final CrosswordHintRepository crosswordHintRepository;
+    private final GcsUtil gcsUtil;
+    private final ItemRepository itemRepository;
+    private final MemberPetRepository memberPetRepository;
+    private final PetImageRepository petImageRepository;
 
     // 신고 목록 조회
     public PagingResDTO.Cursor<AdminResDTO.ReportList> getReportList(
@@ -388,5 +406,182 @@ public class AdminService {
         crosswordHintRepository.saveAll(crosswordHintList);
 
         return AdminConverter.toCreateCrossword(crossword);
+    }
+
+    // 사진 업로드용 URL 발급
+    public AdminResDTO.CreateSignedUri createSignedUri(
+            String fileName,
+            PhotoType photoType
+    ) {
+        // 확장자가 있는지 검증
+        if (fileName.lastIndexOf(".") == -1) {
+            throw new AdminException(AdminErrorCode.INVADE_PHOTO_TYPE);
+        }
+
+        // 확장자 추출
+        String extension = fileName.substring(fileName.lastIndexOf(".") + 1);
+
+        // UUID로 파일명 다시 조립
+        String uuid = java.util.UUID.randomUUID().toString();
+
+        // 권한 & 사진 타입에 따라 프리픽스 변경
+        String prefix = switch(photoType){
+            case PROFILE -> "profile/";
+            case ITEM -> "item/";
+            case BACKGROUND -> "background/";
+            case PET -> "pet/";
+        };
+
+        String url = gcsUtil.createSignedUrl(uuid+'.'+extension, prefix);
+
+        return AdminConverter.toCreateSignedUri(uuid+"."+extension, url, photoType);
+    }
+
+    // 사진 업로드 완료
+    @Transactional
+    public AdminResDTO.UploadImage uploadImage(
+            String fileName,
+            PhotoType photoType,
+            Long targetId
+    ) {
+
+        // 사진 타입에 따라 프리픽스 변경
+        String prefix = switch (photoType){
+            case PROFILE -> "profile/";
+            case ITEM -> "item/";
+            case BACKGROUND -> "background/";
+            case PET -> "pet/";
+        };
+
+        // GCS에서 객체 찾기
+        Blob object = gcsUtil.findObject(fileName, prefix);
+
+        if (object == null) {
+            throw new AdminException(AdminErrorCode.NOT_UPLOAD_PHOTO);
+        }
+
+        // 공개 URL 제작
+        String publicUrl = "https://storage.googleapis.com/" +
+                object.getBlobId().getBucket() +
+                "/"+object.getBlobId().getName();
+
+        // 사진 타입에 따라 행동
+        switch (photoType) {
+            case PROFILE -> {
+                // 프리픽스로 검증
+                if (!object.getBlobId().getName().startsWith(prefix)) {
+                    throw new AdminException(AdminErrorCode.INVADE_PHOTO_TYPE);
+                }
+
+                // 타겟 ID로 조회
+                Item item = itemRepository.findById(targetId)
+                        .orElseThrow(() -> new AdminException(MemberErrorCode.ACTIVE_PROFILE_NOT_FOUND));
+
+                // 프로필 사진인지 검증
+                if (!item.getItemType().equals(ItemType.PROFILE_PHOTO)){
+                    throw new AdminException(AdminErrorCode.INVADE_PHOTO_TYPE);
+                }
+
+                // 기존 사진 객체 삭제
+                if (!item.getImageUrl().isBlank()) {
+                    String oldObjectName = item.getImageUrl()
+                            .substring(item.getImageUrl().lastIndexOf("/")+1);
+
+                    Blob oldObject = gcsUtil.findObject(oldObjectName, prefix);
+                    if (oldObject != null) {
+                        oldObject.delete();
+                    }
+                }
+
+                // 사진 URL 변경
+                item.updateImageUrl(publicUrl);
+            }
+
+            case ITEM -> {
+                // 프리픽스로 검증
+                if (!object.getBlobId().getName().startsWith(prefix)) {
+                    throw new AdminException(AdminErrorCode.INVADE_PHOTO_TYPE);
+                }
+
+                Item item = itemRepository.findById(targetId)
+                        .orElseThrow(() -> new AdminException(StoreErrorCode.ITEM_NOT_FOUND));
+
+                // 기존 사진 객체 삭제
+                if (!item.getImageUrl().isBlank()) {
+                    String oldObjectName = item.getImageUrl()
+                            .substring(item.getImageUrl().lastIndexOf("/")+1);
+                    Blob oldObject = gcsUtil.findObject(oldObjectName, prefix);
+
+                    if (oldObject != null) {
+                        oldObject.delete();
+                    }
+                }
+
+                item.updateImageUrl(publicUrl);
+            }
+            case BACKGROUND -> {
+                // 프리픽스로 검증
+                if (!object.getBlobId().getName().startsWith(prefix)) {
+                    throw new AdminException(AdminErrorCode.INVADE_PHOTO_TYPE);
+                }
+
+                Item item = itemRepository.findById(targetId)
+                        .orElseThrow(() -> new AdminException(StoreErrorCode.ITEM_NOT_FOUND));
+
+                // 해당 아이템 종류가 배경화면인지 (프로필 배경이거나 펫 배경)
+                if (!item.getItemType().equals(ItemType.PROFILE_BG) && !item.getItemType().equals(ItemType.PET_BG)) {
+                    throw new AdminException(AdminErrorCode.INVADE_PHOTO_TYPE);
+                }
+
+                // 기존 사진 객체 삭제
+                if (!item.getImageUrl().isBlank()) {
+                    String oldObjectName = item.getImageUrl().substring(item.getImageUrl().lastIndexOf("/")+1);
+                    Blob oldObject = gcsUtil.findObject(oldObjectName, prefix);
+                    if (oldObject != null) {
+                        oldObject.delete();
+                    }
+                }
+
+                item.updateImageUrl(publicUrl);
+            }
+
+            case PET -> {
+                // 프리픽스로 검증
+                if (!object.getBlobId().getName().startsWith(prefix)) {
+                    throw new AdminException(AdminErrorCode.INVADE_PHOTO_TYPE);
+                }
+
+                PetImage petImage = petImageRepository.findById(targetId)
+                        .orElseThrow(() -> new AdminException(MemberErrorCode.PET_NOT_FOUND));
+
+                // 기존 사진 객체 삭제
+                if (!petImage.getImageUrl().isBlank()) {
+                    String oldObjectName = petImage.getImageUrl().substring(petImage.getImageUrl().lastIndexOf("/")+1);
+                    Blob oldObject = gcsUtil.findObject(oldObjectName, prefix);
+                    if (oldObject != null) {
+                        oldObject.delete();
+                    }
+                }
+
+                petImage.updateImageUrl(publicUrl);
+            }
+        }
+
+        return AdminConverter.toUploadImage(object, publicUrl);
+    }
+
+    // 아이템 생성
+    @Transactional
+    public List<AdminResDTO.CreateItem> createItem(
+            List<AdminReqDTO.@Valid CreateItem> dto
+    ) {
+        List<Item> itemList = new ArrayList<>();
+        dto.forEach(i -> itemList.add(StoreConverter.toItem(i.name(),i.price(),i.itemType())));
+
+        List<Item> result = itemRepository.saveAll(itemList);
+
+        return result.stream()
+                .map(AdminConverter::toCreateItem)
+                .toList();
     }
 }

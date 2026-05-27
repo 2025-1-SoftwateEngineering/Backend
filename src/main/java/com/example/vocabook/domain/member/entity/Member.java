@@ -3,6 +3,7 @@ package com.example.vocabook.domain.member.entity;
 import com.example.vocabook.domain.member.code.MemberErrorCode;
 import com.example.vocabook.domain.member.enums.Authorize;
 import com.example.vocabook.domain.member.exception.MemberException;
+import com.example.vocabook.domain.store.enums.ItemType;
 import com.example.vocabook.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
@@ -77,10 +78,6 @@ public class Member extends BaseEntity {
 	@Column(name = "crossword_higher")
 	private Duration crosswordHigher;
 
-	@Column(name = "profile_url", nullable = false)
-	@Builder.Default
-	private String profileUrl = "https://storage.googleapis.com/vocabuddy-storage/profile/default-profile.png";
-
 	public void updateRefreshToken(String refreshToken) {
 		this.refreshToken = refreshToken;
 	}
@@ -126,10 +123,6 @@ public class Member extends BaseEntity {
 		this.crosswordHigher = higher;
 	}
 
-	public void updateProfileUrl(String profileUrl) {
-		this.profileUrl = profileUrl;
-	}
-
     public void updateNickname(String nickname) {
         this.nickname = nickname;
     }
@@ -137,6 +130,4 @@ public class Member extends BaseEntity {
     public void updateEmail(String email) {
         this.email = email;
     }
-
-    public void updatePassword(String password) {}
 }

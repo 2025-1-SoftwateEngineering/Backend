@@ -19,13 +19,13 @@ import java.util.Optional;
 @Component
 @Order(1)
 @RequiredArgsConstructor
-public class PetBgStrategy implements ItemUseStrategy {
+public class PetAccessoryStrategy implements ItemUseStrategy {
 
 	private final MemberPetRepository memberPetRepository;
 
 	@Override
 	public boolean supports(ItemType itemType) {
-		return itemType == ItemType.PET_BG;
+		return itemType == ItemType.PET_ACCESSORY;
 	}
 
 	@Override
@@ -33,11 +33,11 @@ public class PetBgStrategy implements ItemUseStrategy {
 		MemberPet pet = memberPetRepository.findByMember(member)
 				.orElseThrow(() -> new PetException(PetErrorCode.PET_NOT_FOUND));
 
-		if (pet.getActiveBackground() != null && pet.getActiveBackground().getId().equals(memberItem.getItem().getId())) {
+		if (pet.getActiveAccessory() != null && pet.getActiveAccessory().getId().equals(memberItem.getItem().getId())) {
 			throw new StoreException(StoreErrorCode.DECORATION_ALREADY_EQUIPPED);
 		}
 
-		pet.changeBackground(memberItem.getItem());
+		pet.changeAccessory(memberItem.getItem());
 		return Optional.empty();
 	}
 }

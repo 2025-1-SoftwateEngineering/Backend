@@ -2,6 +2,7 @@ package com.example.vocabook.domain.store.service;
 
 import com.example.vocabook.domain.member.entity.Member;
 import com.example.vocabook.domain.member.entity.mapping.MemberItem;
+import com.example.vocabook.domain.member.repository.MemberActiveProfileRepository;
 import com.example.vocabook.domain.member.repository.MemberItemRepository;
 import com.example.vocabook.domain.member.repository.MemberRepository;
 import com.example.vocabook.domain.store.dto.StoreResDTO;
@@ -41,6 +42,8 @@ public class StoreServiceTest {
 	private MemberRepository memberRepository;
 	@Mock
 	private com.example.vocabook.domain.pet.repository.MemberPetRepository memberPetRepository;
+	@Mock
+	private MemberActiveProfileRepository memberActiveProfileRepository;
 
 	private StoreService storeService;
 
@@ -52,7 +55,7 @@ public class StoreServiceTest {
 	@BeforeEach
 	void setUp() {
 		List<ItemUseStrategy> strategies = List.of(new DefaultItemUseStrategy());
-		storeService = new StoreService(itemRepository, memberItemRepository, memberRepository, memberPetRepository, strategies);
+		storeService = new StoreService(itemRepository, memberItemRepository, memberRepository, memberPetRepository, strategies, memberActiveProfileRepository);
 
 		member = Member.builder()
 						 .id(1L)
@@ -172,14 +175,14 @@ public class StoreServiceTest {
 	@DisplayName("보유 아이템 목록 조회 - 장착 중인 치장 아이템은 isEquipped=true")
 	void getMyItems_DecorationItem_IsEquipped() {
 		Item bgItem = Item.builder()
-				.id(3L).name("펫 배경 1").price(200L).itemType(ItemType.PET_BG_1).build();
+				.id(3L).name("펫 배경 1").price(200L).itemType(ItemType.PET_BG).build();
 		MemberItem bgMemberItem = MemberItem.builder()
 				.id(20L).member(member).item(bgItem).count(1L).build();
 
 		com.example.vocabook.domain.member.entity.mapping.MemberPet pet =
 				com.example.vocabook.domain.member.entity.mapping.MemberPet.builder()
 						.id(1L).member(member).build();
-		pet.changeBackground(ItemType.PET_BG_1);
+		pet.changeBackground(bgItem);
 
 		given(memberRepository.findById(1L)).willReturn(Optional.of(member));
 		given(memberItemRepository.findByMember(member)).willReturn(List.of(bgMemberItem));
@@ -242,7 +245,7 @@ public class StoreServiceTest {
 				.id(3L)
 				.name("펫 배경 1")
 				.price(100L)
-				.itemType(ItemType.PET_BG_1)
+				.itemType(ItemType.PET_BG)
 				.build();
 		MemberItem existing = MemberItem.builder()
 				.id(20L).member(member).item(bgItem).count(1L).build();
@@ -297,7 +300,7 @@ public class StoreServiceTest {
 				.id(3L)
 				.name("펫 배경 1")
 				.price(200L)
-				.itemType(ItemType.PET_BG_1)
+				.itemType(ItemType.PET_BG)
 				.build();
 		MemberItem bgMemberItem = MemberItem.builder()
 				.id(20L).member(member).item(bgItem).count(1L).build();

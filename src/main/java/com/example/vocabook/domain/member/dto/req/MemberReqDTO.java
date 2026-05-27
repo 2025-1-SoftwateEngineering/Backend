@@ -1,8 +1,11 @@
 package com.example.vocabook.domain.member.dto.req;
 
 import com.example.vocabook.domain.member.enums.ReportReason;
+import com.example.vocabook.domain.store.enums.ItemType;
 import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotBlank;
+
+import java.util.List;
 
 public class MemberReqDTO {
 
@@ -27,7 +30,13 @@ public class MemberReqDTO {
     public record UpdateProfile(
             String nickname,
             String email,
+            List<ProfileList> updateProfileList,
             @NotBlank(message = "기존 비밀번호는 필수 입력입니다.")
             String confirmPassword
     ) {}
+
+    public record ProfileList(
+            ItemType itemType,
+            Long targetId
+    ){}
 }

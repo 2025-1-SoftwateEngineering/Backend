@@ -2,7 +2,7 @@ package com.example.vocabook.domain.member.entity.mapping;
 
 import com.example.vocabook.domain.member.entity.Member;
 import com.example.vocabook.domain.pet.enums.PetStage;
-import com.example.vocabook.domain.store.enums.ItemType;
+import com.example.vocabook.domain.store.entity.Item;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -21,10 +21,6 @@ public class MemberPet {
 	@Column(name = "member_pet_id")
 	private Long id;
 
-	@OneToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "member_id", nullable = false)
-	private Member member;
-
 	@Column(name = "current_level", nullable = false)
 	@Builder.Default
 	private int currentLevel = 1;
@@ -41,9 +37,17 @@ public class MemberPet {
 	@Builder.Default
 	private int thirst = 0;
 
-	@Enumerated(EnumType.STRING)
-	@Column(name = "active_background")
-	private ItemType activeBackground;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "active_background_item_id")
+    private Item activeBackground;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "active_accessory_item_id")
+    private Item activeAccessory;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_id", nullable = false)
+    private Member member;
 
 	public PetStage getStage() {
 		return PetStage.computeStage(currentLevel);
@@ -70,7 +74,11 @@ public class MemberPet {
 		}
 	}
 
-	public void changeBackground(ItemType bg) {
+	public void changeBackground(Item bg) {
 		this.activeBackground = bg;
+	}
+
+	public void changeAccessory(Item accessory) {
+		this.activeAccessory = accessory;
 	}
 }

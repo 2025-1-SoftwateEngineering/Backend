@@ -1,12 +1,17 @@
 package com.example.vocabook.domain.member.converter;
 
 import com.example.vocabook.domain.member.dto.res.AdminResDTO;
+import com.example.vocabook.domain.member.dto.res.MemberResDTO;
 import com.example.vocabook.domain.member.entity.Member;
 import com.example.vocabook.domain.member.entity.Report;
+import com.example.vocabook.domain.member.enums.PhotoType;
+import com.example.vocabook.domain.store.entity.Item;
+import com.example.vocabook.domain.store.enums.ItemType;
 import com.example.vocabook.domain.voca.entity.Crossword;
 import com.example.vocabook.domain.voca.entity.Voca;
 import com.example.vocabook.domain.voca.entity.Word;
 import com.example.vocabook.domain.voca.entity.mapping.ChoiceQuestion;
+import com.google.cloud.storage.Blob;
 
 import java.util.List;
 
@@ -148,6 +153,43 @@ public class AdminConverter {
         return AdminResDTO.CreateCrossword.builder()
                 .id(crossword.getId())
                 .solvedCoin(crossword.getSolvedCoin())
+                .build();
+    }
+
+
+    // 사진 업로드용 URI 생성
+    public static AdminResDTO.CreateSignedUri toCreateSignedUri(
+            String fileName,
+            String url,
+            PhotoType photoType
+    ){
+        return AdminResDTO.CreateSignedUri.builder()
+                .fileName(fileName)
+                .url(url)
+                .photoType(photoType)
+                .build();
+    }
+
+    // 사진 업로드 완료
+    public static AdminResDTO.UploadImage toUploadImage(
+            Blob blob,
+            String publicUrl
+    ) {
+        return AdminResDTO.UploadImage.builder()
+                .uploadAt(blob.getUpdateTimeOffsetDateTime().toLocalDateTime())
+                .publicUrl(publicUrl)
+                .build();
+    }
+
+    // 아이템 생성
+    public static AdminResDTO.CreateItem toCreateItem(
+            Item item
+    ) {
+        return AdminResDTO.CreateItem.builder()
+                .id(item.getId())
+                .price(item.getPrice())
+                .itemType(item.getItemType())
+                .name(item.getName())
                 .build();
     }
 }
