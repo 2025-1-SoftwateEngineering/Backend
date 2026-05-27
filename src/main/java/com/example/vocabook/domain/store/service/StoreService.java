@@ -1,7 +1,9 @@
 package com.example.vocabook.domain.store.service;
 
 import com.example.vocabook.domain.member.entity.Member;
+import com.example.vocabook.domain.member.entity.mapping.MemberActiveProfile;
 import com.example.vocabook.domain.member.entity.mapping.MemberItem;
+import com.example.vocabook.domain.member.repository.MemberActiveProfileRepository;
 import com.example.vocabook.domain.member.repository.MemberItemRepository;
 import com.example.vocabook.domain.member.repository.MemberRepository;
 import com.example.vocabook.domain.pet.repository.MemberPetRepository;
@@ -33,8 +35,9 @@ public class StoreService {
 	private final MemberRepository memberRepository;
 	private final MemberPetRepository memberPetRepository;
 	private final List<ItemUseStrategy> itemUseStrategies;
+    private final MemberActiveProfileRepository memberActiveProfileRepository;
 
-	public StoreResDTO.ItemList getItemList() {
+    public StoreResDTO.ItemList getItemList() {
 		List<Item> items = itemRepository.findAll();
 		return StoreConverter.toItemList(items);
 	}
@@ -72,14 +75,13 @@ public class StoreService {
 								.orElseThrow();
 		List<MemberItem> memberItems = memberItemRepository.findByMember(member);
 
-		Set<ItemType> equippedTypes = EnumSet.noneOf(ItemType.class);
-		if (member.getActiveProfilePhoto() != null) equippedTypes.add(member.getActiveProfilePhoto());
-		if (member.getActiveProfileBg() != null) equippedTypes.add(member.getActiveProfileBg());
-		memberPetRepository.findByMember(member)
-				.map(pet -> pet.getActiveBackground())
-				.ifPresent(equippedTypes::add);
+		Set<Long> equippedItemIds = new java.util.HashSet<>();
+		memberPetRepository.findByMember(member).ifPresent(pet -> {
+			if (pet.getActiveBackground() != null) equippedItemIds.add(pet.getActiveBackground().getId());
+			if (pet.getActiveAccessory() != null) equippedItemIds.add(pet.getActiveAccessory().getId());
+		});
 
-		return StoreConverter.toMyItemList(memberItems, equippedTypes);
+		return StoreConverter.toMyItemList(memberItems, equippedItemIds);
 	}
 
 	@Transactional

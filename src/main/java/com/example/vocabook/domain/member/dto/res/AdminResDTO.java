@@ -1,6 +1,8 @@
 package com.example.vocabook.domain.member.dto.res;
 
+import com.example.vocabook.domain.member.enums.PhotoType;
 import com.example.vocabook.domain.member.enums.ReportReason;
+import com.example.vocabook.domain.store.enums.ItemType;
 import lombok.Builder;
 
 import java.time.LocalDateTime;
@@ -104,4 +106,29 @@ public class AdminResDTO {
             Long id,
             Long solvedCoin
     ) {}
+
+    // 사진 업로드 완료
+    @Builder
+    public record UploadImage(
+            String publicUrl,
+            LocalDateTime uploadAt
+    ) {}
+
+    // 사진 업로드용 URI 생성
+    @Builder
+    public record CreateSignedUri(
+            String url,
+            String fileName,
+            PhotoType photoType
+    ) {}
+
+    // 아이템 생성
+    @Builder
+    public record CreateItem(
+            Long id,
+            String name,
+            ItemType itemType,
+            Long price
+    ) {}
+
 }

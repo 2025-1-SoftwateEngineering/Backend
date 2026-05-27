@@ -33,6 +33,10 @@ public class PetServiceTest {
 	private MemberItemRepository memberItemRepository;
 	@Mock
 	private MemberRepository memberRepository;
+	@Mock
+	private com.example.vocabook.domain.member.repository.PetImageRepository petImageRepository;
+	@Mock
+	private com.example.vocabook.domain.store.repository.ItemRepository itemRepository;
 
 	private PetService petService;
 
@@ -42,7 +46,7 @@ public class PetServiceTest {
 
 	@BeforeEach
 	void setUp() {
-		petService = new PetService(memberPetRepository, memberItemRepository, memberRepository);
+		petService = new PetService(memberPetRepository, memberItemRepository, memberRepository, petImageRepository, itemRepository);
 
 		member = Member.builder()
 				.id(1L)
@@ -68,6 +72,7 @@ public class PetServiceTest {
 		given(memberPetRepository.findByMember(member)).willReturn(Optional.of(memberPet));
 		given(memberItemRepository.countByMemberAndItem_ItemType(member, ItemType.PET_FOOD)).willReturn(2L);
 		given(memberItemRepository.countByMemberAndItem_ItemType(member, ItemType.PET_WATER)).willReturn(1L);
+		given(petImageRepository.findByPetStage(memberPet.getStage())).willReturn(Optional.of(com.example.vocabook.domain.member.entity.PetImage.builder().petStage(memberPet.getStage()).imageUrl("petUrl").build()));
 
 		PetResDTO.PetInfo result = petService.getPet(authMember);
 
@@ -78,6 +83,7 @@ public class PetServiceTest {
 		assertEquals(1L, result.waterCount());
 		assertEquals(50, result.hunger());
 		assertEquals(0, result.thirst());
+		assertEquals("petUrl", result.petImageUrl());
 	}
 
 	@Test
@@ -94,15 +100,24 @@ public class PetServiceTest {
 	@Test
 	@DisplayName("펫 생성 성공")
 	void createPet_Success() {
+		com.example.vocabook.domain.store.entity.Item bg = com.example.vocabook.domain.store.entity.Item.builder().name("bg").imageUrl("bgUrl").build();
+		com.example.vocabook.domain.store.entity.Item acc = com.example.vocabook.domain.store.entity.Item.builder().name("acc").imageUrl("accUrl").build();
+
 		given(memberRepository.findById(1L)).willReturn(Optional.of(member));
 		given(memberPetRepository.findByMember(member)).willReturn(Optional.empty());
 		given(memberPetRepository.save(any(MemberPet.class))).willReturn(memberPet);
+		given(itemRepository.findByName(com.example.vocabook.domain.member.service.PetImageInitializer.DEFAULT_BG_NAME)).willReturn(bg);
+		given(itemRepository.findByName(com.example.vocabook.domain.member.service.PetImageInitializer.DEFAULT_ACCESSORY_NAME)).willReturn(acc);
+		given(memberItemRepository.findByMemberAndItem(member, bg)).willReturn(Optional.empty());
+		given(memberItemRepository.findByMemberAndItem(member, acc)).willReturn(Optional.empty());
+		given(petImageRepository.findByPetStage(memberPet.getStage())).willReturn(Optional.of(com.example.vocabook.domain.member.entity.PetImage.builder().petStage(memberPet.getStage()).imageUrl("petUrl").build()));
 
 		PetResDTO.PetInfo result = petService.createPet(authMember);
 
 		assertNotNull(result);
 		assertEquals(0L, result.foodCount());
 		assertEquals(0L, result.waterCount());
+		assertEquals("petUrl", result.petImageUrl());
 	}
 
 	@Test

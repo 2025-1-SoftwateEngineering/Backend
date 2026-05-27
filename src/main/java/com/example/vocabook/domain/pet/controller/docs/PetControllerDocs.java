@@ -45,7 +45,11 @@ public interface PetControllerDocs {
 									    "currentXp": 120,
 									    "hunger": 80,
 									    "thirst": 40,
-									    "activeBackground": "PET_BG_1",
+									    "activeBackgroundItemId": 1,
+									    "activeAccessoryItemId": 2,
+									    "petImageUrl": "https://storage.googleapis.com/bucket/pet/baby.png",
+									    "activeBackgroundUrl": "https://storage.googleapis.com/bucket/item/bg.png",
+									    "activeAccessoryUrl": "https://storage.googleapis.com/bucket/item/acc.png",
 									    "foodCount": 2,
 									    "waterCount": 1
 									  }
@@ -120,7 +124,11 @@ public interface PetControllerDocs {
 									    "currentXp": 0,
 									    "hunger": 50,
 									    "thirst": 0,
-									    "activeBackground": null,
+									    "activeBackgroundItemId": 1,
+									    "activeAccessoryItemId": 2,
+									    "petImageUrl": "https://storage.googleapis.com/bucket/pet/egg.png",
+									    "activeBackgroundUrl": "https://storage.googleapis.com/bucket/item/default_bg.png",
+									    "activeAccessoryUrl": "https://storage.googleapis.com/bucket/item/default_acc.png",
 									    "foodCount": 0,
 									    "waterCount": 0
 									  }

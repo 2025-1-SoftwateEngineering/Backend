@@ -1,5 +1,6 @@
 package com.example.vocabook.domain.member.dto.req;
 
+import com.example.vocabook.domain.store.enums.ItemType;
 import com.example.vocabook.domain.voca.enums.ClueType;
 import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotBlank;
@@ -75,5 +76,15 @@ public class AdminReqDTO {
             String clueDescription,
             String wordStartPoint,
             String word
+    ) {}
+
+    // 아이템 생성
+    public record CreateItem(
+            @NotBlank(message = "아이템 이름은 필수입니다.")
+            String name,
+            @NotNull(message = "가격은 필수입니다.")
+            Long price,
+            @NotNull(message = "아이템 타입은 필수입니다.")
+            ItemType itemType
     ) {}
 }

@@ -1,6 +1,8 @@
 package com.example.vocabook.global.util;
 
+import com.example.vocabook.domain.member.code.AdminErrorCode;
 import com.example.vocabook.domain.member.code.MemberErrorCode;
+import com.example.vocabook.domain.member.exception.AdminException;
 import com.example.vocabook.domain.member.exception.MemberException;
 import com.google.cloud.storage.Blob;
 import com.google.cloud.storage.BlobInfo;
@@ -57,7 +59,7 @@ public class GcsUtil {
             case "png" -> "image/png";
             case "jpg", "jpeg" -> "image/jpeg";
             case "svg" -> "image/svg+xml";
-            default -> throw new MemberException(MemberErrorCode.INVADE_PHOTO_TYPE);
+            default -> throw new AdminException(AdminErrorCode.INVADE_PHOTO_TYPE);
         };
     }
 }

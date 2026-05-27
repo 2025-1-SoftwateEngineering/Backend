@@ -11,6 +11,7 @@ import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -37,4 +38,8 @@ public interface MemberItemRepository extends JpaRepository<MemberItem, Long> {
 	long countByMemberAndItem(Member member, Item item);
 
 	long countByMemberAndItem_ItemType(Member member, ItemType itemType);
+
+    List<MemberItem> findByMemberAndItem_ItemTypeIn(Member member, Collection<ItemType> itemItemTypes);
+
+    boolean existsByMemberAndItem(Member member, Item item);
 }

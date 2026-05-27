@@ -127,29 +127,6 @@ public class MemberController implements MemberControllerDocs {
         return ApiResponse.onSuccess(code, memberService.reportMember(auth, memberId, dto));
     }
 
-    // 사진 업로드용 URL 생성
-    @PostMapping("/v1/images")
-    public ApiResponse<MemberResDTO.CreateSignedUri> createSignedUri(
-            @AuthenticationPrincipal AuthMember auth,
-            @RequestParam String fileName,
-            @RequestParam PhotoType photoType
-    ) {
-        BaseSuccessCode code = MemberSuccessCode.CREATE_SIGNED_URI;
-        return ApiResponse.onSuccess(code, memberService.createSignedUri(auth, fileName, photoType));
-    }
-
-    // 사진 업로드 완료
-    @PostMapping("/v1/images/done")
-    public ApiResponse<MemberResDTO.UploadImage> uploadImage(
-            @AuthenticationPrincipal AuthMember auth,
-            @RequestParam String fileName,
-            @RequestParam PhotoType photoType,
-            @RequestParam(required = false) Long targetId
-    ) {
-        BaseSuccessCode code = MemberSuccessCode.UPLOAD_URI;
-        return ApiResponse.onSuccess(code, memberService.uploadImage(auth, fileName, photoType, targetId));
-    }
-
     // 프로필 수정
     @PatchMapping("/v1/members/me")
     public ApiResponse<MemberResDTO.UpdateProfile> updateProfile(

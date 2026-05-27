@@ -27,12 +27,15 @@ public class ItemDataInitializer implements ApplicationRunner {
 			new ItemDef(ItemType.CHOICE_TIME_30,        "사지선다 시간 +30초",   200L),
 			new ItemDef(ItemType.CROSSWORD_HINT_START,  "십자말풀이 시작 힌트",  180L),
 			new ItemDef(ItemType.CROSSWORD_HINT_MIDDLE, "십자말풀이 중간 힌트",  220L),
-			new ItemDef(ItemType.PET_BG_1,              "펫 배경 1",             200L),
-			new ItemDef(ItemType.PET_BG_2,              "펫 배경 2",             500L),
-			new ItemDef(ItemType.PROFILE_PHOTO_1,       "프로필 사진 1",         300L),
-			new ItemDef(ItemType.PROFILE_PHOTO_2,       "프로필 사진 2",         300L),
-			new ItemDef(ItemType.PROFILE_BG_1,          "프로필 배경 1",         200L),
-			new ItemDef(ItemType.PROFILE_BG_2,          "프로필 배경 2",         200L)
+            new ItemDef(ItemType.PET_BG, "기본 펫 배경", 0L),
+			new ItemDef(ItemType.PET_BG,              "펫 배경 1",             200L),
+			new ItemDef(ItemType.PET_BG,              "펫 배경 2",             500L),
+            new ItemDef(ItemType.PROFILE_PHOTO, "기본 프로필 사진", 0L),
+			new ItemDef(ItemType.PROFILE_PHOTO,       "프로필 사진 1",         300L),
+			new ItemDef(ItemType.PROFILE_PHOTO,       "프로필 사진 2",         300L),
+            new ItemDef(ItemType.PROFILE_BG, "기본 프로필 배경", 0L),
+			new ItemDef(ItemType.PROFILE_BG,          "프로필 배경 1",         200L),
+			new ItemDef(ItemType.PROFILE_BG,          "프로필 배경 2",         200L)
 	);
 
 	@Override
@@ -41,12 +44,26 @@ public class ItemDataInitializer implements ApplicationRunner {
 		itemRepository.deleteObsoleteItems();
 
 		for (ItemDef def : ITEM_DEFINITIONS) {
-			if (!itemRepository.existsByItemType(def.type())) {
-				itemRepository.save(Item.builder()
-						.name(def.name())
-						.price(def.price())
-						.itemType(def.type())
-						.build());
+
+			if (!itemRepository.existsByItemTypeAndName(def.type(), def.name())) {
+                Item.ItemBuilder item = Item.builder()
+                        .name(def.name())
+                        .price(def.price())
+                        .itemType(def.type());
+
+                if (def.name().equals("기본 펫 배경")){
+                    item.imageUrl("https://storage.googleapis.com/vocabuddy-storage/pet/default-pet.jpeg");
+                }
+
+                if (def.name().equals("기본 프로필 사진")){
+                    item.imageUrl("https://storage.googleapis.com/vocabuddy-storage/profile/defalut_profile.png");
+                }
+
+                if (def.name().equals("기본 프로필 배경")){
+                    item.imageUrl("https://storage.googleapis.com/vocabuddy-storage/background/default_bg.png");
+                }
+
+				itemRepository.save(item.build());
 			}
 		}
 	}

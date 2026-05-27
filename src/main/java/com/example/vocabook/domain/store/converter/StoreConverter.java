@@ -26,17 +26,17 @@ public class StoreConverter {
 					   .build();
 	}
 
-	public static StoreResDTO.MyItemInfo toMyItemInfo(MemberItem memberItem, Set<ItemType> equippedTypes) {
+	public static StoreResDTO.MyItemInfo toMyItemInfo(MemberItem memberItem, Set<Long> equippedItemIds) {
 		return StoreResDTO.MyItemInfo.builder()
 					   .item(toItemInfo(memberItem.getItem()))
 					   .count(memberItem.getCount())
-					   .isEquipped(equippedTypes.contains(memberItem.getItem().getItemType()))
+					   .isEquipped(equippedItemIds.contains(memberItem.getItem().getId()))
 					   .build();
 	}
 
-	public static StoreResDTO.MyItemList toMyItemList(List<MemberItem> memberItems, Set<ItemType> equippedTypes) {
+	public static StoreResDTO.MyItemList toMyItemList(List<MemberItem> memberItems, Set<Long> equippedItemIds) {
 		return StoreResDTO.MyItemList.builder()
-					   .items(memberItems.stream().map(mi -> toMyItemInfo(mi, equippedTypes)).toList())
+					   .items(memberItems.stream().map(mi -> toMyItemInfo(mi, equippedItemIds)).toList())
 					   .totalCount(memberItems.size())
 					   .build();
 	}
@@ -55,4 +55,16 @@ public class StoreConverter {
 					   .hintResult(hintResult)
 					   .build();
 	}
+
+    public static Item toItem(
+            String name,
+            Long price,
+            ItemType itemType
+    ) {
+        return Item.builder()
+                .name(name)
+                .itemType(itemType)
+                .price(price)
+                .build();
+    }
 }

@@ -44,17 +44,29 @@ class MemberServiceFriendRequestTest {
     @Mock
     private FriendRepository friendRepository;
 
+    @Mock
+    private com.example.vocabook.domain.member.repository.MemberActiveProfileRepository memberActiveProfileRepository;
+
     @InjectMocks
     private MemberService memberService;
 
     private AuthMember authMember;
     private Member myMember;
     private Member friendMember;
+    private Member targetMember;
 
     @BeforeEach
     void setUp() {
-        myMember = Member.builder().id(1L).email("me@example.com").build();
+        myMember = Member.builder()
+                .id(1L)
+                .email("me@example.com")
+                .password("encodedPassword")
+                .refreshToken("oldToken")
+                .build();
         authMember = new AuthMember(myMember);
+        org.mockito.Mockito.lenient().when(memberActiveProfileRepository.findAllByMemberAndItem_ItemTypeIn(org.mockito.ArgumentMatchers.any(Member.class), org.mockito.ArgumentMatchers.anyList()))
+                .thenReturn(java.util.Collections.emptyList());
+        targetMember = Member.builder().id(2L).email("target@example.com").build();
         friendMember = Member.builder().id(2L).email("friend@example.com").build();
     }
 

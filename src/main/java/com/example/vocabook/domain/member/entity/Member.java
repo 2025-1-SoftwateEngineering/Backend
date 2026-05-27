@@ -78,18 +78,6 @@ public class Member extends BaseEntity {
 	@Column(name = "crossword_higher")
 	private Duration crosswordHigher;
 
-	@Column(name = "active_profile_photo")
-	@Enumerated(EnumType.STRING)
-	private ItemType activeProfilePhoto;
-
-	@Column(name = "active_profile_bg")
-	@Enumerated(EnumType.STRING)
-	private ItemType activeProfileBg;
-
-	@Column(name = "profile_url", nullable = false)
-	@Builder.Default
-	private String profileUrl = "https://storage.googleapis.com/vocabuddy-storage/profile/default-profile.png";
-
 	public void updateRefreshToken(String refreshToken) {
 		this.refreshToken = refreshToken;
 	}
@@ -135,18 +123,6 @@ public class Member extends BaseEntity {
 		this.crosswordHigher = higher;
 	}
 
-	public void applyProfileDecoration(ItemType itemType) {
-		if (itemType == ItemType.PROFILE_PHOTO_1 || itemType == ItemType.PROFILE_PHOTO_2) {
-			this.activeProfilePhoto = itemType;
-		} else if (itemType == ItemType.PROFILE_BG_1 || itemType == ItemType.PROFILE_BG_2) {
-			this.activeProfileBg = itemType;
-		}
-	}
-
-	public void updateProfileUrl(String profileUrl) {
-		this.profileUrl = profileUrl;
-	}
-
     public void updateNickname(String nickname) {
         this.nickname = nickname;
     }
@@ -154,6 +130,4 @@ public class Member extends BaseEntity {
     public void updateEmail(String email) {
         this.email = email;
     }
-
-    public void updatePassword(String password) {}
 }
