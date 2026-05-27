@@ -863,4 +863,62 @@ public interface AdminControllerDocs {
     ApiResponse<AdminResDTO.CreateCrossword> createCrosswords(
             @RequestBody @Valid AdminReqDTO.CreateCrossword dto
     );
+
+    @Operation(
+            summary = "사진 업로드용 Signed URL 생성 API",
+            description = """
+                    # 사진 업로드용 Signed URL 생성
+                    클라이언트에서 GCS로 직접 사진을 업로드하기 위한 서명된 URL을 발급받습니다.
+                    
+                    ## 주의 사항
+                    - 관리자 전용 기능입니다.
+                    - photoType은 PROFILE, ITEM, BACKGROUND, PET 중 하나여야 합니다.
+                    """
+    )
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공 예시")
+    })
+    ApiResponse<AdminResDTO.CreateSignedUri> createSignedUri(
+            @RequestParam String fileName,
+            @RequestParam com.example.vocabook.domain.member.enums.PhotoType photoType
+    );
+
+    @Operation(
+            summary = "사진 업로드 완료 API",
+            description = """
+                    # 사진 업로드 완료
+                    GCS에 사진을 업로드한 후, 해당 URL을 DB에 저장합니다.
+                    
+                    ## 주의 사항
+                    - 관리자 전용 기능입니다.
+                    - photoType이 BACKGROUND일 경우, targetId는 PROFILE_BG 또는 PET_BG 타입의 Item ID여야 합니다.
+                    - photoType이 PET일 경우, targetId는 PetImage의 ID여야 합니다.
+                    """
+    )
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공 예시")
+    })
+    ApiResponse<AdminResDTO.UploadImage> uploadImage(
+            @RequestParam String fileName,
+            @RequestParam com.example.vocabook.domain.member.enums.PhotoType photoType,
+            @RequestParam Long targetId
+    );
+
+    @Operation(
+            summary = "상점 아이템 생성 API",
+            description = """
+                    # 상점 아이템 생성
+                    새로운 상점 아이템을 여러 개 생성합니다.
+                    
+                    ## 주의 사항
+                    - 관리자 전용 기능입니다.
+                    - name, price, itemType 필수 입력
+                    """
+    )
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공 예시")
+    })
+    ApiResponse<List<AdminResDTO.CreateItem>> createItem(
+            @RequestBody @Valid List<AdminReqDTO.CreateItem> dto
+    );
 }
