@@ -266,6 +266,118 @@ public class VocaControllerTest {
                 .andExpect(jsonPath("$.result.earnedCoins").value(10));
     }
 
+    @Test
+    @DisplayName("사지선다 문제 목록 조회 성공")
+    void getChoiceList_Success() throws Exception {
+        // given
+        com.example.vocabook.global.apiPayload.dto.PagingResDTO.Cursor<VocaResDTO.GetChoiceList> response = com.example.vocabook.global.apiPayload.dto.PagingResDTO.Cursor.<VocaResDTO.GetChoiceList>builder()
+                .data(List.of())
+                .hasNext(false)
+                .nextCursor("-1")
+                .build();
+        given(vocaService.getChoiceList(any(AuthMember.class), anyString(), anyInt())).willReturn(response);
+
+        // when & then
+        mockMvc.perform(get("/api/v1/choices")
+                        .param("cursor", "0")
+                        .param("pageSize", "10"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.isSuccess").value(true));
+    }
+
+    @Test
+    @DisplayName("사지선다 문제 조회 성공")
+    void getChoice_Success() throws Exception {
+        // given
+        VocaResDTO.GetChoice response = VocaResDTO.GetChoice.builder()
+                .id(1L)
+                .question("apple")
+                .choices(java.util.Collections.emptyList())
+                .build();
+        given(vocaService.getChoice(eq(1L), eq(0L), any(AuthMember.class))).willReturn(response);
+
+        // when & then
+        mockMvc.perform(get("/api/v1/choices/1")
+                        .param("current", "0"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.isSuccess").value(true))
+                .andExpect(jsonPath("$.result.question").value("apple"));
+    }
+
+    @Test
+    @DisplayName("사지선다 정답 제출 성공")
+    void submitChoice_Success() throws Exception {
+        // given
+        VocaResDTO.SubmitChoice response = VocaResDTO.SubmitChoice.builder()
+                .isCorrect(true)
+                .hasNext(false)
+                .build();
+        given(vocaService.submitChoice(any(AuthMember.class), eq(1L), eq(2L), eq(0L))).willReturn(response);
+
+        // when & then
+        mockMvc.perform(post("/api/v1/choices/1/submit")
+                        .param("answer", "2")
+                        .param("current", "0"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.isSuccess").value(true))
+                .andExpect(jsonPath("$.result.isCorrect").value(true));
+    }
+
+    @Test
+    @DisplayName("십자말풀이 목록 조회 성공")
+    void getCrosswordList_Success() throws Exception {
+        // given
+        com.example.vocabook.global.apiPayload.dto.PagingResDTO.Cursor<VocaResDTO.GetCrosswordList> response = com.example.vocabook.global.apiPayload.dto.PagingResDTO.Cursor.<VocaResDTO.GetCrosswordList>builder()
+                .data(List.of())
+                .hasNext(false)
+                .nextCursor("-1")
+                .build();
+        given(vocaService.getCrosswordList(any(AuthMember.class), anyString(), anyInt())).willReturn(response);
+
+        // when & then
+        mockMvc.perform(get("/api/v1/crosswords")
+                        .param("cursor", "0")
+                        .param("pageSize", "10"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.isSuccess").value(true));
+    }
+
+    @Test
+    @DisplayName("십자말풀이 문제 조회 성공")
+    void getCrossword_Success() throws Exception {
+        // given
+        VocaResDTO.GetCrossword response = VocaResDTO.GetCrossword.builder()
+                .N(5)
+                .elements(java.util.Collections.emptyList())
+                .build();
+        given(vocaService.getCrossword(eq(1L), any(AuthMember.class))).willReturn(response);
+
+        // when & then
+        mockMvc.perform(get("/api/v1/crosswords/1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.isSuccess").value(true))
+                .andExpect(jsonPath("$.result.N").value(5));
+    }
+
+    @Test
+    @DisplayName("십자말풀이 정답 제출 성공")
+    void submitCrossword_Success() throws Exception {
+        // given
+        VocaResDTO.SubmitCrossword response = VocaResDTO.SubmitCrossword.builder()
+                .isCorrect(true)
+                .hasNext(false)
+                .build();
+        given(vocaService.submitCrossword(eq(1L), any(AuthMember.class), eq(2L), eq("apple"))).willReturn(response);
+
+        // when & then
+        mockMvc.perform(post("/api/v1/crosswords/1/submit")
+                        .param("crosswordHintId", "2")
+                        .param("answer", "apple"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.isSuccess").value(true))
+                .andExpect(jsonPath("$.result.isCorrect").value(true));
+    }
+
     // ===================== 4xx 케이스 =====================
 
     @Test
