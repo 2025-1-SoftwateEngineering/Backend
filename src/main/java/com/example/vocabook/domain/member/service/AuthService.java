@@ -7,9 +7,13 @@ import com.example.vocabook.domain.member.converter.MemberConverter;
 import com.example.vocabook.domain.member.dto.req.AuthReqDTO;
 import com.example.vocabook.domain.member.dto.res.AuthResDTO;
 import com.example.vocabook.domain.member.entity.Member;
+import com.example.vocabook.domain.member.entity.mapping.MemberActiveProfile;
 import com.example.vocabook.domain.member.exception.AuthException;
 import com.example.vocabook.domain.member.exception.MemberException;
+import com.example.vocabook.domain.member.repository.MemberActiveProfileRepository;
 import com.example.vocabook.domain.member.repository.MemberRepository;
+import com.example.vocabook.domain.store.entity.Item;
+import com.example.vocabook.domain.store.repository.ItemRepository;
 import com.example.vocabook.global.security.entity.AuthMember;
 import com.example.vocabook.global.util.JwtUtil;
 import jakarta.transaction.Transactional;
@@ -26,6 +30,8 @@ public class AuthService {
     private final JwtUtil jwtUtil;
     private final PasswordEncoder passwordEncoder;
     private final MemberRepository memberRepository;
+    private final ItemRepository itemRepository;
+    private final MemberActiveProfileRepository memberActiveProfileRepository;
 
     // 회원가입
     @Transactional
@@ -50,7 +56,16 @@ public class AuthService {
         member.updateRefreshToken(refreshToken);
 
         // 엔티티 저장
-        memberRepository.save(member);
+        member = memberRepository.save(member);
+
+        // 활성 프로필 설정
+        Item defaultProfile = itemRepository.findByName("기본 프로필 사진");
+        Item defaultBg = itemRepository.findByName("기본 프로필 배경");
+        MemberActiveProfile profile = MemberConverter.toMemberActiveProfile(member, defaultProfile);
+        MemberActiveProfile bg = MemberConverter.toMemberActiveProfile(member, defaultBg);
+
+        memberActiveProfileRepository.save(profile);
+        memberActiveProfileRepository.save(bg);
 
         // 응답 DTO 생성
         return AuthConverter.toSignUp(accessToken, refreshToken, refreshExpiration);

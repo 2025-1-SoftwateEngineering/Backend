@@ -1,7 +1,7 @@
 package com.example.vocabook.domain.member.entity.mapping;
 
-import com.example.vocabook.domain.member.entity.ActiveProfile;
 import com.example.vocabook.domain.member.entity.Member;
+import com.example.vocabook.domain.store.entity.Item;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -25,6 +25,8 @@ public class MemberActiveProfile {
     private Member member;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "active_profile_id", nullable = false)
-    private ActiveProfile activeProfile;
+    @JoinColumn(name = "item_id", nullable = false)
+    private Item item;
+
+    public void updateItem(Item item) { this.item = item;}
 }

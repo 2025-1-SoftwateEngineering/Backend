@@ -5,15 +5,19 @@ import com.example.vocabook.domain.member.dto.res.MemberResDTO;
 import com.example.vocabook.domain.member.entity.Friend;
 import com.example.vocabook.domain.member.entity.Member;
 import com.example.vocabook.domain.member.entity.Report;
+import com.example.vocabook.domain.member.entity.mapping.MemberActiveProfile;
 import com.example.vocabook.domain.member.entity.mapping.MemberChoice;
 import com.example.vocabook.domain.member.entity.mapping.MemberCrossword;
+import com.example.vocabook.domain.member.entity.mapping.MemberItem;
 import com.example.vocabook.domain.member.enums.FriendState;
 import com.example.vocabook.domain.member.enums.PhotoType;
+import com.example.vocabook.domain.store.entity.Item;
 import com.example.vocabook.domain.voca.entity.Choice;
 import com.example.vocabook.domain.voca.entity.Crossword;
 import com.google.cloud.storage.Blob;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 public class MemberConverter {
 
@@ -31,7 +35,8 @@ public class MemberConverter {
 
     // 내 프로필 조회
     public static MemberResDTO.MyProfile toMyProfile(
-            Member member
+            Member member,
+            List<MemberResDTO.Image> images
     ) {
         return MemberResDTO.MyProfile.builder()
                 .coin(member.getCoin())
@@ -40,7 +45,7 @@ public class MemberConverter {
                 .totalStudyDays(member.getTotalStudyDays())
                 .nickname(member.getNickname())
                 .authorize(member.getAuthorize())
-                .profileUrl(member.getProfileUrl())
+                .images(images)
                 .build();
     }
 
@@ -149,30 +154,6 @@ public class MemberConverter {
                 .build();
     }
 
-    // 사진 업로드용 URI 생성
-    public static MemberResDTO.CreateSignedUri toCreateSignedUri(
-            String fileName,
-            String url,
-            PhotoType photoType
-    ){
-        return MemberResDTO.CreateSignedUri.builder()
-                .fileName(fileName)
-                .url(url)
-                .photoType(photoType)
-                .build();
-    }
-
-    // 사진 업로드 완료
-    public static MemberResDTO.UploadImage toUploadImage(
-            Blob blob,
-            String publicUrl
-    ) {
-        return MemberResDTO.UploadImage.builder()
-                .uploadAt(blob.getUpdateTimeOffsetDateTime().toLocalDateTime())
-                .publicUrl(publicUrl)
-                .build();
-    }
-
     // 프로필 변경
     public static MemberResDTO.UpdateProfile toUpdateProfile(
             Member member
@@ -192,6 +173,38 @@ public class MemberConverter {
                 .email(friend.getEmail())
                 .nickname(friend.getNickname())
                 .deletedAt(LocalDateTime.now())
+                .build();
+    }
+
+    // 프로필 조회 - 이미지
+    public static MemberResDTO.Image toImage(
+            MemberActiveProfile memberActiveProfile
+    ) {
+        return MemberResDTO.Image.builder()
+                .imageUrl(memberActiveProfile.getItem().getImageUrl())
+                .itemType(memberActiveProfile.getItem().getItemType())
+                .build();
+    }
+
+    // 사용자 아이템
+    public static MemberItem toMemberItem(
+            Member member,
+            Item item
+    ) {
+        return MemberItem.builder()
+                .member(member)
+                .item(item)
+                .build();
+    }
+
+    // 사용자 활성 프로필
+    public static MemberActiveProfile toMemberActiveProfile(
+            Member member,
+            Item item
+    ) {
+        return MemberActiveProfile.builder()
+                .member(member)
+                .item(item)
                 .build();
     }
 }

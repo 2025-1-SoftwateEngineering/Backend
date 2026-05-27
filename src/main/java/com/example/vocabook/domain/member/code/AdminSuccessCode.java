@@ -48,6 +48,15 @@ public enum AdminSuccessCode implements BaseSuccessCode {
     CREATE_CROSSWORD(HttpStatus.OK,
             "ADMIN200_12",
             "성공적으로 십자말풀이를 생성했습니다."),
+    CREATE_SIGNED_URI(HttpStatus.OK,
+            "ADMIN200_13",
+            "성공적으로 Signed URL을 생성했습니다."),
+    UPLOAD_IMAGE(HttpStatus.OK,
+            "ADMIN200_14",
+            "성공적으로 사진을 업로드했습니다."),
+    CREATE_ITEM(HttpStatus.OK,
+            "ADMIN200_15",
+            "성공적으로 아이템을 생성했습니다."),
     ;
 
     private final HttpStatus status;

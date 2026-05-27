@@ -14,7 +14,11 @@ public class PetResDTO {
 			long currentXp,
 			int hunger,
 			int thirst,
-			ItemType activeBackground,
+			Long activeBackgroundItemId,
+			Long activeAccessoryItemId,
+			String petImageUrl,
+			String activeBackgroundUrl,
+			String activeAccessoryUrl,
 			long foodCount,
 			long waterCount
 	) {}

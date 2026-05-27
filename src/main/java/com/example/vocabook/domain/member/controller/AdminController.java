@@ -4,6 +4,7 @@ import com.example.vocabook.domain.member.code.AdminSuccessCode;
 import com.example.vocabook.domain.member.controller.docs.AdminControllerDocs;
 import com.example.vocabook.domain.member.dto.req.AdminReqDTO;
 import com.example.vocabook.domain.member.dto.res.AdminResDTO;
+import com.example.vocabook.domain.member.enums.PhotoType;
 import com.example.vocabook.domain.member.service.AdminService;
 import com.example.vocabook.global.apiPayload.ApiResponse;
 import com.example.vocabook.global.apiPayload.code.BaseSuccessCode;
@@ -140,4 +141,35 @@ public class AdminController implements AdminControllerDocs {
         BaseSuccessCode code = AdminSuccessCode.CREATE_CROSSWORD;
         return ApiResponse.onSuccess(code, adminService.createCrosswords(dto));
     }
+
+    // 사진 업로드용 URL 생성
+    @PostMapping("/v1/images")
+    public ApiResponse<AdminResDTO.CreateSignedUri> createSignedUri(
+            @RequestParam String fileName,
+            @RequestParam PhotoType photoType
+    ) {
+        BaseSuccessCode code = AdminSuccessCode.CREATE_SIGNED_URI;
+        return ApiResponse.onSuccess(code, adminService.createSignedUri(fileName, photoType));
+    }
+
+    // 사진 업로드 완료
+    @PostMapping("/v1/images/done")
+    public ApiResponse<AdminResDTO.UploadImage> uploadImage(
+            @RequestParam String fileName,
+            @RequestParam PhotoType photoType,
+            @RequestParam Long targetId
+    ) {
+        BaseSuccessCode code = AdminSuccessCode.UPLOAD_IMAGE;
+        return ApiResponse.onSuccess(code, adminService.uploadImage(fileName, photoType, targetId));
+    }
+
+    // 아이템 생성
+    @PostMapping("/v1/items")
+    public ApiResponse<List<AdminResDTO.CreateItem>> createItem(
+        @RequestBody @Valid List<AdminReqDTO.CreateItem> dto
+    ){
+        BaseSuccessCode code = AdminSuccessCode.CREATE_ITEM;
+        return ApiResponse.onSuccess(code, adminService.createItem(dto));
+    }
+
 }
