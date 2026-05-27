@@ -528,8 +528,8 @@ public class AdminService {
                 Item item = itemRepository.findById(targetId)
                         .orElseThrow(() -> new AdminException(StoreErrorCode.ITEM_NOT_FOUND));
 
-                // 해당 아이템 종류가 배경화면인지
-                if (!item.getItemType().equals(ItemType.PROFILE_BG)) {
+                // 해당 아이템 종류가 배경화면인지 (프로필 배경이거나 펫 배경)
+                if (!item.getItemType().equals(ItemType.PROFILE_BG) && !item.getItemType().equals(ItemType.PET_BG)) {
                     throw new AdminException(AdminErrorCode.INVADE_PHOTO_TYPE);
                 }
 
