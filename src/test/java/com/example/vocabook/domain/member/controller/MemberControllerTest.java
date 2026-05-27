@@ -246,4 +246,39 @@ class MemberControllerTest {
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());
     }
+
+    @Test
+    @DisplayName("사용자 신고 성공")
+    void reportMember_Success() throws Exception {
+        // given
+        Long targetId = 2L;
+        MemberReqDTO.ReportMember request = new MemberReqDTO.ReportMember(com.example.vocabook.domain.member.enums.ReportReason.OTHER, "Spam message");
+        MemberResDTO.ReportMember response = new MemberResDTO.ReportMember(targetId, "target@example.com", java.time.LocalDateTime.now());
+        
+        given(memberService.reportMember(any(AuthMember.class), eq(targetId), any())).willReturn(response);
+
+        // when & then
+        mockMvc.perform(post("/api/v1/members/{memberId}/report", targetId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.isSuccess").value(true))
+                .andExpect(jsonPath("$.result.id").value(targetId));
+    }
+
+    @Test
+    @DisplayName("친구 삭제 성공")
+    void deleteFriend_Success() throws Exception {
+        // given
+        Long friendId = 2L;
+        MemberResDTO.DeleteFriend response = new MemberResDTO.DeleteFriend(friendId, "Friend", "friend@example.com", java.time.LocalDateTime.now());
+        
+        given(memberService.deleteFriend(any(AuthMember.class), eq(friendId))).willReturn(response);
+
+        // when & then
+        mockMvc.perform(delete("/api/v1/friends/{friendId}", friendId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.isSuccess").value(true))
+                .andExpect(jsonPath("$.result.id").value(friendId));
+    }
 }
