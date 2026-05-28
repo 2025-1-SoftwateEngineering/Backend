@@ -11,6 +11,8 @@ import java.util.Optional;
 
 public interface MemberVocaRepository extends JpaRepository<MemberVoca, Long> {
 
+	void deleteAllByVoca(Voca voca);
+
 	Optional<MemberVoca> findByMemberAndVoca(Member member, Voca voca);
 
 	// 멤버가 학습한 단어장 기록 전체 조회 (N+1 방지)
