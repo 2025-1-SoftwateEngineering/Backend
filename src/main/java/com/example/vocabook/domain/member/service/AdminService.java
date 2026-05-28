@@ -16,6 +16,7 @@ import com.example.vocabook.domain.member.exception.MemberException;
 import com.example.vocabook.domain.member.repository.MemberRepository;
 import com.example.vocabook.domain.member.repository.PetImageRepository;
 import com.example.vocabook.domain.member.repository.ReportRepository;
+import com.example.vocabook.domain.member.repository.MemberVocaRepository;
 import com.example.vocabook.domain.pet.repository.MemberPetRepository;
 import com.example.vocabook.domain.store.code.StoreErrorCode;
 import com.example.vocabook.domain.store.converter.StoreConverter;
@@ -63,6 +64,7 @@ public class AdminService {
     private final CrosswordHintRepository crosswordHintRepository;
     private final GcsUtil gcsUtil;
     private final ItemRepository itemRepository;
+    private final MemberVocaRepository memberVocaRepository;
     private final MemberPetRepository memberPetRepository;
     private final PetImageRepository petImageRepository;
 
@@ -296,6 +298,13 @@ public class AdminService {
     ) {
         Voca voca = vocaRepository.findById(vocaId)
                 .orElseThrow(() -> new AdminException(AdminErrorCode.VOCA_NOT_FOUND));
+
+        // 연관된 단어 Voca 연결 끊기
+        List<Word> words = wordRepository.findByVoca(voca);
+        words.forEach(Word::delete);
+
+        // 연관된 사용자 단어장 학습 기록 삭제
+        memberVocaRepository.deleteAllByVoca(voca);
 
         vocaRepository.delete(voca);
         return AdminConverter.toDeleteVocabulary(vocaId);

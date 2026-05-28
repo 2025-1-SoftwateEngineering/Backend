@@ -15,6 +15,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 @Entity
 @Getter
@@ -76,7 +77,8 @@ public class Member extends BaseEntity {
 	private Long choiceHigher = 0L;
 
 	@Column(name = "crossword_higher")
-	private Duration crosswordHigher;
+    @Builder.Default
+	private Duration crosswordHigher = Duration.ZERO;
 
 	public void updateRefreshToken(String refreshToken) {
 		this.refreshToken = refreshToken;
