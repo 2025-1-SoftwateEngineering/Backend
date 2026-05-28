@@ -19,6 +19,7 @@ import com.example.vocabook.domain.voca.enums.ClueType;
 import com.example.vocabook.domain.voca.entity.Crossword;
 import com.example.vocabook.domain.voca.repository.CrosswordRepository;
 import com.example.vocabook.domain.voca.repository.CrosswordHintRepository;
+import com.example.vocabook.domain.member.repository.MemberVocaRepository;
 
 import java.util.Optional;
 
@@ -36,6 +37,9 @@ public class AdminServiceSuccessTest {
 
     @Mock
     private WordRepository wordRepository;
+
+    @Mock
+    private MemberVocaRepository memberVocaRepository;
 
     @Test
     @DisplayName("단어장 수정 성공")
@@ -61,13 +65,17 @@ public class AdminServiceSuccessTest {
         // given
         Long vocaId = 1L;
         Voca mockVoca = Voca.builder().description("Voca to delete").build();
+        Word mockWord1 = Word.builder().englishWord("apple").meaning("사과").build();
+        Word mockWord2 = Word.builder().englishWord("banana").meaning("바나나").build();
         
         when(vocaRepository.findById(vocaId)).thenReturn(Optional.of(mockVoca));
+        when(wordRepository.findByVoca(mockVoca)).thenReturn(java.util.List.of(mockWord1, mockWord2));
 
         // when
         AdminResDTO.DeleteVocabulary result = adminService.deleteVocabulary(vocaId);
 
         // then
+        verify(memberVocaRepository, times(1)).deleteAllByVoca(mockVoca);
         verify(vocaRepository, times(1)).delete(mockVoca);
         assertThat(result.id()).isEqualTo(vocaId);
     }
