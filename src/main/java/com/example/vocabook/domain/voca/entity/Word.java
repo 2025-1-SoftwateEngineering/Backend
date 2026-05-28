@@ -35,4 +35,8 @@ public class Word {
         }
         this.voca = voca;
     }
+
+    public void delete() {
+        this.voca = null;
+    }
 }
